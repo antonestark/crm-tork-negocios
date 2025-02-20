@@ -9,7 +9,98 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          address: string | null
+          cnpj: string | null
+          company: string
+          contract_date: string
+          created_at: string | null
+          credits: number
+          email: string | null
+          id: string
+          monthly_value: number | null
+          notes: string | null
+          phone: string | null
+          responsible: string
+          room: string
+          status: Database["public"]["Enums"]["client_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          cnpj?: string | null
+          company: string
+          contract_date: string
+          created_at?: string | null
+          credits?: number
+          email?: string | null
+          id?: string
+          monthly_value?: number | null
+          notes?: string | null
+          phone?: string | null
+          responsible: string
+          room: string
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          cnpj?: string | null
+          company?: string
+          contract_date?: string
+          created_at?: string | null
+          credits?: number
+          email?: string | null
+          id?: string
+          monthly_value?: number | null
+          notes?: string | null
+          phone?: string | null
+          responsible?: string
+          room?: string
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      credit_usage: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          date: string
+          duration: number
+          id: string
+          participants: string | null
+          purpose: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          date: string
+          duration: number
+          id?: string
+          participants?: string | null
+          purpose?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          date?: string
+          duration?: number
+          id?: string
+          participants?: string | null
+          purpose?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_usage_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +109,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      client_status: "active" | "inactive"
     }
     CompositeTypes: {
       [_ in never]: never
