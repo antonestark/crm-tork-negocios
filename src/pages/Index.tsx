@@ -4,6 +4,7 @@ import { MetricsGrid } from "@/components/dashboard/MetricsGrid";
 import { TaskPanel } from "@/components/dashboard/TaskPanel";
 import { BookingCalendar } from "@/components/dashboard/Calendar/BookingCalendar";
 import { BookingsList } from "@/components/dashboard/Calendar/BookingsList";
+import { MaintenancePanel } from "@/components/dashboard/MaintenancePanel";
 
 const Index = () => {
   return (
@@ -17,7 +18,7 @@ const Index = () => {
         </div>
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
           <BookingCalendar />
-          {/* Maintenance panel will be added in the next iteration */}
+          <MaintenancePanel />
         </div>
       </main>
     </div>
