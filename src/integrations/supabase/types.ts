@@ -101,6 +101,50 @@ export type Database = {
           },
         ]
       }
+      schedules: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          duration: number
+          end_time: string
+          id: string
+          notes: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["schedule_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          duration: number
+          end_time: string
+          id?: string
+          notes?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["schedule_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          duration?: number
+          end_time?: string
+          id?: string
+          notes?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["schedule_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedules_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -110,6 +154,7 @@ export type Database = {
     }
     Enums: {
       client_status: "active" | "inactive"
+      schedule_status: "available" | "booked" | "cleaning" | "unavailable"
     }
     CompositeTypes: {
       [_ in never]: never
