@@ -101,6 +101,56 @@ export type Database = {
           },
         ]
       }
+      maintenance_records: {
+        Row: {
+          area_id: string | null
+          created_at: string | null
+          id: string
+          last_maintenance_date: string | null
+          next_maintenance_date: string | null
+          notes: string | null
+          responsible: string | null
+          status: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          type: Database["public"]["Enums"]["maintenance_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_maintenance_date?: string | null
+          next_maintenance_date?: string | null
+          notes?: string | null
+          responsible?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          type: Database["public"]["Enums"]["maintenance_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_maintenance_date?: string | null
+          next_maintenance_date?: string | null
+          notes?: string | null
+          responsible?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title?: string
+          type?: Database["public"]["Enums"]["maintenance_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedules: {
         Row: {
           client_id: string | null
@@ -145,6 +195,133 @@ export type Database = {
           },
         ]
       }
+      service_areas: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          type: Database["public"]["Enums"]["area_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          type: Database["public"]["Enums"]["area_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          type?: Database["public"]["Enums"]["area_type"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      service_demands: {
+        Row: {
+          area_id: string | null
+          assigned_to: string | null
+          created_at: string | null
+          deadline: string | null
+          description: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"] | null
+          requester: string
+          resolution_notes: string | null
+          status: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"] | null
+          requester: string
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"] | null
+          requester?: string
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_demands_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_tasks: {
+        Row: {
+          area_id: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          period: Database["public"]["Enums"]["task_period"]
+          responsible: string | null
+          scheduled_time: string
+          status: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          period: Database["public"]["Enums"]["task_period"]
+          responsible?: string | null
+          scheduled_time: string
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          period?: Database["public"]["Enums"]["task_period"]
+          responsible?: string | null
+          scheduled_time?: string
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_tasks_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -153,8 +330,18 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      area_type: "common" | "bathroom" | "private" | "external" | "ac"
       client_status: "active" | "inactive"
+      maintenance_type: "preventive" | "corrective" | "scheduled"
       schedule_status: "available" | "booked" | "cleaning" | "unavailable"
+      task_period: "morning" | "afternoon" | "evening"
+      task_priority: "low" | "medium" | "high" | "urgent"
+      task_status:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "delayed"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
