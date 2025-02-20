@@ -1,12 +1,19 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { Header } from "@/components/layout/Header";
+import { MetricsGrid } from "@/components/dashboard/MetricsGrid";
+import { TaskPanel } from "@/components/dashboard/TaskPanel";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main className="container mx-auto py-6">
+        <MetricsGrid />
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
+          <TaskPanel />
+          {/* Calendar component will be added here in the next iteration */}
+        </div>
+      </main>
     </div>
   );
 };
