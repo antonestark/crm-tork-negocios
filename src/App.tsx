@@ -9,6 +9,11 @@ import Clients from "./pages/Clients";
 import NotFound from "./pages/NotFound";
 import Agendamento from "./pages/Agendamento";
 import ServicesIndex from "./pages/services/Index";
+import AreasPage from "./pages/services/Areas";
+import ChecklistPage from "./pages/services/Checklist";
+import MaintenancePage from "./pages/services/Maintenance";
+import DemandsPage from "./pages/services/Demands";
+import ReportsPage from "./pages/services/Reports";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +28,11 @@ const App = () => (
           <Route path="/clients" element={<Clients />} />
           <Route path="/agendamento" element={<Agendamento />} />
           <Route path="/services" element={<ServicesIndex />} />
+          <Route path="/services/areas" element={<AreasPage />} />
+          <Route path="/services/checklist" element={<ChecklistPage />} />
+          <Route path="/services/maintenance" element={<MaintenancePage />} />
+          <Route path="/services/demands" element={<DemandsPage />} />
+          <Route path="/services/reports" element={<ReportsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
