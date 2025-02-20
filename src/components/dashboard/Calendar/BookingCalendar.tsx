@@ -1,11 +1,10 @@
 
 import { useState } from "react";
 import { addDays, format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Função auxiliar para gerar datas de exemplo
+// Helper function to generate sample dates
 const generateSampleDates = () => {
   const today = new Date();
   const available = Array.from({ length: 5 }, (_, i) => addDays(today, i + 1));
@@ -27,14 +26,13 @@ export const BookingCalendar = () => {
   return (
     <Card className="animate-fade-in h-full">
       <CardHeader>
-        <CardTitle>Calendário de Agendamentos</CardTitle>
+        <CardTitle>Schedule Calendar</CardTitle>
       </CardHeader>
       <CardContent>
         <Calendar
           mode="single"
           selected={date}
           onSelect={setDate}
-          locale={ptBR}
           modifiers={{
             available: (date) => 
               dates.available.includes(format(date, 'yyyy-MM-dd')),
