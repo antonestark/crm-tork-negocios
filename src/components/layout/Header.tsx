@@ -21,22 +21,22 @@ export const Header = () => {
           <Button variant="ghost" size="sm" className="flex items-center" asChild>
             <Link to="/">
               <Home className="h-4 w-4 mr-2" />
-              Início
+              Home
             </Link>
           </Button>
           <Button variant="ghost" size="sm" className="flex items-center" asChild>
             <Link to="/clients">
               <Users className="h-4 w-4 mr-2" />
-              Clientes
+              Clients
             </Link>
           </Button>
           <Button variant="ghost" size="sm" className="flex items-center">
             <Calendar className="h-4 w-4 mr-2" />
-            Agenda
+            Scheduling
           </Button>
           <Button variant="ghost" size="sm" className="flex items-center">
             <FileText className="h-4 w-4 mr-2" />
-            Relatórios
+            Reports
           </Button>
         </nav>
       </div>
@@ -69,11 +69,11 @@ export const Header = () => {
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Settings className="mr-2 h-4 w-4" />
-              <span>Configurações</span>
+              <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuItem className="text-danger">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Sair</span>
+              <span>Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
