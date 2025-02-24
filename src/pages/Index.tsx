@@ -9,14 +9,15 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="container mx-auto py-6 px-4">
+      <main className="container mx-auto py-6">
         <MetricsGrid />
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <BookingCalendar />
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
+          <TaskPanel />
           <BookingsList />
         </div>
-        <div className="mt-6">
-          <TaskPanel />
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
+          <BookingCalendar />
+          {/* Maintenance panel will be added in the next iteration */}
         </div>
       </main>
     </div>
