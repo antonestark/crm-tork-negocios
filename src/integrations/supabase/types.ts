@@ -9,7 +9,298 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string
+          end_time: string
+          id: string
+          non_client_email: string | null
+          non_client_name: string | null
+          non_client_phone: string | null
+          notes: string | null
+          room_id: string
+          start_time: string
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by: string
+          end_time: string
+          id?: string
+          non_client_email?: string | null
+          non_client_name?: string | null
+          non_client_phone?: string | null
+          notes?: string | null
+          room_id: string
+          start_time: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string
+          end_time?: string
+          id?: string
+          non_client_email?: string | null
+          non_client_name?: string | null
+          non_client_phone?: string | null
+          notes?: string | null
+          room_id?: string
+          start_time?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          company_name: string
+          contract_date: string
+          created_at: string
+          created_by: string
+          email: string
+          hours_used: number
+          id: string
+          monthly_hours: number
+          phone: string
+          responsible_name: string
+          room_id: string | null
+          status: Database["public"]["Enums"]["client_status"]
+          updated_at: string
+        }
+        Insert: {
+          company_name: string
+          contract_date: string
+          created_at?: string
+          created_by: string
+          email: string
+          hours_used?: number
+          id?: string
+          monthly_hours?: number
+          phone: string
+          responsible_name: string
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          contract_date?: string
+          created_at?: string
+          created_by?: string
+          email?: string
+          hours_used?: number
+          id?: string
+          monthly_hours?: number
+          phone?: string
+          responsible_name?: string
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departments: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          permissions: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          permissions?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          permissions?: string[] | null
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          company_name: string
+          contact_name: string
+          created_at: string
+          created_by: string
+          email: string
+          id: string
+          last_contact_date: string | null
+          notes: string | null
+          phone: string
+          status: Database["public"]["Enums"]["lead_status"]
+          updated_at: string
+        }
+        Insert: {
+          company_name: string
+          contact_name: string
+          created_at?: string
+          created_by: string
+          email: string
+          id?: string
+          last_contact_date?: string | null
+          notes?: string | null
+          phone: string
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          contact_name?: string
+          created_at?: string
+          created_by?: string
+          email?: string
+          id?: string
+          last_contact_date?: string | null
+          notes?: string | null
+          phone?: string
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          department_id: string | null
+          email: string
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department_id?: string | null
+          email: string
+          id: string
+          name: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department_id?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["room_status"]
+          type: Database["public"]["Enums"]["room_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["room_status"]
+          type: Database["public"]["Enums"]["room_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["room_status"]
+          type?: Database["public"]["Enums"]["room_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          area: Database["public"]["Enums"]["service_area"]
+          assigned_to: string | null
+          completion_date: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["service_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          area: Database["public"]["Enums"]["service_area"]
+          assigned_to?: string | null
+          completion_date?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["service_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          area?: Database["public"]["Enums"]["service_area"]
+          assigned_to?: string | null
+          completion_date?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["service_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +309,25 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      area_type: "common" | "bathroom" | "private" | "external" | "ac"
+      booking_status: "confirmed" | "canceled" | "completed"
+      client_status: "active" | "inactive"
+      lead_status: "qualified" | "disqualified" | "no_response"
+      maintenance_type: "preventive" | "corrective" | "scheduled"
+      room_status: "occupied" | "free"
+      room_type: "private" | "meeting"
+      schedule_status: "available" | "booked" | "cleaning" | "unavailable"
+      service_area: "common" | "private" | "bathroom" | "external" | "ac_filter"
+      service_status: "pending" | "in_progress" | "completed" | "delayed"
+      task_period: "morning" | "afternoon" | "evening"
+      task_priority: "low" | "medium" | "high" | "urgent"
+      task_status:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "delayed"
+        | "cancelled"
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
