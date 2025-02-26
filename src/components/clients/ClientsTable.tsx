@@ -1,5 +1,7 @@
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -24,48 +26,11 @@ import {
   Users, 
   Building2,
   Calendar,
-  Clock
+  Clock,
+  Loader2
 } from "lucide-react";
-
-type Client = {
-  id: string;
-  company: string;
-  responsible: string;
-  room: string;
-  credits: number;
-  status: "active" | "inactive";
-  contractDate: string;
-};
-
-const mockClients: Client[] = [
-  {
-    id: "1",
-    company: "Tech Solutions Ltda",
-    responsible: "João Silva",
-    room: "Sala 101",
-    credits: 4,
-    status: "active",
-    contractDate: "2024-01-15",
-  },
-  {
-    id: "2",
-    company: "Digital Services ME",
-    responsible: "Maria Santos",
-    room: "Sala 102",
-    credits: 2,
-    status: "active",
-    contractDate: "2024-02-01",
-  },
-  {
-    id: "3",
-    company: "Inovação Corp",
-    responsible: "Pedro Costa",
-    room: "Sala 103",
-    credits: 0,
-    status: "inactive",
-    contractDate: "2023-12-01",
-  },
-];
+import type { Client } from "@/types/clients";
+import { useToast } from "@/components/ui/use-toast";
 
 const StatusBadge = ({ status }: { status: Client["status"] }) => {
   const config = {
@@ -82,13 +47,42 @@ const StatusBadge = ({ status }: { status: Client["status"] }) => {
 
 export const ClientsTable = () => {
   const [search, setSearch] = useState("");
-  const [clients] = useState<Client[]>(mockClients);
+  const { toast } = useToast();
 
-  const filteredClients = clients.filter(
+  const { data: clients, isLoading, error } = useQuery({
+    queryKey: ["clients"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .order("company", { ascending: true });
+
+      if (error) {
+        toast({
+          title: "Erro ao carregar clientes",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      return data as Client[];
+    },
+  });
+
+  const filteredClients = clients?.filter(
     (client) =>
       client.company.toLowerCase().includes(search.toLowerCase()) ||
       client.responsible.toLowerCase().includes(search.toLowerCase())
-  );
+  ) ?? [];
+
+  if (error) {
+    return (
+      <div className="text-center py-6 text-danger">
+        Erro ao carregar dados dos clientes.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -122,51 +116,67 @@ export const ClientsTable = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredClients.map((client) => (
-              <TableRow key={client.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-gray-500" />
-                    {client.company}
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>
-                </TableCell>
-                <TableCell>{client.responsible}</TableCell>
-                <TableCell>{client.room}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span>{client.credits}h disponíveis</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={client.status} />
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    {new Date(client.contractDate).toLocaleDateString("pt-BR")}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem className="flex items-center">
-                        <Edit className="mr-2 h-4 w-4" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-danger">
-                        Desativar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : filteredClients.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  Nenhum cliente encontrado.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredClients.map((client) => (
+                <TableRow key={client.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-gray-500" />
+                      {client.company}
+                    </div>
+                  </TableCell>
+                  <TableCell>{client.responsible}</TableCell>
+                  <TableCell>{client.room}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span>{client.credits}h disponíveis</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={client.status} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-500" />
+                      {new Date(client.contract_date).toLocaleDateString("pt-BR")}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem className="flex items-center">
+                          <Edit className="mr-2 h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-danger">
+                          Desativar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
