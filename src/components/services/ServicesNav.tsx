@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { 
   LayoutGrid, 
   CheckSquare, 
-  Tool, 
+  Wrench, 
   FileText, 
   MessageSquare,
   Grid3X3
@@ -30,7 +30,7 @@ const navItems = [
   },
   {
     title: "Manutenções",
-    icon: Tool,
+    icon: Wrench,
     href: "/services/maintenance"
   },
   {
