@@ -2,21 +2,63 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home, Bath, Building2, TreePine, Wind } from "lucide-react";
 
-type AreaCard = {
+type AreaCardProps = {
   title: string;
   icon: React.ElementType;
   tasks: number;
   status: "good" | "warning" | "attention";
+  type: string;
 };
 
-export const ServiceAreas = () => {
-  const areas: AreaCard[] = [
-    { title: "Áreas Comuns", icon: Home, tasks: 12, status: "good" },
-    { title: "Banheiros", icon: Bath, tasks: 8, status: "warning" },
-    { title: "Salas Privativas", icon: Building2, tasks: 15, status: "good" },
-    { title: "Áreas Externas", icon: TreePine, tasks: 6, status: "attention" },
-    { title: "Filtros AC", icon: Wind, tasks: 4, status: "good" },
-  ];
+type ServiceAreasProps = {
+  areasData?: any[];
+};
+
+export const ServiceAreas = ({ areasData }: ServiceAreasProps) => {
+  // Fallback para dados estáticos se não recebermos dados do servidor
+  const getIconForType = (type: string) => {
+    switch (type) {
+      case "bathroom":
+        return Bath;
+      case "private":
+        return Building2;
+      case "external":
+        return TreePine;
+      case "ac":
+        return Wind;
+      default:
+        return Home;
+    }
+  };
+
+  const getStatusForArea = (area: any): "good" | "warning" | "attention" => {
+    // Lógica para determinar o status com base nos dados
+    // Esta é uma lógica de exemplo, ajuste conforme necessário
+    if (area.status !== "active") return "attention";
+    
+    // Se não temos dados de tarefas pendentes, usamos valores fakes de demonstração
+    const pendingTasksPercentage = Math.random();
+    if (pendingTasksPercentage > 0.7) return "attention";
+    if (pendingTasksPercentage > 0.4) return "warning";
+    return "good";
+  };
+
+  // Se temos dados do servidor, usamos eles, senão usamos dados estáticos
+  const areas: AreaCardProps[] = areasData && areasData.length > 0
+    ? areasData.map(area => ({
+        title: area.name,
+        icon: getIconForType(area.type),
+        tasks: Math.floor(Math.random() * 15) + 1, // Número fictício de tarefas para demonstração
+        status: getStatusForArea(area),
+        type: area.type
+      }))
+    : [
+        { title: "Áreas Comuns", icon: Home, tasks: 12, status: "good", type: "common" },
+        { title: "Banheiros", icon: Bath, tasks: 8, status: "warning", type: "bathroom" },
+        { title: "Salas Privativas", icon: Building2, tasks: 15, status: "good", type: "private" },
+        { title: "Áreas Externas", icon: TreePine, tasks: 6, status: "attention", type: "external" },
+        { title: "Filtros AC", icon: Wind, tasks: 4, status: "good", type: "ac" },
+      ];
 
   return (
     <Card>
