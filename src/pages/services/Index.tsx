@@ -4,12 +4,14 @@ import { ServicesHeader } from "@/components/services/ServicesHeader";
 import { ServicesMetrics } from "@/components/services/ServicesMetrics";
 import { ServiceAreas } from "@/components/services/ServiceAreas";
 import { TaskPanel } from "@/components/services/TaskPanel";
+import { ServicesNav } from "@/components/services/ServicesNav";
 
 const ServicesIndex = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="container mx-auto py-6 px-4">
+        <ServicesNav />
         <ServicesHeader />
         <div className="mt-6">
           <ServicesMetrics />

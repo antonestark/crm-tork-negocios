@@ -1,7 +1,7 @@
 
-import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, Home, Users } from "lucide-react";
+import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, Home, Users, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,30 +13,71 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export const Header = () => {
+  const location = useLocation();
+  
+  const isActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  }
+  
   return (
     <header className="w-full px-6 py-4 bg-white border-b flex items-center justify-between animate-fade-in">
       <div className="flex items-center space-x-6">
         <h1 className="text-2xl font-semibold text-primary">Tork Negócios</h1>
         <nav className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" size="sm" className="flex items-center" asChild>
+          <Button 
+            variant={isActive('/') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
             <Link to="/">
               <Home className="h-4 w-4 mr-2" />
               Início
             </Link>
           </Button>
-          <Button variant="ghost" size="sm" className="flex items-center" asChild>
+          <Button 
+            variant={isActive('/clients') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
             <Link to="/clients">
               <Users className="h-4 w-4 mr-2" />
               Clientes
             </Link>
           </Button>
-          <Button variant="ghost" size="sm" className="flex items-center">
-            <Calendar className="h-4 w-4 mr-2" />
-            Agenda
+          <Button 
+            variant={isActive('/agendamento') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/agendamento">
+              <Calendar className="h-4 w-4 mr-2" />
+              Agenda
+            </Link>
           </Button>
-          <Button variant="ghost" size="sm" className="flex items-center">
-            <FileText className="h-4 w-4 mr-2" />
-            Relatórios
+          <Button 
+            variant={isActive('/services') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/services">
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              Serviços
+            </Link>
+          </Button>
+          <Button 
+            variant={isActive('/services/reports') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/services/reports">
+              <FileText className="h-4 w-4 mr-2" />
+              Relatórios
+            </Link>
           </Button>
         </nav>
       </div>

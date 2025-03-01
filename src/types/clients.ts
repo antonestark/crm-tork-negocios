@@ -3,12 +3,14 @@ export type ClientStatus = 'active' | 'inactive';
 
 export interface Client {
   id: string;
-  company: string;
-  responsible: string;
-  room: string;
-  credits: number;
-  status: ClientStatus;
-  contract_date: string;
+  company_name: string;
+  trading_name?: string;
+  responsible?: string;
+  room?: string;
+  meeting_room_credits: number;
+  status: string;
+  contract_start_date: string;
+  contract_end_date: string;
   cnpj?: string;
   address?: string;
   email?: string;

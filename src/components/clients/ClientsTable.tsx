@@ -38,9 +38,11 @@ const StatusBadge = ({ status }: { status: Client["status"] }) => {
     inactive: { label: "Inativo", className: "bg-gray-200 text-gray-700" },
   };
 
+  const badgeConfig = status === 'active' ? config.active : config.inactive;
+
   return (
-    <Badge className={config[status].className}>
-      {config[status].label}
+    <Badge className={badgeConfig.className}>
+      {badgeConfig.label}
     </Badge>
   );
 };
@@ -55,7 +57,7 @@ export const ClientsTable = () => {
       const { data, error } = await supabase
         .from("clients")
         .select("*")
-        .order("company", { ascending: true });
+        .order("company_name", { ascending: true });
 
       if (error) {
         toast({
@@ -72,8 +74,8 @@ export const ClientsTable = () => {
 
   const filteredClients = clients?.filter(
     (client) =>
-      client.company.toLowerCase().includes(search.toLowerCase()) ||
-      client.responsible.toLowerCase().includes(search.toLowerCase())
+      client.company_name.toLowerCase().includes(search.toLowerCase()) ||
+      (client.responsible && client.responsible.toLowerCase().includes(search.toLowerCase()))
   ) ?? [];
 
   if (error) {
@@ -136,15 +138,15 @@ export const ClientsTable = () => {
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-gray-500" />
-                      {client.company}
+                      {client.company_name}
                     </div>
                   </TableCell>
-                  <TableCell>{client.responsible}</TableCell>
-                  <TableCell>{client.room}</TableCell>
+                  <TableCell>{client.responsible || "-"}</TableCell>
+                  <TableCell>{client.room || "-"}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-gray-500" />
-                      <span>{client.credits}h disponíveis</span>
+                      <span>{client.meeting_room_credits}h disponíveis</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -153,7 +155,7 @@ export const ClientsTable = () => {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-gray-500" />
-                      {new Date(client.contract_date).toLocaleDateString("pt-BR")}
+                      {new Date(client.contract_start_date).toLocaleDateString("pt-BR")}
                     </div>
                   </TableCell>
                   <TableCell>

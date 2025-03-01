@@ -7,12 +7,14 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
+import { ServicesNav } from "@/components/services/ServicesNav";
 
 const ChecklistPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="container mx-auto py-6 px-4">
+        <ServicesNav />
         <h2 className="text-3xl font-bold tracking-tight mb-6">Checklist Diário</h2>
         <Card className="p-6">
           <Tabs defaultValue="morning">
