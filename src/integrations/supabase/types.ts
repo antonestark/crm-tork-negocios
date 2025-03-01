@@ -199,12 +199,16 @@ export type Database = {
       }
       demands: {
         Row: {
+          area_id: string | null
           assigned_to: string | null
           client_id: string | null
+          completion_notes: string | null
           created_at: string | null
           description: string | null
           due_date: string | null
+          estimated_time: number | null
           id: string
+          images: string[] | null
           priority: string
           requested_by: string | null
           resolution_comments: string | null
@@ -213,12 +217,16 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          area_id?: string | null
           assigned_to?: string | null
           client_id?: string | null
+          completion_notes?: string | null
           created_at?: string | null
           description?: string | null
           due_date?: string | null
+          estimated_time?: number | null
           id?: string
+          images?: string[] | null
           priority: string
           requested_by?: string | null
           resolution_comments?: string | null
@@ -227,12 +235,16 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          area_id?: string | null
           assigned_to?: string | null
           client_id?: string | null
+          completion_notes?: string | null
           created_at?: string | null
           description?: string | null
           due_date?: string | null
+          estimated_time?: number | null
           id?: string
+          images?: string[] | null
           priority?: string
           requested_by?: string | null
           resolution_comments?: string | null
@@ -241,6 +253,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "demands_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "demands_assigned_to_fkey"
             columns: ["assigned_to"]
@@ -392,6 +411,124 @@ export type Database = {
           },
         ]
       }
+      maintenance_executions: {
+        Row: {
+          created_at: string | null
+          executed_by: string | null
+          execution_date: string
+          id: string
+          images: string[] | null
+          maintenance_id: string | null
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          executed_by?: string | null
+          execution_date: string
+          id?: string
+          images?: string[] | null
+          maintenance_id?: string | null
+          notes?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          executed_by?: string | null
+          execution_date?: string
+          id?: string
+          images?: string[] | null
+          maintenance_id?: string | null
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_executions_executed_by_fkey"
+            columns: ["executed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_executions_maintenance_id_fkey"
+            columns: ["maintenance_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_records: {
+        Row: {
+          area_id: string | null
+          assigned_to: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          last_maintenance: string | null
+          next_maintenance: string | null
+          scheduled_date: string | null
+          status: string | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          last_maintenance?: string | null
+          next_maintenance?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          last_maintenance?: string | null
+          next_maintenance?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_records_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_rooms: {
         Row: {
           capacity: number
@@ -536,20 +673,37 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          responsible_id: string | null
+          status: string
+          type: string
         }
         Insert: {
           created_at?: string | null
           description?: string | null
           id?: string
           name: string
+          responsible_id?: string | null
+          status?: string
+          type?: string
         }
         Update: {
           created_at?: string | null
           description?: string | null
           id?: string
           name?: string
+          responsible_id?: string | null
+          status?: string
+          type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "service_areas_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_checklist_completed: {
         Row: {
@@ -613,9 +767,12 @@ export type Database = {
           created_at: string | null
           custom_days: number | null
           description: string | null
+          expected_time: string | null
           frequency: string | null
           id: string
           name: string
+          period: string
+          priority: string | null
           updated_at: string | null
         }
         Insert: {
@@ -624,9 +781,12 @@ export type Database = {
           created_at?: string | null
           custom_days?: number | null
           description?: string | null
+          expected_time?: string | null
           frequency?: string | null
           id?: string
           name: string
+          period?: string
+          priority?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -635,9 +795,12 @@ export type Database = {
           created_at?: string | null
           custom_days?: number | null
           description?: string | null
+          expected_time?: string | null
           frequency?: string | null
           id?: string
           name?: string
+          period?: string
+          priority?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -646,6 +809,60 @@ export type Database = {
             columns: ["area_id"]
             isOneToOne: false
             referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_reports: {
+        Row: {
+          area_id: string | null
+          average_completion_time: number | null
+          completed_tasks: number | null
+          created_at: string | null
+          created_by: string | null
+          delayed_tasks: number | null
+          id: string
+          notes: string | null
+          pending_tasks: number | null
+          report_date: string
+        }
+        Insert: {
+          area_id?: string | null
+          average_completion_time?: number | null
+          completed_tasks?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          delayed_tasks?: number | null
+          id?: string
+          notes?: string | null
+          pending_tasks?: number | null
+          report_date: string
+        }
+        Update: {
+          area_id?: string | null
+          average_completion_time?: number | null
+          completed_tasks?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          delayed_tasks?: number | null
+          id?: string
+          notes?: string | null
+          pending_tasks?: number | null
+          report_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_reports_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
