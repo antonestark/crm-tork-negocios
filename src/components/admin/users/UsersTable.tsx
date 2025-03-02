@@ -123,25 +123,25 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
     }
   };
   
-  const createUser = async (userData: Partial<User>) => {
+  const createUser = async (formData: Partial<User>) => {
     try {
-      const status = userData.status as UserStatus || 'active';
+      const status = formData.status as UserStatus || 'active';
       
       const newUser: User = {
         id: Date.now().toString(),
-        first_name: userData.first_name || '',
-        last_name: userData.last_name || '',
-        role: userData.role || 'user',
-        active: userData.active !== undefined ? userData.active : true,
+        first_name: formData.first_name || '',
+        last_name: formData.last_name || '',
+        role: formData.role || 'user',
+        active: formData.active !== undefined ? formData.active : true,
         status: status,
-        department_id: userData.department_id || null,
-        phone: userData.phone || null,
-        profile_image_url: userData.profile_image_url || null,
-        last_login: userData.last_login || null,
+        department_id: formData.department_id || null,
+        phone: formData.phone || null,
+        profile_image_url: formData.profile_image_url || null,
+        last_login: formData.last_login || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        settings: userData.settings || {},
-        metadata: userData.metadata || {},
+        settings: formData.settings || {},
+        metadata: formData.metadata || {},
       };
       
       setUsers(prev => [...prev, newUser]);
@@ -152,18 +152,18 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
     }
   };
   
-  const updateUser = async (userData: Partial<User>) => {
+  const updateUser = async (formData: Partial<User>) => {
     try {
-      if (!userData.id) {
+      if (!formData.id) {
         throw new Error('User ID is required');
       }
       
-      const status = userData.status as UserStatus || undefined;
+      const status = formData.status as UserStatus || undefined;
       
       setUsers(prev => prev.map(user => 
-        user.id === userData.id ? { 
+        user.id === formData.id ? { 
           ...user, 
-          ...userData, 
+          ...formData, 
           status: status || user.status,
           updated_at: new Date().toISOString() 
         } : user
@@ -324,7 +324,7 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         <UserDetailsDialog
           open={viewDialogOpen}
           onOpenChange={setViewDialogOpen}
-          user={currentUser}
+          userData={currentUser}
         />
       )}
       
