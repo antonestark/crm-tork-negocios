@@ -1,105 +1,175 @@
 
-import { useState, useEffect } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Key, Clock, Eye } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { UserFormDialog } from "./UserFormDialog";
-import { UserDetailsDialog } from "./UserDetailsDialog";
-import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
-import { toast } from "@/hooks/use-toast";
-import { UserPermissionsDialog } from "./UserPermissionsDialog";
-
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  department_id: string | null;
-  department?: {
-    name: string;
-  };
-  status: string;
-  last_login: string | null;
-  profile_image_url: string | null;
-  phone: string | null;
-  active: boolean;
-}
+import { useState, useEffect } from 'react';
+import { supabase, userAdapter } from '@/integrations/supabase/client';
+import { User } from '@/types/admin';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Pencil, Trash2, Shield, EyeIcon } from 'lucide-react';
+import { UserFilters } from './UserFilters';
+import { UserFormDialog } from './UserFormDialog';
+import { UserPermissionsDialog } from './UserPermissionsDialog';
+import { UserDetailsDialog } from './UserDetailsDialog';
+import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { toast } from 'sonner';
 
 interface UsersTableProps {
-  filters: {
+  filters?: {
     status: string;
     department: string;
     search: string;
   };
 }
 
-export function UsersTable({ filters }: UsersTableProps) {
+export function UsersTable({ filters = { status: 'all', department: 'all', search: '' } }: UsersTableProps) {
   const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-  const [showPermissionsDialog, setShowPermissionsDialog] = useState(false);
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [currentFilters, setCurrentFilters] = useState(filters);
 
   useEffect(() => {
-    async function fetchUsers() {
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [users, currentFilters]);
+
+  const fetchUsers = async () => {
+    try {
       setLoading(true);
       
-      try {
-        let query = supabase
-          .from('users')
-          .select(`
-            *,
-            department:departments(name)
-          `);
-          
-        // Apply filters
-        if (filters.status !== 'all') {
-          if (filters.status === 'active') {
-            query = query.eq('active', true);
-          } else if (filters.status === 'inactive') {
-            query = query.eq('active', false);
-          }
-        }
-        
-        if (filters.department !== 'all') {
-          query = query.eq('department_id', filters.department);
-        }
-        
-        if (filters.search) {
-          query = query.or(`first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%`);
-        }
-        
-        const { data, error } = await query;
-        
-        if (error) {
-          throw error;
-        }
-        
-        setUsers(data || []);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        toast({
-          title: "Erro ao carregar usuários",
-          description: "Ocorreu um erro ao buscar a lista de usuários.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
+      let query = supabase.from('users').select(`
+        *,
+        department:departments(name)
+      `);
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      
+      // Use the adapter to ensure all required fields are present
+      const adaptedData = userAdapter(data || []);
+      setUsers(adaptedData);
+      setFilteredUsers(adaptedData);
+      
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    fetchUsers();
-  }, [filters]);
+  const applyFilters = () => {
+    let result = [...users];
+    
+    // Apply status filter
+    if (currentFilters.status !== 'all') {
+      const activeStatus = currentFilters.status === 'active';
+      result = result.filter(user => user.active === activeStatus);
+    }
+    
+    // Apply department filter
+    if (currentFilters.department !== 'all') {
+      result = result.filter(user => user.department_id === currentFilters.department);
+    }
+    
+    // Apply search filter
+    if (currentFilters.search) {
+      const searchLower = currentFilters.search.toLowerCase();
+      result = result.filter(user => 
+        user.first_name.toLowerCase().includes(searchLower) ||
+        user.last_name.toLowerCase().includes(searchLower) ||
+        (user.phone && user.phone.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    setFilteredUsers(result);
+  };
 
-  const handleDelete = async () => {
+  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+    setCurrentFilters(prev => ({
+      ...prev,
+      ...newFilters
+    }));
+  };
+
+  const handleEdit = (user: User) => {
+    setSelectedUser(user);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (user: User) => {
+    setSelectedUser(user);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleViewPermissions = (user: User) => {
+    setSelectedUser(user);
+    setIsPermissionsOpen(true);
+  };
+
+  const handleViewDetails = (user: User) => {
+    setSelectedUser(user);
+    setIsDetailsOpen(true);
+  };
+
+  const handleSaveUser = async (formData: Partial<User>) => {
+    try {
+      if (selectedUser) {
+        // Update existing user
+        const { error } = await supabase
+          .from('users')
+          .update({
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            role: formData.role,
+            phone: formData.phone,
+            department_id: formData.department_id,
+            active: formData.active,
+            profile_image_url: formData.profile_image_url
+          })
+          .eq('id', selectedUser.id);
+          
+        if (error) throw error;
+        
+        toast.success('User updated successfully');
+      } else {
+        // Create new user
+        const { error } = await supabase
+          .from('users')
+          .insert({
+            id: crypto.randomUUID(), // Generate an ID
+            first_name: formData.first_name || '',
+            last_name: formData.last_name || '',
+            role: formData.role || 'user',
+            phone: formData.phone,
+            department_id: formData.department_id,
+            active: formData.active !== undefined ? formData.active : true,
+            profile_image_url: formData.profile_image_url
+          });
+          
+        if (error) throw error;
+        
+        toast.success('User created successfully');
+      }
+      
+      setIsFormOpen(false);
+      fetchUsers();
+      
+    } catch (error) {
+      console.error('Error saving user:', error);
+      toast.error('Failed to save user');
+    }
+  };
+
+  const handleConfirmDelete = async () => {
     if (!selectedUser) return;
     
     try {
@@ -110,147 +180,94 @@ export function UsersTable({ filters }: UsersTableProps) {
         
       if (error) throw error;
       
-      setUsers(users.filter(user => user.id !== selectedUser.id));
-      toast({
-        title: "Usuário excluído",
-        description: "O usuário foi removido com sucesso."
-      });
+      toast.success('User deleted successfully');
+      setIsDeleteConfirmOpen(false);
+      fetchUsers();
+      
     } catch (error) {
       console.error('Error deleting user:', error);
-      toast({
-        title: "Erro ao excluir",
-        description: "Não foi possível excluir o usuário.",
-        variant: "destructive"
-      });
-    } finally {
-      setShowConfirmDelete(false);
-      setSelectedUser(null);
+      toast.error('Failed to delete user');
     }
-  };
-
-  const getStatusBadge = (status: boolean) => {
-    if (status) {
-      return <Badge variant="default" className="bg-success">Ativo</Badge>;
-    }
-    return <Badge variant="outline" className="text-muted-foreground">Inativo</Badge>;
   };
 
   return (
-    <>
+    <div className="space-y-4">
+      <UserFilters 
+        filters={currentFilters}
+        onFilterChange={handleFilterChange}
+        onAddUser={() => {
+          setSelectedUser(null);
+          setIsFormOpen(true);
+        }}
+      />
+      
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px]">Avatar</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>Função</TableHead>
-              <TableHead>Departamento</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Department</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Último Acesso</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead className="w-[150px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
-              // Loading skeleton
-              Array(5).fill(0).map((_, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-36" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-24" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-32" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-16" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-28" />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Skeleton className="h-10 w-28 ml-auto" />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : users.length === 0 ? (
-              // Empty state
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                  Nenhum usuário encontrado
+                <TableCell colSpan={5} className="text-center py-8">
+                  Loading users...
+                </TableCell>
+              </TableRow>
+            ) : filteredUsers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  No users found
                 </TableCell>
               </TableRow>
             ) : (
-              // Users list
-              users.map((user) => (
-                <TableRow key={user.id} className="group">
+              filteredUsers.map((user) => (
+                <TableRow key={user.id}>
                   <TableCell>
-                    <Avatar>
-                      <AvatarImage src={user.profile_image_url || undefined} alt={`${user.first_name} ${user.last_name}`} />
-                      <AvatarFallback>{`${user.first_name.charAt(0)}${user.last_name.charAt(0)}`}</AvatarFallback>
-                    </Avatar>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {user.first_name} {user.last_name}
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={user.profile_image_url || undefined} />
+                        <AvatarFallback>{`${user.first_name.charAt(0)}${user.last_name.charAt(0)}`}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{`${user.first_name} ${user.last_name}`}</div>
+                        <div className="text-sm text-muted-foreground">{user.phone || 'No phone'}</div>
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell>{user.role}</TableCell>
-                  <TableCell>{user.department?.name || '-'}</TableCell>
-                  <TableCell>{getStatusBadge(user.active)}</TableCell>
                   <TableCell>
-                    {user.last_login 
-                      ? format(new Date(user.last_login), "dd 'de' MMM, yyyy", { locale: ptBR })
-                      : 'Nunca acessou'}
+                    {user.department?.name || 'No department'}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowDetailsDialog(true);
-                        }}
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">Detalhes</span>
+                  <TableCell>
+                    {user.active ? (
+                      <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                        Active
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-muted text-muted-foreground">
+                        Inactive
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleViewDetails(user)}>
+                        <EyeIcon className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowPermissionsDialog(true);
-                        }}
-                      >
-                        <Key className="h-4 w-4" />
-                        <span className="sr-only">Permissões</span>
+                      <Button variant="ghost" size="icon" onClick={() => handleViewPermissions(user)}>
+                        <Shield className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowEditDialog(true);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Editar</span>
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(user)}>
+                        <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowConfirmDelete(true);
-                        }}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(user)}>
                         <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Excluir</span>
                       </Button>
                     </div>
                   </TableCell>
@@ -260,45 +277,41 @@ export function UsersTable({ filters }: UsersTableProps) {
           </TableBody>
         </Table>
       </div>
-
-      {/* User Edit Dialog */}
-      {selectedUser && (
+      
+      {isFormOpen && (
         <UserFormDialog 
-          open={showEditDialog} 
-          onOpenChange={setShowEditDialog}
-          user={selectedUser}
-          onUserUpdated={(updatedUser) => {
-            setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
-          }}
-        />
-      )}
-
-      {/* User Details Dialog */}
-      {selectedUser && (
-        <UserDetailsDialog
-          open={showDetailsDialog}
-          onOpenChange={setShowDetailsDialog}
+          open={true}
+          onOpenChange={setIsFormOpen}
+          onSubmit={handleSaveUser}
           user={selectedUser}
         />
       )}
-
-      {/* User Permissions Dialog */}
-      {selectedUser && (
-        <UserPermissionsDialog
-          open={showPermissionsDialog}
-          onOpenChange={setShowPermissionsDialog}
+      
+      {isPermissionsOpen && selectedUser && (
+        <UserPermissionsDialog 
+          open={true}
+          onOpenChange={setIsPermissionsOpen}
           user={selectedUser}
         />
       )}
-
-      {/* Confirm Delete Dialog */}
-      <ConfirmDialog
-        open={showConfirmDelete}
-        onOpenChange={setShowConfirmDelete}
-        title="Excluir usuário"
-        description={`Tem certeza que deseja excluir o usuário ${selectedUser?.first_name} ${selectedUser?.last_name}? Esta ação não pode ser desfeita.`}
-        onConfirm={handleDelete}
+      
+      {isDetailsOpen && selectedUser && (
+        <UserDetailsDialog 
+          open={true}
+          onOpenChange={setIsDetailsOpen}
+          user={selectedUser}
+        />
+      )}
+      
+      <ConfirmDialog 
+        open={isDeleteConfirmOpen}
+        onOpenChange={setIsDeleteConfirmOpen}
+        onConfirm={handleConfirmDelete}
+        title="Delete User"
+        description={`Are you sure you want to delete ${selectedUser?.first_name} ${selectedUser?.last_name}? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmVariant="destructive"
       />
-    </>
+    </div>
   );
 }

@@ -15,9 +15,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 export const activityLogsAdapter = (data: any[]) => {
   return data.map(log => ({
     ...log,
-    severity: log.severity || null,
-    category: log.category || null,
-    metadata: log.metadata || null
+    severity: log.severity || 'low',
+    category: log.category || 'system',
+    metadata: log.metadata || {}
   }));
 };
 
@@ -122,3 +122,112 @@ export const userPermissionGroupAdapter = (data: any[]) => {
   }));
 };
 
+// Mock data functions for tables that don't exist yet
+export const mockPermissionData = () => {
+  return [
+    {
+      id: '1',
+      code: 'users:read',
+      name: 'View Users',
+      description: 'Can view user list and details',
+      module: 'users',
+      resource_type: 'user',
+      actions: ['read'],
+      created_at: new Date().toISOString(),
+      selected: false
+    },
+    {
+      id: '2',
+      code: 'users:write',
+      name: 'Edit Users',
+      description: 'Can edit user details',
+      module: 'users',
+      resource_type: 'user',
+      actions: ['write'],
+      created_at: new Date().toISOString(),
+      selected: false
+    }
+  ];
+};
+
+export const mockPermissionGroupData = () => {
+  return [
+    {
+      id: '1',
+      name: 'User Management',
+      description: 'Permissions for managing users',
+      is_system: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      selected: false,
+      permissions: []
+    },
+    {
+      id: '2',
+      name: 'Department Management',
+      description: 'Permissions for managing departments',
+      is_system: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      selected: false,
+      permissions: []
+    }
+  ];
+};
+
+export const mockUserPermissionData = () => {
+  return [
+    {
+      id: '1',
+      user_id: '1',
+      permission_id: '1',
+      granted_by: null,
+      valid_until: null,
+      created_at: new Date().toISOString(),
+      permission: null
+    }
+  ];
+};
+
+export const mockUserPermissionGroupData = () => {
+  return [
+    {
+      id: '1',
+      user_id: '1',
+      group_id: '1',
+      created_at: new Date().toISOString(),
+      group: null
+    }
+  ];
+};
+
+export const mockUserDepartmentRoleData = (userId?: string, departmentId?: string) => {
+  return [
+    {
+      id: '1',
+      user_id: userId || '1',
+      department_id: departmentId || '1',
+      role: 'member',
+      start_date: new Date().toISOString(),
+      end_date: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      user: {
+        id: userId || '1',
+        first_name: 'John',
+        last_name: 'Doe',
+        role: 'user',
+        active: true,
+        status: 'active',
+        last_login: null,
+        profile_image_url: null,
+        phone: null,
+        department_id: departmentId || '1',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        settings: {},
+        metadata: {}
+      }
+    }
+  ];
+};

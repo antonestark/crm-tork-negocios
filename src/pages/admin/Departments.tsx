@@ -1,8 +1,8 @@
 
 import { useEffect } from 'react';
-import { AdminNav } from '@/components/admin/AdminNav';
-import DepartmentsView from '@/components/admin/departments/DepartmentsView';
 import { Helmet } from 'react-helmet';
+import { AdminNav } from '@/components/admin/AdminNav';
+import { DepartmentsView } from '@/components/admin/departments/DepartmentsView';
 
 const DepartmentsPage = () => {
   useEffect(() => {

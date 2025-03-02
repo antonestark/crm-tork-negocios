@@ -1,4 +1,3 @@
-
 import { 
   Dialog, 
   DialogContent, 
@@ -23,41 +22,11 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, activityLogsAdapter, mockPermissionData } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  department_id: string | null;
-  department?: {
-    name: string;
-  };
-  phone: string | null;
-  profile_image_url: string | null;
-  active: boolean;
-  last_login: string | null;
-  created_at: string;
-}
-
-interface UserPermission {
-  id: string;
-  name: string;
-  code: string;
-  module: string;
-}
-
-interface ActivityLog {
-  id: string;
-  action: string;
-  entity_type: string;
-  created_at: string;
-  severity: string | null;
-}
+import { ActivityLog, User, UserPermission } from "@/types/admin";
 
 interface UserDetailsDialogProps {
   open: boolean;
@@ -81,22 +50,10 @@ export function UserDetailsDialog({
       setLoading(true);
       
       try {
-        // Fetch user permissions
-        const { data: permissionsData, error: permissionsError } = await supabase
-          .from('user_permissions')
-          .select(`
-            id,
-            permission:permissions(id, name, code, module)
-          `)
-          .eq('user_id', user.id);
-          
-        if (permissionsError) throw permissionsError;
-        
-        const formattedPermissions = permissionsData
-          ?.map(item => item.permission)
-          .filter(Boolean) as UserPermission[] || [];
-        
-        setPermissions(formattedPermissions);
+        // For user_permissions table, we'll use mock data until the table exists
+        // This would normally be a Supabase query
+        const mockPermissionsData = mockPermissionData();
+        setPermissions(mockPermissionsData);
         
         // Fetch user activity logs
         const { data: logsData, error: logsError } = await supabase
@@ -108,7 +65,8 @@ export function UserDetailsDialog({
           
         if (logsError) throw logsError;
         
-        setActivityLogs(logsData || []);
+        // Apply adapter to add missing fields
+        setActivityLogs(activityLogsAdapter(logsData || []));
       } catch (error) {
         console.error('Error fetching user details:', error);
       } finally {
@@ -176,7 +134,7 @@ export function UserDetailsDialog({
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    {user.role} {user.department?.name && `- ${user.department.name}`}
+                    {user.role} {user.department_id && `- Department ID: ${user.department_id}`}
                   </span>
                 </div>
                 
