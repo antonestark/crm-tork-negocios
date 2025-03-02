@@ -5,6 +5,13 @@ import { UsersTable } from '@/components/admin/users/UsersTable';
 import { Helmet } from 'react-helmet';
 
 const UsersPage = () => {
+  // Default filter values
+  const defaultFilters = {
+    status: 'all',
+    department: 'all',
+    search: ''
+  };
+
   useEffect(() => {
     document.title = "Users | Admin";
   }, []);
@@ -16,7 +23,7 @@ const UsersPage = () => {
       </Helmet>
       <AdminNav />
       <div className="mt-6">
-        <UsersTable filters={{}} />
+        <UsersTable filters={defaultFilters} />
       </div>
     </div>
   );

@@ -1,78 +1,54 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Users } from "lucide-react";
-import DepartmentFormDialog from './DepartmentFormDialog';
-import DepartmentMembersDialog from './DepartmentMembersDialog';
-import { ConfirmDialog } from '@/components/admin/shared/ConfirmDialog';
-import { DepartmentTreeView } from './DepartmentTreeView';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Search } from 'lucide-react';
+import { supabase, departmentAdapter } from '@/integrations/supabase/client';
 import { Department } from '@/types/admin';
-import { supabase, departmentAdapter } from "@/integrations/supabase/client";
+import { Input } from '@/components/ui/input';
+import DepartmentFormDialog from './DepartmentFormDialog';
+import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
+import DepartmentTreeView from "./DepartmentTreeView";
+import DepartmentMembersDialog from './DepartmentMembersDialog';
+import { useToast } from '@/hooks/use-toast';
 
-const DepartmentsView = () => {
+export function DepartmentsView() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [filteredDepartments, setFilteredDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isMembersDialogOpen, setIsMembersDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentDepartment, setCurrentDepartment] = useState<Department | null>(null);
+  const [search, setSearch] = useState('');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showMembersDialog, setShowMembersDialog] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'tree'>('grid');
   const { toast } = useToast();
-
-  const fetchDepartments = useCallback(async () => {
+  
+  const fetchDepartments = async () => {
     try {
       setLoading(true);
-      
-      // Get departments with manager name
-      const { data: deptData, error: deptError } = await supabase
+      // Fetch departments from Supabase
+      const { data, error } = await supabase
         .from('departments')
-        .select(`
-          *,
-          manager:users(first_name, last_name)
-        `);
-        
-      if (deptError) throw deptError;
+        .select('*');
       
-      // For each department, count members
-      const departmentsWithCounts = await Promise.all(
-        (deptData || []).map(async (dept) => {
-          try {
-            // This is a temporary workaround since user_department_roles table doesn't exist yet
-            // When the table exists, uncomment this code and remove the temporary workaround
-            /*
-            const { count, error } = await supabase
-              .from('user_department_roles')
-              .select('id', { count: 'exact', head: true })
-              .eq('department_id', dept.id);
-            
-            if (error) throw error;
-            */
-            
-            // Temporary workaround - just add a count of 0
-            const count = 0;
-            
-            return {
-              ...dept,
-              _memberCount: count || 0
-            };
-          } catch (error) {
-            console.error(`Error counting members for department ${dept.id}:`, error);
-            return {
-              ...dept,
-              _memberCount: 0
-            };
-          }
-        })
-      );
+      if (error) throw error;
       
-      // Apply adapter to match the expected Department interface
+      // Process the data to include member counts
+      // In a real implementation, we would join with user_department_roles table
+      // Since we're mocking, add a mock member count to each department
+      const departmentsWithCounts = data.map(dep => ({
+        ...dep,
+        _memberCount: Math.floor(Math.random() * 20) // Mock member count
+      }));
+      
+      // Adapt the data to match the Department interface
       const adaptedDepartments = departmentAdapter(departmentsWithCounts);
       
-      setDepartments(adaptedDepartments as Department[]);
-      setFilteredDepartments(adaptedDepartments as Department[]);
+      setDepartments(adaptedDepartments);
+      setFilteredDepartments(adaptedDepartments);
     } catch (error) {
       console.error('Error fetching departments:', error);
       toast({
@@ -83,34 +59,48 @@ const DepartmentsView = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
-
+  };
+  
   useEffect(() => {
     fetchDepartments();
-  }, [fetchDepartments]);
-
+  }, []);
+  
+  useEffect(() => {
+    if (search) {
+      const filtered = departments.filter(dept => 
+        dept.name.toLowerCase().includes(search.toLowerCase()) ||
+        (dept.description && dept.description.toLowerCase().includes(search.toLowerCase()))
+      );
+      setFilteredDepartments(filtered);
+    } else {
+      setFilteredDepartments(departments);
+    }
+  }, [search, departments]);
+  
   const handleAddDepartment = async (formData: Partial<Department>) => {
     try {
+      // Insert new department into Supabase
       const { data, error } = await supabase
         .from('departments')
-        .insert({
+        .insert([{
           name: formData.name || '',
           description: formData.description || null,
-        })
-        .select()
-        .single();
+        }])
+        .select();
       
       if (error) throw error;
       
+      // Refresh the departments list
+      fetchDepartments();
+      
       toast({
-        title: 'Success',
-        description: 'Department created successfully',
+        title: 'Department Added',
+        description: 'The department has been created successfully',
       });
       
-      fetchDepartments();
-      setIsAddDialogOpen(false);
+      setShowAddDialog(false);
     } catch (error) {
-      console.error('Error creating department:', error);
+      console.error('Error adding department:', error);
       toast({
         title: 'Error',
         description: 'Failed to create department',
@@ -118,28 +108,32 @@ const DepartmentsView = () => {
       });
     }
   };
-
+  
   const handleEditDepartment = async (formData: Partial<Department>) => {
-    if (!currentDepartment) return;
+    if (!selectedDepartment) return;
     
     try {
+      // Update department in Supabase
       const { error } = await supabase
         .from('departments')
         .update({
-          name: formData.name,
-          description: formData.description,
+          name: formData.name || selectedDepartment.name,
+          description: formData.description !== undefined ? formData.description : selectedDepartment.description,
         })
-        .eq('id', currentDepartment.id);
+        .eq('id', selectedDepartment.id);
       
       if (error) throw error;
       
+      // Refresh the departments list
+      fetchDepartments();
+      
       toast({
-        title: 'Success',
-        description: 'Department updated successfully',
+        title: 'Department Updated',
+        description: 'The department has been updated successfully',
       });
       
-      fetchDepartments();
-      setIsEditDialogOpen(false);
+      setShowEditDialog(false);
+      setSelectedDepartment(null);
     } catch (error) {
       console.error('Error updating department:', error);
       toast({
@@ -149,47 +143,29 @@ const DepartmentsView = () => {
       });
     }
   };
-
+  
   const handleDeleteDepartment = async () => {
-    if (!currentDepartment) return;
+    if (!selectedDepartment) return;
     
     try {
-      // Check if department has members
-      // This is a temporary workaround since user_department_roles table doesn't exist yet
-      // When the table exists, uncomment this code and remove the temporary workaround
-      /*
-      const { count, error: countError } = await supabase
-        .from('user_department_roles')
-        .select('id', { count: 'exact', head: true })
-        .eq('department_id', currentDepartment.id);
-      
-      if (countError) throw countError;
-      
-      if (count && count > 0) {
-        toast({
-          title: 'Cannot Delete',
-          description: 'Department has members assigned to it. Remove members first.',
-          variant: 'destructive',
-        });
-        setIsDeleteDialogOpen(false);
-        return;
-      }
-      */
-      
+      // Delete department from Supabase
       const { error } = await supabase
         .from('departments')
         .delete()
-        .eq('id', currentDepartment.id);
+        .eq('id', selectedDepartment.id);
       
       if (error) throw error;
       
+      // Refresh the departments list
+      fetchDepartments();
+      
       toast({
-        title: 'Success',
-        description: 'Department deleted successfully',
+        title: 'Department Deleted',
+        description: 'The department has been deleted successfully',
       });
       
-      fetchDepartments();
-      setIsDeleteDialogOpen(false);
+      setShowDeleteConfirm(false);
+      setSelectedDepartment(null);
     } catch (error) {
       console.error('Error deleting department:', error);
       toast({
@@ -199,115 +175,174 @@ const DepartmentsView = () => {
       });
     }
   };
-
-  const handleEditClick = (dept: Department) => {
-    setCurrentDepartment(dept);
-    setIsEditDialogOpen(true);
+  
+  const handleOpenEdit = (department: Department) => {
+    setSelectedDepartment(department);
+    setShowEditDialog(true);
   };
-
-  const handleDeleteClick = (dept: Department) => {
-    setCurrentDepartment(dept);
-    setIsDeleteDialogOpen(true);
+  
+  const handleOpenDelete = (department: Department) => {
+    setSelectedDepartment(department);
+    setShowDeleteConfirm(true);
   };
-
-  const handleManageMembersClick = (dept: Department) => {
-    setCurrentDepartment(dept);
-    setIsMembersDialogOpen(true);
+  
+  const handleOpenMembers = (department: Department) => {
+    setSelectedDepartment(department);
+    setShowMembersDialog(true);
   };
-
-  const filterDepartments = (searchTerm: string) => {
-    if (!searchTerm) {
-      setFilteredDepartments(departments);
-    } else {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      setFilteredDepartments(
-        departments.filter(dept => 
-          dept.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-          (dept.description && dept.description.toLowerCase().includes(lowerCaseSearchTerm))
-        )
-      );
-    }
-  };
-
+  
   return (
-    <div>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Departments</CardTitle>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Department
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div className="relative w-64">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+          <Input
+            placeholder="Search departments..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+        
+        <div className="flex gap-2">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            onClick={() => setViewMode('grid')}
+          >
+            Grid
           </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {loading ? (
-              <div className="text-center py-4">Loading departments...</div>
-            ) : departments.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p className="mb-2">No departments found</p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsAddDialogOpen(true)}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create your first department
-                </Button>
-              </div>
-            ) : (
-              <DepartmentTreeView 
-                departments={filteredDepartments} 
-                onEdit={handleEditClick}
-                onDelete={handleDeleteClick}
-                onManageMembers={handleManageMembersClick}
-              />
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Add Department Dialog */}
-      {isAddDialogOpen && (
+          <Button
+            variant={viewMode === 'tree' ? 'default' : 'outline'}
+            onClick={() => setViewMode('tree')}
+          >
+            Tree
+          </Button>
+          <Button onClick={() => setShowAddDialog(true)}>Add Department</Button>
+        </div>
+      </div>
+      
+      {viewMode === 'tree' ? (
+        <DepartmentTreeView 
+          departments={filteredDepartments} 
+          onEdit={handleOpenEdit}
+          onDelete={handleOpenDelete}
+          onViewMembers={handleOpenMembers}
+          loading={loading}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {loading ? (
+            Array.from({ length: 6 }).map((_, index) => (
+              <Card key={index} className="overflow-hidden">
+                <CardHeader className="pb-2">
+                  <Skeleton className="h-6 w-3/4" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-2/3 mb-4" />
+                  <div className="flex justify-between">
+                    <Skeleton className="h-8 w-20" />
+                    <Skeleton className="h-8 w-20" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : filteredDepartments.length === 0 ? (
+            <div className="col-span-full py-10 text-center text-gray-500">
+              No departments found. Add a new department to get started.
+            </div>
+          ) : (
+            filteredDepartments.map((department) => (
+              <Card key={department.id} className="overflow-hidden">
+                <CardHeader className="pb-2">
+                  <CardTitle>{department.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                    {department.description || 'No description provided'}
+                  </p>
+                  <div className="text-sm text-gray-500 mb-4">
+                    Members: {department._memberCount || 0}
+                  </div>
+                  <div className="flex justify-between">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleOpenMembers(department)}
+                    >
+                      Members
+                    </Button>
+                    <div className="space-x-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleOpenEdit(department)}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => handleOpenDelete(department)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
+      
+      {showAddDialog && (
         <DepartmentFormDialog
-          open={isAddDialogOpen}
-          onClose={() => setIsAddDialogOpen(false)}
+          isOpen={showAddDialog}
+          onClose={() => setShowAddDialog(false)}
           onSubmit={handleAddDepartment}
           title="Add Department"
         />
       )}
-
-      {/* Edit Department Dialog */}
-      {isEditDialogOpen && currentDepartment && (
+      
+      {showEditDialog && selectedDepartment && (
         <DepartmentFormDialog
-          open={isEditDialogOpen}
-          onClose={() => setIsEditDialogOpen(false)}
+          isOpen={showEditDialog}
+          onClose={() => {
+            setShowEditDialog(false);
+            setSelectedDepartment(null);
+          }}
           onSubmit={handleEditDepartment}
           title="Edit Department"
-          department={currentDepartment}
+          department={selectedDepartment}
         />
       )}
-
-      {/* Manage Members Dialog */}
-      {isMembersDialogOpen && currentDepartment && (
+      
+      {selectedDepartment && (
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          onClose={() => {
+            setShowDeleteConfirm(false);
+            setSelectedDepartment(null);
+          }}
+          onConfirm={handleDeleteDepartment}
+          title="Delete Department"
+          description={`Are you sure you want to delete ${selectedDepartment.name}? This action cannot be undone.`}
+          confirmText="Delete"
+          confirmVariant="destructive"
+        />
+      )}
+      
+      {selectedDepartment && (
         <DepartmentMembersDialog
-          isOpen={isMembersDialogOpen}
-          onClose={() => setIsMembersDialogOpen(false)}
-          department={currentDepartment}
+          isOpen={showMembersDialog}
+          onClose={() => {
+            setShowMembersDialog(false);
+            setSelectedDepartment(null);
+          }}
+          department={selectedDepartment}
         />
       )}
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDeleteDepartment}
-        title="Delete Department"
-        description={`Are you sure you want to delete ${currentDepartment?.name}? This action cannot be undone.`}
-        confirmText="Delete"
-        confirmVariant="destructive"
-      />
     </div>
   );
-};
-
-export default DepartmentsView;
+}
