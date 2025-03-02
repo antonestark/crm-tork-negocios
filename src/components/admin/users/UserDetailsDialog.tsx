@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -17,7 +18,7 @@ import { format } from 'date-fns';
 
 import { User as UserType, ActivityLog, UserPermission } from '@/types/admin';
 import { useToast } from "@/hooks/use-toast";
-import { supabase, userAdapter, activityLogsAdapter, mockUserPermissionData } from "@/integrations/supabase/client";
+import { supabase, userAdapter, activityLogsAdapter, mockUserPermissionData, extractEmail } from "@/integrations/supabase/client";
 
 interface UserDetailsDialogProps {
   open: boolean;
@@ -69,7 +70,7 @@ const UserDetailsDialog = ({ open, onOpenChange, userId }: UserDetailsDialogProp
 
       if (logsError) throw logsError;
 
-      const adaptedLogs = activityLogsAdapter(logsData);
+      const adaptedLogs = activityLogsAdapter(logsData || []);
       setActivityLogs(adaptedLogs);
     } catch (error) {
       console.error('Error fetching user details:', error);
@@ -88,16 +89,16 @@ const UserDetailsDialog = ({ open, onOpenChange, userId }: UserDetailsDialogProp
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', user?.id)
         .single();
 
       if (error) throw error;
 
       // Use mockUserPermissionData since the table doesn't exist yet
-      const mockData = mockUserPermissionData(user.id);
+      const mockData = mockUserPermissionData(user?.id || '');
       setUserPermissions(mockData);
       
-      // Use the success toast but with a valid variant
+      // Use a valid toast variant
       toast({
         title: "Permissions loaded",
         description: "User permissions have been loaded successfully",
@@ -135,7 +136,7 @@ const UserDetailsDialog = ({ open, onOpenChange, userId }: UserDetailsDialogProp
           <h3 className="text-lg font-medium">{user?.first_name} {user?.last_name}</h3>
           <p className="text-sm text-muted-foreground">{user?.role}</p>
           {user?.status === 'active' ? (
-            <Badge variant="success">Active</Badge>
+            <Badge variant="outline">Active</Badge>
           ) : (
             <Badge variant="destructive">{user?.status}</Badge>
           )}
@@ -164,7 +165,7 @@ const UserDetailsDialog = ({ open, onOpenChange, userId }: UserDetailsDialogProp
         <div>
           <div className="text-sm font-bold mb-2">Account Details</div>
           <div className="text-muted-foreground">
-            <div>Email: {user?.metadata?.email || 'N/A'}</div>
+            <div>Email: {user?.metadata ? extractEmail(user.metadata) : 'N/A'}</div>
             <div>Phone: {user?.phone || 'N/A'}</div>
             <div>Status: {user?.status}</div>
           </div>
