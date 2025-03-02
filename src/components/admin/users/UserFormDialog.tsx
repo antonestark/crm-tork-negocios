@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,23 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
-
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  active: boolean;
-  department_id: string | null;
-  phone: string | null;
-  profile_image_url: string | null;
-  created_at: string;
-  updated_at: string;
-  status: string;
-  last_login: string | null;
-  settings: Record<string, any>;
-  metadata: Record<string, any>;
-}
+import { User, UserStatus } from '@/types/admin';
 
 export interface UserFormDialogProps {
   open: boolean;
@@ -101,7 +84,16 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
     setIsSubmitting(true);
     
     try {
-      await onSave(formData);
+      // Ensure status is correctly typed as UserStatus if it exists in formData
+      if (formData.status) {
+        const typedFormData = {
+          ...formData,
+          status: formData.status as UserStatus
+        };
+        await onSave(typedFormData);
+      } else {
+        await onSave(formData);
+      }
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving user:', error);

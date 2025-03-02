@@ -1,13 +1,12 @@
-
 import React from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
-import { Department, User } from '@/types/admin';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { User } from '@/types/admin';
+import { extractEmail } from '@/integrations/supabase/utils';
 
-export interface UserDetailsDialogProps {
+interface UserDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userData: User;
+  userData: User; // This should be 'userData' to match how it's used in UsersTable
 }
 
 const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
@@ -15,60 +14,80 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
   onOpenChange,
   userData
 }) => {
-  if (!userData) return null;
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleString();
+  };
+
+  const email = extractEmail(userData.metadata);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>User Details</DialogTitle>
-          <DialogDescription>
-            Detailed information about this user.
-          </DialogDescription>
         </DialogHeader>
-        <div className="mt-4 space-y-4">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Basic Information</h3>
-            <Separator className="my-2" />
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-sm font-medium">Name:</div>
-              <div className="text-sm">{userData.first_name} {userData.last_name}</div>
-              
-              <div className="text-sm font-medium">Role:</div>
-              <div className="text-sm">{userData.role}</div>
-              
-              <div className="text-sm font-medium">Status:</div>
-              <div className="text-sm">
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  userData.status === 'active' ? 'bg-green-100 text-green-800' : 
-                  userData.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
-                  userData.status === 'blocked' ? 'bg-red-100 text-red-800' :
-                  'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {userData.status}
+        
+        <div className="grid grid-cols-1 gap-4 py-4">
+          <div className="flex items-center space-x-4">
+            {userData.profile_image_url ? (
+              <img 
+                src={userData.profile_image_url} 
+                alt={`${userData.first_name} ${userData.last_name}`}
+                className="h-16 w-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <span className="text-xl font-medium">
+                  {userData.first_name.charAt(0)}{userData.last_name.charAt(0)}
                 </span>
               </div>
-              
-              <div className="text-sm font-medium">Phone:</div>
-              <div className="text-sm">{userData.phone || '-'}</div>
+            )}
+            
+            <div>
+              <h3 className="text-lg font-medium">
+                {userData.first_name} {userData.last_name}
+              </h3>
+              <p className="text-sm text-muted-foreground">{email}</p>
             </div>
           </div>
           
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">System Information</h3>
-            <Separator className="my-2" />
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-sm font-medium">User ID:</div>
-              <div className="text-sm text-xs font-mono">{userData.id}</div>
-              
-              <div className="text-sm font-medium">Last Login:</div>
-              <div className="text-sm">{userData.last_login ? new Date(userData.last_login).toLocaleString() : 'Never'}</div>
-              
-              <div className="text-sm font-medium">Created At:</div>
-              <div className="text-sm">{new Date(userData.created_at).toLocaleString()}</div>
-              
-              <div className="text-sm font-medium">Updated At:</div>
-              <div className="text-sm">{new Date(userData.updated_at).toLocaleString()}</div>
+          <div className="grid grid-cols-2 gap-4 pt-4">
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">Role</h4>
+              <p>{userData.role}</p>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">Department</h4>
+              <p>{userData.department?.name || 'None'}</p>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
+              <p className={`inline-flex px-2 py-1 rounded-full text-xs ${
+                userData.status === 'active' ? 'bg-green-100 text-green-800' : 
+                userData.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                userData.status === 'blocked' ? 'bg-red-100 text-red-800' :
+                'bg-yellow-100 text-yellow-800'
+              }`}>
+                {userData.status}
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">Phone</h4>
+              <p>{userData.phone || 'Not provided'}</p>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">Created</h4>
+              <p>{formatDate(userData.created_at)}</p>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">Last Login</h4>
+              <p>{formatDate(userData.last_login)}</p>
             </div>
           </div>
         </div>

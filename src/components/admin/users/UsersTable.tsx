@@ -125,7 +125,7 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
   
   const createUser = async (formData: Partial<User>) => {
     try {
-      const status = formData.status as UserStatus || 'active';
+      const status = (formData.status as UserStatus) || 'active';
       
       const newUser: User = {
         id: Date.now().toString(),
@@ -158,7 +158,7 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         throw new Error('User ID is required');
       }
       
-      const status = formData.status as UserStatus || undefined;
+      const status = formData.status as UserStatus | undefined;
       
       setUsers(prev => prev.map(user => 
         user.id === formData.id ? { 
