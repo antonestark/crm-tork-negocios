@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusIcon, PencilIcon, Trash2Icon, EyeIcon, KeyRoundIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase, mockUserData } from '@/integrations/supabase/client';
+import { supabase, mockUserData, userAdapter } from '@/integrations/supabase/client';
 import UserFormDialog from './UserFormDialog';
 import UserDetailsDialog from './UserDetailsDialog';
 import { UserPermissionsDialog } from './UserPermissionsDialog';
@@ -125,14 +125,16 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
   
   const createUser = async (userData: Partial<User>) => {
     try {
+      const status = userData.status as UserStatus || 'active';
+      
       const newUser: User = {
         id: Date.now().toString(),
         first_name: userData.first_name || '',
         last_name: userData.last_name || '',
         role: userData.role || 'user',
         active: userData.active !== undefined ? userData.active : true,
-        status: (userData.status as UserStatus) || 'active',
-        department_id: userData.department_id,
+        status: status,
+        department_id: userData.department_id || null,
         phone: userData.phone || null,
         profile_image_url: userData.profile_image_url || null,
         last_login: userData.last_login || null,
@@ -156,8 +158,15 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         throw new Error('User ID is required');
       }
       
+      const status = userData.status as UserStatus || undefined;
+      
       setUsers(prev => prev.map(user => 
-        user.id === userData.id ? { ...user, ...userData, updated_at: new Date().toISOString() } : user
+        user.id === userData.id ? { 
+          ...user, 
+          ...userData, 
+          status: status || user.status,
+          updated_at: new Date().toISOString() 
+        } : user
       ));
       
       toast.success('User updated successfully');
@@ -298,7 +307,7 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         <UserFormDialog
           open={addDialogOpen}
           onOpenChange={setAddDialogOpen}
-          onSave={(formData: Partial<User>) => createUser(formData)}
+          onSave={createUser}
         />
       )}
       
@@ -307,7 +316,7 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           user={currentUser}
-          onSave={(formData: Partial<User>) => updateUser(formData)}
+          onSave={updateUser}
         />
       )}
       
@@ -315,7 +324,7 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         <UserDetailsDialog
           open={viewDialogOpen}
           onOpenChange={setViewDialogOpen}
-          userData={currentUser}
+          user={currentUser}
         />
       )}
       
