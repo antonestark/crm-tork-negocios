@@ -253,32 +253,32 @@ export const mockUserData = (): User[] => {
       first_name: 'John',
       last_name: 'Doe',
       role: 'admin',
-      active: true,
-      status: 'active' as UserStatus,
       department_id: '1',
-      phone: '555-123-4567',
+      phone: '123-456-7890',
       profile_image_url: null,
-      last_login: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      active: true,
+      status: 'active',
+      last_login: new Date().toISOString(),
       settings: {},
-      metadata: {}
+      metadata: {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
     {
       id: '2',
       first_name: 'Jane',
       last_name: 'Smith',
       role: 'user',
-      active: true,
-      status: 'active' as UserStatus,
       department_id: '2',
-      phone: '555-987-6543',
+      phone: '987-654-3210',
       profile_image_url: null,
-      last_login: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      active: true,
+      status: 'active',
+      last_login: new Date().toISOString(),
       settings: {},
-      metadata: {}
+      metadata: {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }
   ];
 };

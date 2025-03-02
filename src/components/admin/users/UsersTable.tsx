@@ -1,11 +1,10 @@
-
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusIcon, PencilIcon, Trash2Icon, EyeIcon, KeyRoundIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase, userAdapter, mockUserData } from '@/integrations/supabase/client';
-import { UserFormDialog } from './UserFormDialog';
-import { UserDetailsDialog } from './UserDetailsDialog';
+import { supabase, mockUserData } from '@/integrations/supabase/client';
+import UserFormDialog from './UserFormDialog';
+import UserDetailsDialog from './UserDetailsDialog';
 import { UserPermissionsDialog } from './UserPermissionsDialog';
 import { UserFilters } from './UserFilters';
 import { ConfirmDialog } from '@/components/admin/shared/ConfirmDialog';
@@ -25,7 +24,6 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(initialFilters);
   
-  // Dialog states
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -33,7 +31,6 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
   
-  // Status filter
   const handleStatusChange = (status: string) => {
     setFilters({
       ...filters,
@@ -41,7 +38,6 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
     });
   };
   
-  // Department filter
   const handleDepartmentChange = (department: string) => {
     setFilters({
       ...filters,
@@ -49,7 +45,6 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
     });
   };
   
-  // Search filter
   const handleSearchChange = (search: string) => {
     setFilters({
       ...filters,
@@ -57,15 +52,11 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
     });
   };
   
-  // Fetch users from the database
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      // In a real app, this would call the Supabase API
-      // For now, just use mock data
       const mockUsers = mockUserData();
       
-      // Apply filters
       let filteredUsers = [...mockUsers];
       
       if (filters.status !== 'all') {
@@ -97,11 +88,8 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
     }
   };
   
-  // Fetch departments
   const fetchDepartments = async () => {
     try {
-      // In a real app, this would call the Supabase API
-      // For this example, just return mock departments
       setDepartments([
         { 
           id: '1', 
@@ -135,15 +123,10 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
     }
   };
   
-  // Create a new user
   const createUser = async (userData: Partial<User>) => {
     try {
-      // In a real app, this would call the Supabase API
-      // For now, just add to the local state
-      
-      // Ensure required fields are set and status is a valid UserStatus
       const newUser: User = {
-        id: Date.now().toString(), // Generate a temporary ID
+        id: Date.now().toString(),
         first_name: userData.first_name || '',
         last_name: userData.last_name || '',
         role: userData.role || 'user',
@@ -167,11 +150,8 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
     }
   };
   
-  // Update a user
   const updateUser = async (userData: Partial<User>) => {
     try {
-      // In a real app, this would call the Supabase API
-      // For now, just update the local state
       if (!userData.id) {
         throw new Error('User ID is required');
       }
@@ -187,11 +167,8 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
     }
   };
   
-  // Delete a user
   const deleteUser = async (userId: string) => {
     try {
-      // In a real app, this would call the Supabase API
-      // For now, just remove from the local state
       setUsers(prev => prev.filter(user => user.id !== userId));
       toast.success('User deleted successfully');
     } catch (error: any) {
@@ -200,36 +177,30 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
     }
   };
   
-  // Initial load
   useEffect(() => {
     fetchUsers();
     fetchDepartments();
   }, []);
   
-  // Re-fetch when filters change
   useEffect(() => {
     fetchUsers();
   }, [filters]);
   
-  // Handle opening the edit dialog
   const handleEditClick = (user: User) => {
     setCurrentUser(user);
     setEditDialogOpen(true);
   };
   
-  // Handle opening the view dialog
   const handleViewClick = (user: User) => {
     setCurrentUser(user);
     setViewDialogOpen(true);
   };
   
-  // Handle opening the delete confirmation
   const handleDeleteClick = (user: User) => {
     setCurrentUser(user);
     setConfirmDeleteOpen(true);
   };
   
-  // Handle opening the permissions dialog
   const handlePermissionsClick = (user: User) => {
     setCurrentUser(user);
     setPermissionsDialogOpen(true);
@@ -249,7 +220,6 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         status={filters.status}
         department={filters.department}
         search={filters.search}
-        departments={departments}
         onStatusChange={handleStatusChange}
         onDepartmentChange={handleDepartmentChange}
         onSearchChange={handleSearchChange}
@@ -324,7 +294,6 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         </table>
       </div>
       
-      {/* Add User Dialog */}
       {addDialogOpen && (
         <UserFormDialog
           open={addDialogOpen}
@@ -333,7 +302,6 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         />
       )}
       
-      {/* Edit User Dialog */}
       {editDialogOpen && currentUser && (
         <UserFormDialog
           open={editDialogOpen}
@@ -343,7 +311,6 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         />
       )}
       
-      {/* View User Dialog */}
       {viewDialogOpen && currentUser && (
         <UserDetailsDialog
           open={viewDialogOpen}
@@ -352,7 +319,6 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         />
       )}
       
-      {/* Delete Confirmation Dialog */}
       {confirmDeleteOpen && currentUser && (
         <ConfirmDialog
           open={confirmDeleteOpen}
@@ -360,10 +326,11 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
           title="Delete User"
           description={`Are you sure you want to delete ${currentUser.first_name} ${currentUser.last_name}? This action cannot be undone.`}
           onConfirm={() => deleteUser(currentUser.id)}
+          confirmText="Delete"
+          variant="destructive"
         />
       )}
       
-      {/* User Permissions Dialog */}
       {permissionsDialogOpen && currentUser && (
         <UserPermissionsDialog
           open={permissionsDialogOpen}
