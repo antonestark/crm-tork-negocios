@@ -9,9 +9,10 @@ import {
 import { Input } from '@/components/ui/input';
 import DepartmentTreeView from './DepartmentTreeView';
 import { ConfirmDialog } from '@/components/admin/shared/ConfirmDialog';
-import { DepartmentFormDialog } from './DepartmentFormDialog';
-import { DepartmentMembersDialog } from './DepartmentMembersDialog';
+import DepartmentFormDialog from './DepartmentFormDialog';
+import DepartmentMembersDialog from './DepartmentMembersDialog';
 import { Department } from '@/types/admin';
+import { useToast } from '@/hooks/use-toast';
 
 export const DepartmentsView = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -24,6 +25,7 @@ export const DepartmentsView = () => {
   const [isMembersDialogOpen, setIsMembersDialogOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchDepartments();
@@ -69,6 +71,11 @@ export const DepartmentsView = () => {
       setFilteredDepartments(adaptedData);
     } catch (error) {
       console.error('Error fetching departments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load departments",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -106,6 +113,10 @@ export const DepartmentsView = () => {
           
         if (error) throw error;
         setIsAddDialogOpen(false);
+        toast({
+          title: "Success",
+          description: "Department added successfully"
+        });
       } else if (isEditDialogOpen && selectedDepartment) {
         const { data, error } = await supabase
           .from('departments')
@@ -117,11 +128,20 @@ export const DepartmentsView = () => {
           
         if (error) throw error;
         setIsEditDialogOpen(false);
+        toast({
+          title: "Success",
+          description: "Department updated successfully"
+        });
       }
       
       fetchDepartments();
     } catch (error) {
       console.error('Error saving department:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save department",
+        variant: "destructive"
+      });
     }
   };
 
@@ -134,7 +154,11 @@ export const DepartmentsView = () => {
       const mockData = mockUserDepartmentRoleData(undefined, selectedDepartment.id);
       
       if (mockData.length > 0) {
-        alert('Cannot delete a department with members. Please remove all members first.');
+        toast({
+          title: "Cannot Delete",
+          description: "Cannot delete a department with members. Please remove all members first.",
+          variant: "destructive"
+        });
         setIsConfirmDialogOpen(false);
         return;
       }
@@ -148,9 +172,18 @@ export const DepartmentsView = () => {
       if (error) throw error;
       
       setIsConfirmDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Department deleted successfully"
+      });
       fetchDepartments();
     } catch (error) {
       console.error('Error deleting department:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete department",
+        variant: "destructive"
+      });
     }
   };
 
@@ -194,10 +227,7 @@ export const DepartmentsView = () => {
 
       {viewMode === 'tree' ? (
         <DepartmentTreeView 
-          departments={departmentsToDisplay} 
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onViewMembers={handleViewMembers}
+          departments={departmentsToDisplay}
           loading={loading}
         />
       ) : (
@@ -253,20 +283,20 @@ export const DepartmentsView = () => {
 
       {isAddDialogOpen && (
         <DepartmentFormDialog
-          open={true}
-          onOpenChange={(open) => setIsAddDialogOpen(open)}
-          onSubmit={handleFormSubmit}
-          title="Add Department"
+          isOpen={true}
+          onClose={() => setIsAddDialogOpen(false)}
+          onSave={handleFormSubmit}
+          departments={departments}
         />
       )}
 
       {isEditDialogOpen && selectedDepartment && (
         <DepartmentFormDialog
-          open={true}
-          onOpenChange={(open) => setIsEditDialogOpen(open)}
-          onSubmit={handleFormSubmit}
-          title="Edit Department"
+          isOpen={true}
+          onClose={() => setIsEditDialogOpen(false)}
+          onSave={handleFormSubmit}
           department={selectedDepartment}
+          departments={departments}
         />
       )}
 
@@ -277,13 +307,12 @@ export const DepartmentsView = () => {
         title="Delete Department"
         description={`Are you sure you want to delete ${selectedDepartment?.name}? This action cannot be undone.`}
         confirmText="Delete"
-        confirmVariant="destructive"
       />
 
       {isMembersDialogOpen && selectedDepartment && (
         <DepartmentMembersDialog
-          open={true}
-          onOpenChange={(open) => setIsMembersDialogOpen(open)}
+          isOpen={true}
+          onClose={() => setIsMembersDialogOpen(false)}
           departmentId={selectedDepartment.id}
           departmentName={selectedDepartment.name}
         />

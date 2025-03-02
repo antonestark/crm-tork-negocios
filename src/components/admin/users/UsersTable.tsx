@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { supabase, userAdapter } from '@/integrations/supabase/client';
 import { User } from '@/types/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Shield, EyeIcon } from 'lucide-react';
+import { Pencil, Trash2, Shield, EyeIcon, Plus } from 'lucide-react';
 import { UserFilters } from './UserFilters';
 import { UserFormDialog } from './UserFormDialog';
 import { UserPermissionsDialog } from './UserPermissionsDialog';
@@ -12,7 +11,7 @@ import { UserDetailsDialog } from './UserDetailsDialog';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { toast } from 'sonner';
+import { useToast } from 'sonner';
 
 interface UsersTableProps {
   filters?: {
@@ -22,67 +21,80 @@ interface UsersTableProps {
   };
 }
 
-export function UsersTable({ filters = { status: 'all', department: 'all', search: '' } }: UsersTableProps) {
+export const UsersTable = ({ filters: initialFilters }: UsersTableProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [filters, setFilters] = useState(initialFilters);
   const [loading, setLoading] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [currentFilters, setCurrentFilters] = useState(filters);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchUsers();
+    fetchDepartments();
   }, []);
 
   useEffect(() => {
     applyFilters();
-  }, [users, currentFilters]);
+  }, [filters, users]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      
-      let query = supabase.from('users').select(`
-        *,
-        department:departments(name)
-      `);
-      
-      const { data, error } = await query;
+      const { data, error } = await supabase
+        .from('users')
+        .select('*, departments:department_id(*)');
       
       if (error) throw error;
-      
-      // Use the adapter to ensure all required fields are present
-      const adaptedData = userAdapter(data || []);
-      setUsers(adaptedData);
-      setFilteredUsers(adaptedData);
-      
+
+      const adaptedUsers = userAdapter(data);
+      setUsers(adaptedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load users',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('departments')
+        .select('*');
+      
+      if (error) throw error;
+
+      setDepartments(data);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
     }
   };
 
   const applyFilters = () => {
     let result = [...users];
     
-    // Apply status filter
-    if (currentFilters.status !== 'all') {
-      const activeStatus = currentFilters.status === 'active';
+    if (filters.status !== 'all') {
+      const activeStatus = filters.status === 'active';
       result = result.filter(user => user.active === activeStatus);
     }
     
-    // Apply department filter
-    if (currentFilters.department !== 'all') {
-      result = result.filter(user => user.department_id === currentFilters.department);
+    if (filters.department !== 'all') {
+      result = result.filter(user => user.department_id === filters.department);
     }
     
-    // Apply search filter
-    if (currentFilters.search) {
-      const searchLower = currentFilters.search.toLowerCase();
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
       result = result.filter(user => 
         user.first_name.toLowerCase().includes(searchLower) ||
         user.last_name.toLowerCase().includes(searchLower) ||
@@ -94,36 +106,40 @@ export function UsersTable({ filters = { status: 'all', department: 'all', searc
   };
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setCurrentFilters(prev => ({
+    setFilters(prev => ({
       ...prev,
       ...newFilters
     }));
   };
 
+  const handleAddUser = () => {
+    setSelectedUser(null);
+    setIsAddDialogOpen(true);
+  };
+
   const handleEdit = (user: User) => {
     setSelectedUser(user);
-    setIsFormOpen(true);
+    setIsEditDialogOpen(true);
   };
 
   const handleDelete = (user: User) => {
     setSelectedUser(user);
-    setIsDeleteConfirmOpen(true);
+    setIsConfirmDialogOpen(true);
   };
 
   const handleViewPermissions = (user: User) => {
     setSelectedUser(user);
-    setIsPermissionsOpen(true);
+    setIsPermissionsDialogOpen(true);
   };
 
   const handleViewDetails = (user: User) => {
     setSelectedUser(user);
-    setIsDetailsOpen(true);
+    setIsDetailsDialogOpen(true);
   };
 
-  const handleSaveUser = async (formData: Partial<User>) => {
+  const handleFormSubmit = async (formData: Partial<User>) => {
     try {
       if (selectedUser) {
-        // Update existing user
         const { error } = await supabase
           .from('users')
           .update({
@@ -141,11 +157,10 @@ export function UsersTable({ filters = { status: 'all', department: 'all', searc
         
         toast.success('User updated successfully');
       } else {
-        // Create new user
         const { error } = await supabase
           .from('users')
           .insert({
-            id: crypto.randomUUID(), // Generate an ID
+            id: crypto.randomUUID(),
             first_name: formData.first_name || '',
             last_name: formData.last_name || '',
             role: formData.role || 'user',
@@ -160,7 +175,7 @@ export function UsersTable({ filters = { status: 'all', department: 'all', searc
         toast.success('User created successfully');
       }
       
-      setIsFormOpen(false);
+      setIsEditDialogOpen(false);
       fetchUsers();
       
     } catch (error) {
@@ -181,7 +196,7 @@ export function UsersTable({ filters = { status: 'all', department: 'all', searc
       if (error) throw error;
       
       toast.success('User deleted successfully');
-      setIsDeleteConfirmOpen(false);
+      setIsConfirmDialogOpen(false);
       fetchUsers();
       
     } catch (error) {
@@ -192,15 +207,21 @@ export function UsersTable({ filters = { status: 'all', department: 'all', searc
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Users</h2>
+        <Button onClick={handleAddUser}>
+          <Plus className="mr-2 h-4 w-4" /> Add User
+        </Button>
+      </div>
+
       <UserFilters 
-        filters={currentFilters}
-        onFilterChange={handleFilterChange}
-        onAddUser={() => {
-          setSelectedUser(null);
-          setIsFormOpen(true);
-        }}
+        filters={filters}
+        departments={departments}
+        onStatusChange={(status) => handleFilterChange({ status })}
+        onDepartmentChange={(department) => handleFilterChange({ department })}
+        onSearchChange={(search) => handleFilterChange({ search })}
       />
-      
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -277,41 +298,50 @@ export function UsersTable({ filters = { status: 'all', department: 'all', searc
           </TableBody>
         </Table>
       </div>
-      
-      {isFormOpen && (
+
+      {isAddDialogOpen && (
         <UserFormDialog 
-          open={true}
-          onOpenChange={setIsFormOpen}
-          onSubmit={handleSaveUser}
-          user={selectedUser}
+          open={true} 
+          onOpenChange={setIsAddDialogOpen}
+          departments={departments}
+          onSave={handleFormSubmit}
         />
       )}
-      
-      {isPermissionsOpen && selectedUser && (
-        <UserPermissionsDialog 
-          open={true}
-          onOpenChange={setIsPermissionsOpen}
+
+      {isEditDialogOpen && selectedUser && (
+        <UserFormDialog 
+          open={true} 
+          onOpenChange={setIsEditDialogOpen}
+          departments={departments}
           user={selectedUser}
+          onSave={handleFormSubmit}
         />
       )}
-      
-      {isDetailsOpen && selectedUser && (
-        <UserDetailsDialog 
-          open={true}
-          onOpenChange={setIsDetailsOpen}
-          user={selectedUser}
-        />
-      )}
-      
-      <ConfirmDialog 
-        open={isDeleteConfirmOpen}
-        onOpenChange={setIsDeleteConfirmOpen}
+
+      <ConfirmDialog
+        open={isConfirmDialogOpen}
+        onOpenChange={setIsConfirmDialogOpen}
         onConfirm={handleConfirmDelete}
         title="Delete User"
         description={`Are you sure you want to delete ${selectedUser?.first_name} ${selectedUser?.last_name}? This action cannot be undone.`}
         confirmText="Delete"
-        confirmVariant="destructive"
       />
+
+      {isDetailsDialogOpen && selectedUser && (
+        <UserDetailsDialog 
+          open={true}
+          onOpenChange={setIsDetailsDialogOpen}
+          user={selectedUser}
+        />
+      )}
+
+      {isPermissionsDialogOpen && selectedUser && (
+        <UserPermissionsDialog 
+          open={true}
+          onOpenChange={setIsPermissionsDialogOpen}
+          user={selectedUser}
+        />
+      )}
     </div>
   );
-}
+};

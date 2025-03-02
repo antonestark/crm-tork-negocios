@@ -1,272 +1,240 @@
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { 
-  Calendar, 
-  Briefcase, 
-  Phone, 
-  Mail, 
-  Clock, 
-  Shield, 
-  CheckCircle, 
-  XCircle 
-} from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { useEffect, useState } from "react";
-import { supabase, activityLogsAdapter, mockPermissionData } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ActivityLog, User, UserPermission } from "@/types/admin";
+import { CalendarIcon, ShieldCheck, Users, User, Activity } from "lucide-react";
+import { format } from 'date-fns';
+
+import { User as UserType, ActivityLog, UserPermission } from '@/types/admin';
+import { useToast } from "@/hooks/use-toast";
+import { supabase, userAdapter, activityLogsAdapter, mockUserPermissionData } from "@/integrations/supabase/client";
 
 interface UserDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user: User;
+  userId: string;
 }
 
-export function UserDetailsDialog({ 
-  open, 
-  onOpenChange, 
-  user
-}: UserDetailsDialogProps) {
-  const [permissions, setPermissions] = useState<UserPermission[]>([]);
+const UserDetailsDialog = ({ open, onOpenChange, userId }: UserDetailsDialogProps) => {
+  const [user, setUser] = useState<UserType | null>(null);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [userPermissions, setUserPermissions] = useState<UserPermission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("details");
+  const { toast } = useToast();
 
   useEffect(() => {
-    async function fetchUserDetails() {
-      if (!open || !user) return;
-      
+    if (open && userId) {
+      fetchUserDetails();
+    }
+  }, [open, userId]);
+
+  const fetchUserDetails = async () => {
+    try {
       setLoading(true);
-      
-      try {
-        // For user_permissions table, we'll use mock data until the table exists
-        // This would normally be a Supabase query
-        const mockPermissionsData = mockPermissionData();
-        setPermissions(mockPermissionsData);
-        
-        // Fetch user activity logs
-        const { data: logsData, error: logsError } = await supabase
-          .from('activity_logs')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(10);
-          
-        if (logsError) throw logsError;
-        
-        // Apply adapter to add missing fields
-        setActivityLogs(activityLogsAdapter(logsData || []));
-      } catch (error) {
-        console.error('Error fetching user details:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
 
-    fetchUserDetails();
-  }, [open, user]);
+      // Fetch user details with department
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*, departments:department_id(*)')
+        .eq('id', userId)
+        .single();
 
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-  };
+      if (userError) throw userError;
 
-  const formatDateTime = (dateString: string) => {
-    return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: ptBR });
-  };
+      const adaptedUser = userAdapter([userData])[0];
+      setUser(adaptedUser);
 
-  const getSeverityBadge = (severity: string | null) => {
-    switch (severity) {
-      case 'high':
-        return <Badge variant="outline" className="text-danger border-danger">Alta</Badge>;
-      case 'medium':
-        return <Badge variant="outline" className="text-warning border-warning">Média</Badge>;
-      case 'low':
-        return <Badge variant="outline" className="text-info border-info">Baixa</Badge>;
-      default:
-        return <Badge variant="outline">Normal</Badge>;
+      // Get user permissions (using mock data since table doesn't exist)
+      const mockPermissionsData = mockUserPermissionData(userId);
+      setUserPermissions(mockPermissionsData);
+
+      // Fetch activity logs
+      const { data: logsData, error: logsError } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (logsError) throw logsError;
+
+      const adaptedLogs = activityLogsAdapter(logsData);
+      setActivityLogs(adaptedLogs);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not load user details',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
+  const handleManagePermissions = () => {
+    toast({
+      title: 'Not implemented',
+      description: 'Managing permissions is not yet implemented.',
+    });
+  };
+
+  const DetailsTab = () => (
+    <div className="space-y-6">
+      <div className="flex items-center space-x-4">
+        <Avatar className="h-16 w-16">
+          <AvatarImage src={user?.profile_image_url || ""} alt={user?.first_name} />
+          <AvatarFallback>{user?.first_name?.[0]}{user?.last_name?.[0]}</AvatarFallback>
+        </Avatar>
+        <div>
+          <h3 className="text-lg font-medium">{user?.first_name} {user?.last_name}</h3>
+          <p className="text-sm text-muted-foreground">{user?.role}</p>
+          {user?.status === 'active' ? (
+            <Badge variant="success">Active</Badge>
+          ) : (
+            <Badge variant="destructive">{user?.status}</Badge>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div className="text-sm font-bold mb-2">Personal Information</div>
+          <div className="text-muted-foreground">
+            <div className="flex items-center space-x-2">
+              <User className="h-4 w-4" />
+              <span>{user?.first_name} {user?.last_name}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <span>{user?.department?.name || 'No Department'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CalendarIcon className="h-4 w-4" />
+              <span>Last Login: {user?.last_login ? format(new Date(user.last_login), 'MMM dd, yyyy h:mm a') : 'Never'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="text-sm font-bold mb-2">Account Details</div>
+          <div className="text-muted-foreground">
+            <div>Email: {user?.metadata?.email || 'N/A'}</div>
+            <div>Phone: {user?.phone || 'N/A'}</div>
+            <div>Status: {user?.status}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const ActivityTab = () => (
+    <div className="space-y-6">
+      <h3 className="text-lg font-medium">Activity Logs</h3>
+      <ScrollArea className="h-[300px] w-full">
+        <div className="space-y-4">
+          {activityLogs.length === 0 ? (
+            <p className="text-muted-foreground py-4">No activity logs found for this user.</p>
+          ) : (
+            activityLogs.map((log) => (
+              <div key={log.id} className="border rounded-md p-3">
+                <div className="font-medium">{log.action}</div>
+                <div className="text-sm text-muted-foreground">
+                  {log.entity_type} ID: {log.entity_id}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {format(new Date(log.created_at), 'MMM dd, yyyy h:mm a')}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+
+  const PermissionsTab = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between">
+        <h3 className="text-lg font-medium">User Permissions</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleManagePermissions}
+        >
+          Manage Permissions
+        </Button>
+      </div>
+
+      {userPermissions.length === 0 ? (
+        <p className="text-muted-foreground py-4">This user has no specific permissions assigned.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {userPermissions.map((permObj) => (
+            <div key={permObj.id} className="border rounded-md p-3">
+              <div className="font-medium">{permObj.permission?.name}</div>
+              <div className="text-sm text-muted-foreground">{permObj.permission?.module}:{permObj.permission?.code}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px]">
+      <DialogContent className="sm:max-w-[825px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span>Detalhes do Usuário</span>
-            {user.active ? (
-              <Badge variant="default" className="bg-success ml-2">Ativo</Badge>
-            ) : (
-              <Badge variant="outline" className="text-muted-foreground ml-2">Inativo</Badge>
-            )}
-          </DialogTitle>
+          <DialogTitle>User Details</DialogTitle>
           <DialogDescription>
-            Informações completas sobre o usuário
+            View detailed information about the selected user.
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="grid gap-4 py-4">
-          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-            <Avatar className="w-24 h-24">
-              <AvatarImage 
-                src={user.profile_image_url || undefined} 
-                alt={`${user.first_name} ${user.last_name}`} 
-              />
-              <AvatarFallback className="text-2xl">{`${user.first_name.charAt(0)}${user.last_name.charAt(0)}`}</AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1 space-y-3">
-              <h3 className="text-2xl font-semibold text-center md:text-left">
-                {user.first_name} {user.last_name}
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="flex items-center gap-2">
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
-                  <span>
-                    {user.role} {user.department_id && `- Department ID: ${user.department_id}`}
-                  </span>
-                </div>
-                
-                {user.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{user.phone}</span>
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Criado em {formatDate(user.created_at)}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>
-                    {user.last_login 
-                      ? `Último acesso em ${formatDate(user.last_login)}` 
-                      : 'Nunca acessou'}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-muted-foreground" />
-                  <span>{permissions.length} permissões atribuídas</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {user.active 
-                    ? <CheckCircle className="h-4 w-4 text-success" />
-                    : <XCircle className="h-4 w-4 text-danger" />
-                  }
-                  <span>{user.active ? 'Conta ativa' : 'Conta inativa'}</span>
-                </div>
-              </div>
-            </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            Loading user details...
           </div>
-          
-          <Tabs defaultValue="permissions" className="w-full mt-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="permissions">Permissões</TabsTrigger>
-              <TabsTrigger value="activity">Atividade Recente</TabsTrigger>
+        ) : (
+          <Tabs defaultValue="details" className="space-y-4" onValueChange={handleTabChange}>
+            <TabsList>
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="activity">Activity</TabsTrigger>
+              <TabsTrigger value="permissions">Permissions</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="permissions" className="mt-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Permissões Atribuídas</CardTitle>
-                  <CardDescription>
-                    Lista de permissões concedidas ao usuário
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[200px] overflow-y-auto pr-4">
-                    {loading ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        Carregando permissões...
-                      </div>
-                    ) : permissions.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        Nenhuma permissão específica atribuída
-                      </div>
-                    ) : (
-                      <ul className="space-y-2">
-                        {permissions.map((permission) => (
-                          <li key={permission.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
-                            <Shield className="h-4 w-4 text-primary" />
-                            <div>
-                              <p className="font-medium">{permission.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {permission.module} - {permission.code}
-                              </p>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
+            <TabsContent value="details" className="space-y-2">
+              <DetailsTab />
             </TabsContent>
-            
-            <TabsContent value="activity" className="mt-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Atividade Recente</CardTitle>
-                  <CardDescription>
-                    Últimas ações realizadas pelo usuário
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[200px] overflow-y-auto pr-4">
-                    {loading ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        Carregando atividades...
-                      </div>
-                    ) : activityLogs.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        Nenhuma atividade registrada
-                      </div>
-                    ) : (
-                      <ul className="space-y-2">
-                        {activityLogs.map((log) => (
-                          <li key={log.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                            <div className="flex-1">
-                              <p className="font-medium">{log.action}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {log.entity_type} - {formatDateTime(log.created_at)}
-                              </p>
-                            </div>
-                            <div>
-                              {getSeverityBadge(log.severity)}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
+            <TabsContent value="activity" className="space-y-2">
+              <ActivityTab />
+            </TabsContent>
+            <TabsContent value="permissions" className="space-y-2">
+              <PermissionsTab />
             </TabsContent>
           </Tabs>
-        </div>
-        
+        )}
+
         <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>
-            Fechar
-          </Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default UserDetailsDialog;
