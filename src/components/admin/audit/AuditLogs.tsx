@@ -30,7 +30,16 @@ const AuditLogs = () => {
           .limit(100);
 
         if (error) throw error;
-        setLogs(data || []);
+        
+        // Adicionar propriedades faltantes para corresponder à interface ActivityLog
+        const logsWithDefaults = data?.map(log => ({
+          ...log,
+          severity: log.severity || null,
+          category: log.category || null,
+          metadata: log.metadata || null
+        })) || [];
+        
+        setLogs(logsWithDefaults as ActivityLog[]);
       } catch (error) {
         console.error('Error fetching audit logs:', error);
         toast({

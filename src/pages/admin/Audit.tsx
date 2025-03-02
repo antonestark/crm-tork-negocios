@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import AdminNav from '@/components/admin/AdminNav';
+import { AdminNav } from '@/components/admin/AdminNav';
 import AuditLogs from '@/components/admin/audit/AuditLogs';
 import { Helmet } from 'react-helmet';
 

@@ -68,7 +68,23 @@ const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
           .order('first_name', { ascending: true });
         
         if (error) throw error;
-        setUsers(data || []);
+        
+        // Transformar os dados para corresponder à interface User
+        const transformedUsers = (data || []).map(user => ({
+          ...user,
+          profile_image_url: null,
+          department_id: null,
+          phone: null,
+          active: true,
+          status: 'active' as const,
+          last_login: null,
+          settings: {},
+          metadata: {},
+          created_at: '',
+          updated_at: ''
+        }));
+        
+        setUsers(transformedUsers);
       } catch (error) {
         console.error('Error fetching users:', error);
         toast({

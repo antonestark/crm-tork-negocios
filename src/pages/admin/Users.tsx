@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
-import AdminNav from '@/components/admin/AdminNav';
-import UsersTable from '@/components/admin/users/UsersTable';
+import { AdminNav } from '@/components/admin/AdminNav';
+import { UsersTable } from '@/components/admin/users/UsersTable';
 import { Helmet } from 'react-helmet';
 
 const UsersPage = () => {
