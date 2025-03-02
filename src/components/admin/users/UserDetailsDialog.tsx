@@ -1,99 +1,98 @@
+
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { User } from '@/types/admin';
-import { extractEmail } from '@/integrations/supabase/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { extractUserSettings, formatDateWithRelative } from '@/integrations/supabase/utils';
+import { Separator } from '@/components/ui/separator';
 
 interface UserDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userData: User; // This should be 'userData' to match how it's used in UsersTable
+  userData: User;
 }
 
-const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
+export default function UserDetailsDialog({
   open,
   onOpenChange,
-  userData
-}) => {
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleString();
-  };
-
-  const email = extractEmail(userData.metadata);
-
+  userData,
+}: UserDetailsDialogProps) {
+  const userSettings = extractUserSettings(userData.settings);
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>User Details</DialogTitle>
+          <DialogTitle>Detalhes do Usuário</DialogTitle>
+          <DialogDescription>
+            Informações detalhadas sobre o usuário.
+          </DialogDescription>
         </DialogHeader>
-        
-        <div className="grid grid-cols-1 gap-4 py-4">
-          <div className="flex items-center space-x-4">
-            {userData.profile_image_url ? (
-              <img 
-                src={userData.profile_image_url} 
-                alt={`${userData.first_name} ${userData.last_name}`}
-                className="h-16 w-16 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                <span className="text-xl font-medium">
-                  {userData.first_name.charAt(0)}{userData.last_name.charAt(0)}
-                </span>
-              </div>
-            )}
-            
+        <ScrollArea className="flex-1 pr-4">
+          <div className="grid grid-cols-2 gap-4 py-4">
             <div>
-              <h3 className="text-lg font-medium">
-                {userData.first_name} {userData.last_name}
-              </h3>
-              <p className="text-sm text-muted-foreground">{email}</p>
+              <h3 className="font-medium text-sm text-muted-foreground">Nome</h3>
+              <p className="mt-1">{userData.first_name} {userData.last_name}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-sm text-muted-foreground">Função</h3>
+              <p className="mt-1">{userData.role}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-sm text-muted-foreground">Departamento</h3>
+              <p className="mt-1">{userData.department?.name || 'Nenhum'}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-sm text-muted-foreground">Status</h3>
+              <p className="mt-1">{userData.status}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-sm text-muted-foreground">Ativo</h3>
+              <p className="mt-1">{userData.active ? 'Sim' : 'Não'}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-sm text-muted-foreground">Telefone</h3>
+              <p className="mt-1">{userData.phone || 'Não cadastrado'}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-sm text-muted-foreground">Último login</h3>
+              <p className="mt-1">{formatDateWithRelative(userData.last_login)}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-sm text-muted-foreground">Criado em</h3>
+              <p className="mt-1">{formatDateWithRelative(userData.created_at)}</p>
+            </div>
+          </div>
+
+          <Separator className="my-4" />
+          
+          <div className="py-4">
+            <h3 className="font-medium mb-2">Configurações</h3>
+            <div className="bg-muted rounded-md p-4">
+              <pre className="whitespace-pre-wrap text-xs">
+                {JSON.stringify(userSettings, null, 2)}
+              </pre>
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4 pt-4">
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground">Role</h4>
-              <p>{userData.role}</p>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground">Department</h4>
-              <p>{userData.department?.name || 'None'}</p>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
-              <p className={`inline-flex px-2 py-1 rounded-full text-xs ${
-                userData.status === 'active' ? 'bg-green-100 text-green-800' : 
-                userData.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
-                userData.status === 'blocked' ? 'bg-red-100 text-red-800' :
-                'bg-yellow-100 text-yellow-800'
-              }`}>
-                {userData.status}
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground">Phone</h4>
-              <p>{userData.phone || 'Not provided'}</p>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground">Created</h4>
-              <p>{formatDate(userData.created_at)}</p>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground">Last Login</h4>
-              <p>{formatDate(userData.last_login)}</p>
+          <Separator className="my-4" />
+          
+          <div className="py-4">
+            <h3 className="font-medium mb-2">Metadados</h3>
+            <div className="bg-muted rounded-md p-4">
+              <pre className="whitespace-pre-wrap text-xs">
+                {JSON.stringify(userData.metadata, null, 2)}
+              </pre>
             </div>
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default UserDetailsDialog;
+}

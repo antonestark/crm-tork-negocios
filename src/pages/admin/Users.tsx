@@ -11,7 +11,7 @@ export default function UsersPage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Admin</h2>
           <p className="text-muted-foreground">
-            Manage your users, departments, and system settings.
+            Gerenciamento de usuários, departamentos e permissões do sistema.
           </p>
         </div>
       </div>

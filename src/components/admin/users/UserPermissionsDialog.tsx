@@ -1,19 +1,20 @@
 
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { User, Permission, PermissionGroup } from '@/types/admin';
-import { 
-  supabase, 
-  mockPermissionData, 
-  mockPermissionGroupData, 
-  permissionAdapter, 
-  permissionGroupAdapter 
-} from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Permission, PermissionGroup, User } from '@/types/admin';
+import { mockPermissionData, mockPermissionGroupData } from '@/integrations/supabase/client';
+import { Separator } from '@/components/ui/separator';
 
 interface UserPermissionsDialogProps {
   open: boolean;
@@ -21,222 +22,175 @@ interface UserPermissionsDialogProps {
   user: User;
 }
 
-export function UserPermissionsDialog({ 
-  open, 
-  onOpenChange, 
-  user 
+export function UserPermissionsDialog({
+  open,
+  onOpenChange,
+  user,
 }: UserPermissionsDialogProps) {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [permissionGroups, setPermissionGroups] = useState<PermissionGroup[]>([]);
-  const [selectedPermissionIds, setSelectedPermissionIds] = useState<string[]>([]);
-  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
+  
+  // Fetch permissions and permission groups
   useEffect(() => {
-    if (open) {
-      fetchData();
-    }
-  }, [open, user?.id]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Since we don't have these tables, use mock data
-      const mockPermissions = mockPermissionData();
-      const mockGroups = mockPermissionGroupData();
-      
-      // Simulate user permissions
-      const userSelectedPermissions = mockPermissions.map(p => ({
-        ...p,
-        selected: Math.random() > 0.7 // randomly select some permissions
-      }));
-      
-      setPermissions(permissionAdapter(userSelectedPermissions));
-      
-      // Get selected permission IDs
-      const selectedPerms = userSelectedPermissions
-        .filter(p => p.selected)
-        .map(p => p.id);
-      
-      setSelectedPermissionIds(selectedPerms);
-      
-      // Simulate group permissions
-      const userSelectedGroups = mockGroups.map(g => ({
-        ...g,
-        selected: Math.random() > 0.7 // randomly select some groups
-      }));
-      
-      setPermissionGroups(permissionGroupAdapter(userSelectedGroups));
-      
-      // Get selected group IDs
-      const selectedGroups = userSelectedGroups
-        .filter(g => g.selected)
-        .map(g => g.id);
-      
-      setSelectedGroupIds(selectedGroups);
-      
-    } catch (error) {
-      console.error('Error fetching permissions data:', error);
-      toast.error('Failed to load permissions data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePermissionChange = (permissionId: string, checked: boolean) => {
-    setSelectedPermissionIds(prev => {
-      if (checked) {
-        return [...prev, permissionId];
-      } else {
-        return prev.filter(id => id !== permissionId);
+    const fetchPermissionsData = async () => {
+      try {
+        setLoading(true);
+        // Mock data for development
+        const mockPerms = mockPermissionData();
+        const mockGroups = mockPermissionGroupData();
+        
+        setPermissions(mockPerms);
+        setPermissionGroups(mockGroups);
+      } catch (error) {
+        console.error('Error fetching permissions:', error);
+      } finally {
+        setLoading(false);
       }
-    });
-  };
-
-  const handleGroupChange = (groupId: string, checked: boolean) => {
-    setSelectedGroupIds(prev => {
-      if (checked) {
-        return [...prev, groupId];
-      } else {
-        return prev.filter(id => id !== groupId);
-      }
-    });
-  };
-
-  const handleSave = async () => {
-    if (!user) return;
+    };
     
-    setSaving(true);
-    try {
-      // Since we don't have these tables, just simulate a save action
-      console.log('Saving permissions:', selectedPermissionIds);
-      console.log('Saving permission groups:', selectedGroupIds);
-      
-      // Simulate an API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success('Permissions updated successfully');
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error saving permissions:', error);
-      toast.error('Failed to save permissions');
-    } finally {
-      setSaving(false);
-    }
+    fetchPermissionsData();
+  }, [user.id]);
+  
+  const handlePermissionChange = (permissionId: string, checked: boolean) => {
+    setPermissions(prev =>
+      prev.map(permission =>
+        permission.id === permissionId
+          ? { ...permission, selected: checked }
+          : permission
+      )
+    );
   };
-
+  
+  const handleGroupChange = (groupId: string, checked: boolean) => {
+    setPermissionGroups(prev =>
+      prev.map(group =>
+        group.id === groupId
+          ? { ...group, selected: checked }
+          : group
+      )
+    );
+  };
+  
+  const handleSave = async () => {
+    // Here we would save the permissions to the database
+    console.log('Selected permissions:', permissions.filter(p => p.selected).map(p => p.id));
+    console.log('Selected groups:', permissionGroups.filter(g => g.selected).map(g => g.id));
+    onOpenChange(false);
+  };
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Manage User Permissions</DialogTitle>
+          <DialogTitle>Permissões do Usuário</DialogTitle>
+          <DialogDescription>
+            Gerencie as permissões para {user.first_name} {user.last_name}
+          </DialogDescription>
         </DialogHeader>
         
-        <Tabs defaultValue="direct">
+        <Tabs defaultValue="permissions" className="flex-1 flex flex-col">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="direct">Direct Permissions</TabsTrigger>
-            <TabsTrigger value="groups">Permission Groups</TabsTrigger>
+            <TabsTrigger value="permissions">Permissões Individuais</TabsTrigger>
+            <TabsTrigger value="groups">Grupos de Permissões</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="direct" className="space-y-4 mt-4">
-            <ScrollArea className="h-[380px] pr-4">
-              {loading ? (
-                <div className="flex justify-center items-center h-full">
-                  <p>Loading permissions...</p>
-                </div>
-              ) : permissions.length === 0 ? (
-                <div className="flex justify-center items-center h-full">
-                  <p>No permissions available</p>
-                </div>
-              ) : (
+          <TabsContent value="permissions" className="flex-1 flex flex-col">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <p>Carregando permissões...</p>
+              </div>
+            ) : (
+              <ScrollArea className="flex-1 h-[400px] pr-4">
                 <div className="space-y-4">
-                  {permissions.map((permission) => (
-                    <div key={permission.id} className="flex items-start space-x-3 p-2 rounded hover:bg-muted">
-                      <Checkbox
-                        id={`permission-${permission.id}`}
-                        checked={selectedPermissionIds.includes(permission.id)}
-                        onCheckedChange={(checked) => 
-                          handlePermissionChange(permission.id, checked as boolean)
-                        }
-                      />
-                      <div className="grid gap-1">
-                        <label
-                          htmlFor={`permission-${permission.id}`}
-                          className="font-medium text-sm cursor-pointer"
-                        >
-                          {permission.name}
-                        </label>
-                        <p className="text-xs text-muted-foreground">
-                          {permission.description || `${permission.module}: ${permission.code}`}
-                        </p>
+                  {/* Group permissions by module */}
+                  {Array.from(new Set(permissions.map(p => p.module))).map(module => (
+                    <div key={module} className="space-y-2">
+                      <h3 className="font-medium capitalize">{module}</h3>
+                      <Separator />
+                      <div className="grid grid-cols-1 gap-2">
+                        {permissions
+                          .filter(p => p.module === module)
+                          .map(permission => (
+                            <div key={permission.id} className="flex items-start space-x-2 py-1">
+                              <Checkbox
+                                id={permission.id}
+                                checked={permission.selected}
+                                onCheckedChange={(checked) => 
+                                  handlePermissionChange(permission.id, checked as boolean)
+                                }
+                              />
+                              <div className="grid gap-1.5 leading-none">
+                                <label
+                                  htmlFor={permission.id}
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                  {permission.name}
+                                </label>
+                                {permission.description && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {permission.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                       </div>
                     </div>
                   ))}
                 </div>
-              )}
-            </ScrollArea>
+              </ScrollArea>
+            )}
           </TabsContent>
           
-          <TabsContent value="groups" className="space-y-4 mt-4">
-            <ScrollArea className="h-[380px] pr-4">
-              {loading ? (
-                <div className="flex justify-center items-center h-full">
-                  <p>Loading permission groups...</p>
-                </div>
-              ) : permissionGroups.length === 0 ? (
-                <div className="flex justify-center items-center h-full">
-                  <p>No permission groups available</p>
-                </div>
-              ) : (
+          <TabsContent value="groups" className="flex-1 flex flex-col">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <p>Carregando grupos de permissões...</p>
+              </div>
+            ) : (
+              <ScrollArea className="flex-1 h-[400px] pr-4">
                 <div className="space-y-4">
-                  {permissionGroups.map((group) => (
-                    <div key={group.id} className="flex items-start space-x-3 p-2 rounded hover:bg-muted">
-                      <Checkbox
-                        id={`group-${group.id}`}
-                        checked={selectedGroupIds.includes(group.id)}
-                        onCheckedChange={(checked) => 
-                          handleGroupChange(group.id, checked as boolean)
-                        }
-                      />
-                      <div className="grid gap-1">
-                        <label
-                          htmlFor={`group-${group.id}`}
-                          className="font-medium text-sm cursor-pointer"
-                        >
-                          {group.name}
-                        </label>
-                        <p className="text-xs text-muted-foreground">
-                          {group.description || 'No description'}
-                        </p>
-                        {group.is_system && (
-                          <span className="text-xs bg-muted px-2 py-0.5 rounded-sm inline-block w-fit">
-                            System Group
-                          </span>
-                        )}
+                  {permissionGroups.map(group => (
+                    <div key={group.id} className="space-y-2">
+                      <div className="flex items-start space-x-2 py-1">
+                        <Checkbox
+                          id={`group-${group.id}`}
+                          checked={group.selected}
+                          onCheckedChange={(checked) => 
+                            handleGroupChange(group.id, checked as boolean)
+                          }
+                        />
+                        <div className="grid gap-1.5 leading-none">
+                          <label
+                            htmlFor={`group-${group.id}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {group.name}
+                            {group.is_system && (
+                              <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded">
+                                Sistema
+                              </span>
+                            )}
+                          </label>
+                          {group.description && (
+                            <p className="text-xs text-muted-foreground">
+                              {group.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
+                      <Separator />
                     </div>
                   ))}
                 </div>
-              )}
-            </ScrollArea>
+              </ScrollArea>
+            )}
           </TabsContent>
         </Tabs>
         
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSave}
-            disabled={saving || loading}
-          >
-            {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
+          <Button onClick={handleSave}>Salvar permissões</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

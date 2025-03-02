@@ -1,207 +1,278 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { supabase } from '@/integrations/supabase/client';
-import { User, UserStatus } from '@/types/admin';
 
-export interface UserFormDialogProps {
+import React, { useEffect } from 'react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { User, UserStatus } from '@/types/admin';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+
+const userFormSchema = z.object({
+  first_name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
+  last_name: z.string().min(2, { message: 'Sobrenome deve ter pelo menos 2 caracteres' }),
+  role: z.string().min(1, { message: 'Função é obrigatória' }),
+  department_id: z.string().nullable(),
+  phone: z.string().nullable(),
+  profile_image_url: z.string().nullable(),
+  active: z.boolean().default(true),
+  status: z.enum(['active', 'inactive', 'blocked', 'pending']),
+});
+
+type UserFormValues = z.infer<typeof userFormSchema>;
+
+interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (formData: Partial<User>) => Promise<void>;
   user?: User;
+  onSave: (data: Partial<User>) => void;
 }
 
-const UserFormDialog: React.FC<UserFormDialogProps> = ({
+export default function UserFormDialog({
   open,
   onOpenChange,
+  user,
   onSave,
-  user
-}) => {
-  const [formData, setFormData] = useState<Partial<User>>({
-    first_name: '',
-    last_name: '',
-    role: 'user',
-    active: true,
-    department_id: null,
-    phone: null,
+}: UserFormDialogProps) {
+  const isEditMode = !!user;
+  
+  const form = useForm<UserFormValues>({
+    resolver: zodResolver(userFormSchema),
+    defaultValues: {
+      first_name: '',
+      last_name: '',
+      role: 'user',
+      department_id: null,
+      phone: null,
+      profile_image_url: null,
+      active: true,
+      status: 'active' as UserStatus,
+    },
   });
   
-  const [departments, setDepartments] = useState<{id: string, name: string}[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Load departments
   useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const { data, error } = await supabase.from('departments').select('id, name');
-        
-        if (error) throw error;
-        
-        if (data) {
-          setDepartments(data);
-        }
-      } catch (error) {
-        console.error('Error fetching departments:', error);
-      }
-    };
-    
-    fetchDepartments();
-  }, []);
-
-  // Set form data if editing a user
-  useEffect(() => {
-    if (user) {
-      setFormData({
+    if (isEditMode && user) {
+      form.reset({
         first_name: user.first_name,
         last_name: user.last_name,
         role: user.role,
-        active: user.active,
         department_id: user.department_id,
         phone: user.phone,
+        profile_image_url: user.profile_image_url,
+        active: user.active,
+        status: user.status,
+      });
+    } else {
+      form.reset({
+        first_name: '',
+        last_name: '',
+        role: 'user',
+        department_id: null,
+        phone: null,
+        profile_image_url: null,
+        active: true,
+        status: 'active' as UserStatus,
       });
     }
-  }, [user]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  }, [user, isEditMode, form]);
+  
+  const onSubmit = (data: UserFormValues) => {
+    onSave({
+      id: user?.id,
+      ...data,
+    });
+    onOpenChange(false);
   };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSwitchChange = (name: string, checked: boolean) => {
-    setFormData(prev => ({ ...prev, [name]: checked }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      // Ensure status is correctly typed as UserStatus if it exists in formData
-      if (formData.status) {
-        const typedFormData = {
-          ...formData,
-          status: formData.status as UserStatus
-        };
-        await onSave(typedFormData);
-      } else {
-        await onSave(formData);
-      }
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error saving user:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{user ? 'Edit User' : 'Add User'}</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Editar' : 'Adicionar'} Usuário</DialogTitle>
+          <DialogDescription>
+            {isEditMode 
+              ? 'Edite os detalhes do usuário abaixo.' 
+              : 'Preencha as informações para criar um novo usuário.'}
+          </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="first_name">First Name</Label>
-              <Input
-                id="first_name"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
                 name="first_name"
-                value={formData.first_name}
-                onChange={handleChange}
-                required
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="last_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sobrenome</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Sobrenome" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="last_name">Last Name</Label>
-              <Input
-                id="last_name"
-                name="last_name"
-                value={formData.last_name}
-                onChange={handleChange}
-                required
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Função</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a função" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="admin">Administrador</SelectItem>
+                        <SelectItem value="manager">Gerente</SelectItem>
+                        <SelectItem value="user">Usuário</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="department_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Departamento</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value || undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o departamento" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">Marketing</SelectItem>
+                        <SelectItem value="2">Engenharia</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
+            
+            <FormField
+              control={form.control}
               name="phone"
-              value={formData.phone || ''}
-              onChange={handleChange}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(xx) xxxxx-xxxx" {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
-            <Select
-              value={formData.role}
-              onValueChange={(value) => handleSelectChange('role', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">Administrator</SelectItem>
-                <SelectItem value="manager">Manager</SelectItem>
-                <SelectItem value="user">User</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="department_id">Department</Label>
-            <Select
-              value={formData.department_id || ''}
-              onValueChange={(value) => handleSelectChange('department_id', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a department" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">None</SelectItem>
-                {departments.map(dept => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="active"
-              checked={formData.active}
-              onCheckedChange={(checked) => handleSwitchChange('active', checked)}
-            />
-            <Label htmlFor="active">Active</Label>
-          </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </form>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="active">Ativo</SelectItem>
+                        <SelectItem value="inactive">Inativo</SelectItem>
+                        <SelectItem value="blocked">Bloqueado</SelectItem>
+                        <SelectItem value="pending">Pendente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="active"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between space-x-2 space-y-0 rounded-md border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel>Ativo</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <DialogFooter>
+              <Button type="submit">
+                {isEditMode ? 'Salvar alterações' : 'Criar usuário'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default UserFormDialog;
+}

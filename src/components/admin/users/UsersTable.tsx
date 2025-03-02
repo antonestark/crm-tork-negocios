@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusIcon, PencilIcon, Trash2Icon, EyeIcon, KeyRoundIcon } from 'lucide-react';
@@ -82,7 +83,7 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
       setUsers(filteredUsers);
     } catch (error: any) {
       console.error('Error fetching users:', error.message);
-      toast.error('Failed to load users');
+      toast.error('Falha ao carregar usuários');
     } finally {
       setLoading(false);
     }
@@ -94,7 +95,7 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         { 
           id: '1', 
           name: 'Marketing', 
-          description: 'Marketing department',
+          description: 'Departamento de Marketing',
           path: 'marketing',
           level: 1,
           parent_id: null,
@@ -106,8 +107,8 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         },
         { 
           id: '2', 
-          name: 'Engineering', 
-          description: 'Engineering department',
+          name: 'Engenharia', 
+          description: 'Departamento de Engenharia',
           path: 'engineering',
           level: 1,
           parent_id: null,
@@ -145,10 +146,10 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
       };
       
       setUsers(prev => [...prev, newUser]);
-      toast.success('User created successfully');
+      toast.success('Usuário criado com sucesso');
     } catch (error: any) {
       console.error('Error creating user:', error.message);
-      toast.error('Failed to create user');
+      toast.error('Falha ao criar usuário');
     }
   };
   
@@ -169,20 +170,20 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         } : user
       ));
       
-      toast.success('User updated successfully');
+      toast.success('Usuário atualizado com sucesso');
     } catch (error: any) {
       console.error('Error updating user:', error.message);
-      toast.error('Failed to update user');
+      toast.error('Falha ao atualizar usuário');
     }
   };
   
   const deleteUser = async (userId: string) => {
     try {
       setUsers(prev => prev.filter(user => user.id !== userId));
-      toast.success('User deleted successfully');
+      toast.success('Usuário excluído com sucesso');
     } catch (error: any) {
       console.error('Error deleting user:', error.message);
-      toast.error('Failed to delete user');
+      toast.error('Falha ao excluir usuário');
     }
   };
   
@@ -218,10 +219,10 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Users</h2>
+        <h2 className="text-2xl font-bold">Usuários</h2>
         <Button onClick={() => setAddDialogOpen(true)}>
           <PlusIcon className="mr-2 h-4 w-4" />
-          Add User
+          Adicionar Usuário
         </Button>
       </div>
       
@@ -238,24 +239,24 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">
-              <th className="p-2 text-left">Name</th>
-              <th className="p-2 text-left">Role</th>
-              <th className="p-2 text-left">Department</th>
+              <th className="p-2 text-left">Nome</th>
+              <th className="p-2 text-left">Função</th>
+              <th className="p-2 text-left">Departamento</th>
               <th className="p-2 text-left">Status</th>
-              <th className="p-2 text-right">Actions</th>
+              <th className="p-2 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td colSpan={5} className="p-8 text-center">
-                  Loading users...
+                  Carregando usuários...
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
                 <td colSpan={5} className="p-8 text-center">
-                  No users found. Try adjusting your filters.
+                  Nenhum usuário encontrado. Tente ajustar os filtros.
                 </td>
               </tr>
             ) : (
@@ -332,10 +333,10 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
         <ConfirmDialog
           open={confirmDeleteOpen}
           onOpenChange={setConfirmDeleteOpen}
-          title="Delete User"
-          description={`Are you sure you want to delete ${currentUser.first_name} ${currentUser.last_name}? This action cannot be undone.`}
+          title="Excluir Usuário"
+          description={`Tem certeza que deseja excluir ${currentUser.first_name} ${currentUser.last_name}? Esta ação não pode ser desfeita.`}
           onConfirm={() => deleteUser(currentUser.id)}
-          confirmText="Delete"
+          confirmText="Excluir"
           variant="destructive"
         />
       )}
