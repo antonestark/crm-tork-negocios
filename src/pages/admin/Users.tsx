@@ -16,7 +16,7 @@ const UsersPage = () => {
       </Helmet>
       <AdminNav />
       <div className="mt-6">
-        <UsersTable />
+        <UsersTable filters={{}} />
       </div>
     </div>
   );

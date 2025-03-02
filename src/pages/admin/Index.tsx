@@ -1,10 +1,10 @@
 
 import { useEffect } from 'react';
-import { AdminNav } from '@/components/admin/AdminNav';
-import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { Helmet } from 'react-helmet';
+import { AdminNav } from '@/components/admin/AdminNav';
+import AdminDashboard from '@/components/admin/AdminDashboard';
 
-const AdminPage = () => {
+const AdminIndexPage = () => {
   useEffect(() => {
     document.title = "Admin Dashboard";
   }, []);
@@ -22,4 +22,4 @@ const AdminPage = () => {
   );
 };
 
-export default AdminPage;
+export default AdminIndexPage;

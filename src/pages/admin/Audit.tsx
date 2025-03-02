@@ -6,13 +6,13 @@ import { Helmet } from 'react-helmet';
 
 const AuditPage = () => {
   useEffect(() => {
-    document.title = "Audit Logs | Admin";
+    document.title = "Audit | Admin";
   }, []);
 
   return (
     <div className="container mx-auto py-6">
       <Helmet>
-        <title>Audit Logs | Admin</title>
+        <title>Audit | Admin</title>
       </Helmet>
       <AdminNav />
       <div className="mt-6">

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, activityLogsAdapter } from "@/integrations/supabase/client";
 import { ActivityLog } from '@/types/admin';
 
 const AuditLogs = () => {
@@ -31,15 +31,10 @@ const AuditLogs = () => {
 
         if (error) throw error;
         
-        // Adicionar propriedades faltantes para corresponder à interface ActivityLog
-        const logsWithDefaults = data?.map(log => ({
-          ...log,
-          severity: log.severity || null,
-          category: log.category || null,
-          metadata: log.metadata || null
-        })) || [];
+        // Use adapter to ensure the data conforms to ActivityLog interface
+        const adaptedLogs = activityLogsAdapter(data || []);
         
-        setLogs(logsWithDefaults as ActivityLog[]);
+        setLogs(adaptedLogs as ActivityLog[]);
       } catch (error) {
         console.error('Error fetching audit logs:', error);
         toast({
@@ -133,7 +128,7 @@ const AuditLogs = () => {
                 filteredLogs.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell className="font-mono text-xs">
-                      {formatDate(log.created_at)}
+                      {log.created_at ? formatDate(log.created_at) : 'N/A'}
                     </TableCell>
                     <TableCell>
                       {log.user ? `${log.user.first_name} ${log.user.last_name}` : 'System'}
