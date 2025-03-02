@@ -1,71 +1,65 @@
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase, mockUserDepartmentRoleData, userAdapter } from '@/integrations/supabase/client';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
-import { useState, useEffect } from 'react';
-import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter 
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
-} from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
-import { Department, User, UserDepartmentRole } from '@/types/admin';
-import { supabase, userAdapter, userDepartmentRoleAdapter } from "@/integrations/supabase/client";
-import { Search, UserPlus, X, UserMinus } from 'lucide-react';
+interface User {
+  id: string;
+  first_name: string;
+  last_name: string;
+  profile_image_url?: string | null;
+  role: string;
+  // Other user properties
+}
 
-interface DepartmentMembersDialogProps {
+interface Department {
+  id: string;
+  name: string;
+  // Other department properties
+}
+
+interface UserDepartmentRole {
+  id: string;
+  user_id: string;
+  department_id: string;
+  role: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  created_at: string;
+  updated_at: string;
+  user: User;
+}
+
+export interface DepartmentMembersDialogProps {
   isOpen: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
   department: Department;
 }
 
 const DepartmentMembersDialog: React.FC<DepartmentMembersDialogProps> = ({
   isOpen,
-  onClose,
+  onOpenChange,
   department
 }) => {
   const [members, setMembers] = useState<(UserDepartmentRole & { user: User })[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddMembers, setShowAddMembers] = useState(false);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [selectedRole, setSelectedRole] = useState('member');
+  const [selectedUser, setSelectedUser] = useState<string>('');
+  const [selectedRole, setSelectedRole] = useState<string>('member');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAddingMember, setIsAddingMember] = useState(false);
   const { toast } = useToast();
 
   // Fetch department members
   const fetchMembers = async () => {
-    if (!department?.id) return;
-    
+    setIsLoading(true);
     try {
-      setLoading(true);
-      
-      // Temporarily mock the department members data as we don't have the actual table yet
-      // In a real implementation, we would query the user_department_roles table
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('*')
-        .limit(5);
-
-      if (usersError) throw usersError;
-      
-      // Create mock user department roles
-      const mockDepartmentMembers = usersData?.map(user => ({
-        id: `mock-${user.id}`,
-        user_id: user.id,
-        department_id: department.id,
-        role: 'member',
-        start_date: null,
-        end_date: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user: userAdapter([user])[0]
-      })) || [];
-
-      setMembers(userDepartmentRoleAdapter(mockDepartmentMembers));
+      // Since we don't have the actual table, we'll use mock data
+      const mockData = mockUserDepartmentRoleData('', department.id);
+      setMembers(mockData);
     } catch (error) {
       console.error('Error fetching department members:', error);
       toast({
@@ -74,297 +68,226 @@ const DepartmentMembersDialog: React.FC<DepartmentMembersDialogProps> = ({
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   // Fetch available users
   const fetchAvailableUsers = async () => {
     try {
-      setLoading(true);
+      const { data, error } = await supabase.from('users').select('*');
       
-      // Get current member IDs
-      const memberIds = members.map(m => m.user_id);
-      
-      // Fetch users not in department
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('active', true)
-        .limit(10);
-
       if (error) throw error;
-
-      // Filter out users who are already members
-      const filteredUsers = data?.filter(user => 
-        !memberIds.includes(user.id)
-      ) || [];
       
-      setAvailableUsers(userAdapter(filteredUsers));
+      if (data) {
+        const adaptedUsers = userAdapter(data);
+        setAvailableUsers(adaptedUsers);
+      }
     } catch (error) {
       console.error('Error fetching available users:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load available users',
+        description: 'Failed to load users',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Load initial data when dialog opens
+  // Load data when dialog opens
   useEffect(() => {
-    if (isOpen && department) {
+    if (isOpen && department?.id) {
       fetchMembers();
-    }
-  }, [isOpen, department]);
-
-  // Load available users when add members mode is activated
-  useEffect(() => {
-    if (showAddMembers) {
       fetchAvailableUsers();
-    } else {
-      setSelectedUsers([]);
     }
-  }, [showAddMembers, members]);
+  }, [isOpen, department?.id]);
 
+  // Add a new member
+  const handleAddMember = async () => {
+    if (!selectedUser) return;
+    
+    setIsAddingMember(true);
+    try {
+      // Mock the API call since we don't have the actual table
+      // In a real app, you would do:
+      // const { error } = await supabase.from('user_department_roles').insert([{
+      //   user_id: selectedUser,
+      //   department_id: department.id,
+      //   role: selectedRole
+      // }]);
+      
+      // if (error) throw error;
+      
+      // Instead, we'll just update our local state
+      const userToAdd = availableUsers.find(user => user.id === selectedUser);
+      if (userToAdd) {
+        const newMember = {
+          id: `new-${Date.now()}`,
+          user_id: selectedUser,
+          department_id: department.id,
+          role: selectedRole,
+          start_date: new Date().toISOString(),
+          end_date: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user: userToAdd
+        };
+        
+        setMembers(prev => [...prev, newMember]);
+        setSelectedUser('');
+        
+        toast({
+          title: 'Success',
+          description: 'Member added to department',
+          variant: 'default',
+        });
+      }
+    } catch (error) {
+      console.error('Error adding member:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add member',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAddingMember(false);
+    }
+  };
+
+  // Remove a member
   const handleRemoveMember = async (userId: string) => {
     try {
-      setLoading(true);
+      // Mock the API call
+      // In a real app, you would do:
+      // const { error } = await supabase
+      //   .from('user_department_roles')
+      //   .delete()
+      //   .eq('user_id', userId)
+      //   .eq('department_id', department.id);
       
-      // In a real implementation, we would delete from user_department_roles table
-      // Since we're mocking, just remove from the local state
-      setMembers(prevMembers => prevMembers.filter(m => m.user_id !== userId));
+      // if (error) throw error;
+      
+      // Update local state
+      setMembers(prev => prev.filter(member => member.user_id !== userId));
       
       toast({
-        title: 'Member Removed',
-        description: 'User has been removed from the department',
+        title: 'Success',
+        description: 'Member removed from department',
+        variant: 'default',
       });
     } catch (error) {
-      console.error('Error removing department member:', error);
+      console.error('Error removing member:', error);
       toast({
         title: 'Error',
-        description: 'Failed to remove member from department',
+        description: 'Failed to remove member',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   };
-
-  const handleAddMembers = async () => {
-    if (selectedUsers.length === 0) {
-      toast({
-        title: 'No Users Selected',
-        description: 'Please select at least one user to add',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    try {
-      setLoading(true);
-      
-      // In a real implementation, we would insert into user_department_roles table
-      // Since we're mocking, just add to the local state
-      const selectedUsersData = availableUsers.filter(u => selectedUsers.includes(u.id));
-      
-      const newMembers = selectedUsersData.map(user => ({
-        id: `mock-${user.id}-${Date.now()}`,
-        user_id: user.id,
-        department_id: department.id,
-        role: selectedRole,
-        start_date: null,
-        end_date: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user
-      }));
-      
-      setMembers(prevMembers => [...prevMembers, ...newMembers]);
-      
-      toast({
-        title: 'Members Added',
-        description: `${selectedUsers.length} users have been added to the department`,
-      });
-      
-      // Exit add mode
-      setShowAddMembers(false);
-    } catch (error) {
-      console.error('Error adding department members:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to add members to department',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleUserSelection = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId)
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
-  };
-
-  const filteredMembers = members.filter(member => 
-    `${member.user.first_name} ${member.user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const filteredAvailableUsers = availableUsers.filter(user => 
-    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px]">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>
-            {showAddMembers ? 'Add Members' : 'Department Members'} - {department?.name}
-          </DialogTitle>
+          <DialogTitle>Department Members - {department?.name}</DialogTitle>
         </DialogHeader>
         
-        <div className="flex items-center justify-between mb-4">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 w-64"
-            />
+        <div className="py-4">
+          <div className="flex gap-2 mb-4">
+            <Select value={selectedUser} onValueChange={setSelectedUser}>
+              <SelectTrigger className="w-[250px]">
+                <SelectValue placeholder="Select a user" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableUsers.map(user => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.first_name} {user.last_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="member">Member</SelectItem>
+                <SelectItem value="manager">Manager</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Button 
+              onClick={handleAddMember} 
+              disabled={!selectedUser || isAddingMember}
+            >
+              {isAddingMember ? 'Adding...' : 'Add'}
+            </Button>
           </div>
           
-          {showAddMembers ? (
-            <div className="flex items-center gap-2">
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="member">Member</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowAddMembers(false)}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Button>
-              
-              <Button 
-                size="sm"
-                onClick={handleAddMembers}
-                disabled={selectedUsers.length === 0 || loading}
-              >
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add Selected
-              </Button>
-            </div>
-          ) : (
-            <Button 
-              size="sm"
-              onClick={() => setShowAddMembers(true)}
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Add Members
-            </Button>
-          )}
-        </div>
-        
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {showAddMembers && (
-                  <TableHead className="w-10">
-                    <span className="sr-only">Select</span>
-                  </TableHead>
-                )}
-                <TableHead>Name</TableHead>
-                <TableHead>Role</TableHead>
-                {!showAddMembers && <TableHead>Added</TableHead>}
-                {!showAddMembers && <TableHead className="w-10"></TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell colSpan={showAddMembers ? 3 : 4}>
-                      <Skeleton className="h-8 w-full" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : showAddMembers ? (
-                filteredAvailableUsers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center py-6 text-gray-500">
-                      No users available to add
-                    </TableCell>
-                  </TableRow>
+          <div className="border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="text-left p-2">User</th>
+                  <th className="text-left p-2">Role</th>
+                  <th className="text-right p-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={3} className="p-4 text-center">Loading members...</td>
+                  </tr>
+                ) : members.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="p-4 text-center">No members in this department</td>
+                  </tr>
                 ) : (
-                  filteredAvailableUsers.map(user => (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedUsers.includes(user.id)}
-                          onCheckedChange={() => toggleUserSelection(user.id)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {user.first_name} {user.last_name}
-                      </TableCell>
-                      <TableCell>{user.role}</TableCell>
-                    </TableRow>
+                  members.map(member => (
+                    <tr key={member.id} className="border-t">
+                      <td className="p-2">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            {member.user.profile_image_url && (
+                              <AvatarImage src={member.user.profile_image_url} />
+                            )}
+                            <AvatarFallback>
+                              {member.user.first_name.charAt(0)}{member.user.last_name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{member.user.first_name} {member.user.last_name}</span>
+                        </div>
+                      </td>
+                      <td className="p-2">
+                        <Badge variant={
+                          member.role === 'admin' ? 'destructive' : 
+                          member.role === 'manager' ? 'default' : 'secondary'
+                        }>
+                          {member.role}
+                        </Badge>
+                      </td>
+                      <td className="p-2 text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRemoveMember(member.user_id)}
+                        >
+                          Remove
+                        </Button>
+                      </td>
+                    </tr>
                   ))
-                )
-              ) : filteredMembers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-6 text-gray-500">
-                    No members in this department
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredMembers.map(member => (
-                  <TableRow key={member.id}>
-                    <TableCell>
-                      {member.user.first_name} {member.user.last_name}
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {member.role}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(member.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveMember(member.user_id)}
-                        title="Remove from department"
-                      >
-                        <UserMinus className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
         
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Close</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

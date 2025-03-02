@@ -83,6 +83,36 @@ const UserDetailsDialog = ({ open, onOpenChange, userId }: UserDetailsDialogProp
     }
   };
 
+  const fetchUserPermissions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+
+      // Use mockUserPermissionData since the table doesn't exist yet
+      const mockData = mockUserPermissionData(user.id);
+      setUserPermissions(mockData);
+      
+      // Use the success toast but with a valid variant
+      toast({
+        title: "Permissions loaded",
+        description: "User permissions have been loaded successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error fetching user permissions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load user permissions",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };

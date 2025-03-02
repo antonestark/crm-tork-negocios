@@ -1,66 +1,106 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase, userAdapter } from '@/integrations/supabase/client';
-import { User } from '@/types/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Shield, EyeIcon, Plus } from 'lucide-react';
-import { UserFilters } from './UserFilters';
-import { UserFormDialog } from './UserFormDialog';
-import { UserPermissionsDialog } from './UserPermissionsDialog';
-import { UserDetailsDialog } from './UserDetailsDialog';
-import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Edit, Trash2, Key, Eye, Plus } from 'lucide-react';
+import { UserFilters } from './UserFilters';
+import UserFormDialog from './UserFormDialog';
+import UserDetailsDialog from './UserDetailsDialog';
+import UserPermissionsDialog from './UserPermissionsDialog';
+import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { useToast } from '@/hooks/use-toast';
+
+// Define interfaces for our components
+interface User {
+  id: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  active: boolean;
+  department_id: string | null;
+  phone: string | null;
+  profile_image_url: string | null;
+  created_at: string;
+  updated_at: string;
+  status: string;
+  last_login: string | null;
+  settings: Record<string, any>;
+  metadata: Record<string, any>;
+}
+
+interface Department {
+  id: string;
+  name: string;
+  description?: string | null;
+}
 
 interface UsersTableProps {
-  filters?: {
+  filters: {
     status: string;
     department: string;
     search: string;
   };
 }
 
-export const UsersTable = ({ filters: initialFilters }: UsersTableProps) => {
+export const UsersTable: React.FC<UsersTableProps> = ({ filters: initialFilters }) => {
   const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [filters, setFilters] = useState(initialFilters);
-  const [loading, setLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState(initialFilters);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [showPermissionsDialog, setShowPermissionsDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchUsers();
     fetchDepartments();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [filters, users]);
+  }, [filters]);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('users')
-        .select('*, departments:department_id(*)');
-      
-      if (error) throw error;
+        .select('*');
 
-      const adaptedUsers = userAdapter(data);
-      setUsers(adaptedUsers);
+      if (filters.status !== 'all') {
+        query = query.eq('active', filters.status === 'active');
+      }
+
+      if (filters.department !== 'all') {
+        query = query.eq('department_id', filters.department);
+      }
+
+      if (filters.search) {
+        query = query.ilike('first_name', `%${filters.search}%`);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load users',
+          variant: 'destructive',
+        });
+      }
+
+      if (data) {
+        const adaptedUsers = userAdapter(data);
+        setUsers(adaptedUsers);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
         title: 'Error',
         description: 'Failed to load users',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -71,137 +111,156 @@ export const UsersTable = ({ filters: initialFilters }: UsersTableProps) => {
     try {
       const { data, error } = await supabase
         .from('departments')
-        .select('*');
-      
-      if (error) throw error;
+        .select('id, name');
 
-      setDepartments(data);
+      if (error) {
+        console.error('Error fetching departments:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load departments',
+          variant: 'destructive',
+        });
+      }
+
+      if (data) {
+        setDepartments(data);
+      }
     } catch (error) {
       console.error('Error fetching departments:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load departments',
+        variant: 'destructive',
+      });
     }
-  };
-
-  const applyFilters = () => {
-    let result = [...users];
-    
-    if (filters.status !== 'all') {
-      const activeStatus = filters.status === 'active';
-      result = result.filter(user => user.active === activeStatus);
-    }
-    
-    if (filters.department !== 'all') {
-      result = result.filter(user => user.department_id === filters.department);
-    }
-    
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      result = result.filter(user => 
-        user.first_name.toLowerCase().includes(searchLower) ||
-        user.last_name.toLowerCase().includes(searchLower) ||
-        (user.phone && user.phone.toLowerCase().includes(searchLower))
-      );
-    }
-    
-    setFilteredUsers(result);
   };
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters
-    }));
+    setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
   };
 
   const handleAddUser = () => {
-    setSelectedUser(null);
-    setIsAddDialogOpen(true);
+    setShowAddDialog(true);
   };
 
-  const handleEdit = (user: User) => {
+  const handleEditUser = (user: User) => {
     setSelectedUser(user);
-    setIsEditDialogOpen(true);
+    setShowEditDialog(true);
   };
 
-  const handleDelete = (user: User) => {
+  const handleDeleteUser = (user: User) => {
     setSelectedUser(user);
-    setIsConfirmDialogOpen(true);
-  };
-
-  const handleViewPermissions = (user: User) => {
-    setSelectedUser(user);
-    setIsPermissionsDialogOpen(true);
+    setShowDeleteDialog(true);
   };
 
   const handleViewDetails = (user: User) => {
     setSelectedUser(user);
-    setIsDetailsDialogOpen(true);
+    setShowDetailsDialog(true);
   };
 
-  const handleFormSubmit = async (formData: Partial<User>) => {
+  const handleViewPermissions = (user: User) => {
+    setSelectedUser(user);
+    setShowPermissionsDialog(true);
+  };
+
+  const handleCreateUser = async (formData: Partial<User>) => {
     try {
-      if (selectedUser) {
-        const { error } = await supabase
-          .from('users')
-          .update({
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            role: formData.role,
-            phone: formData.phone,
-            department_id: formData.department_id,
-            active: formData.active,
-            profile_image_url: formData.profile_image_url
-          })
-          .eq('id', selectedUser.id);
-          
-        if (error) throw error;
-        
-        toast.success('User updated successfully');
+      const { error } = await supabase
+        .from('users')
+        .insert([
+          {
+            ...formData,
+            id: Math.random().toString(36).substring(2, 15), // Generate a random ID
+          },
+        ]);
+
+      if (error) {
+        console.error('Error creating user:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to create user',
+          variant: 'destructive',
+        });
       } else {
-        const { error } = await supabase
-          .from('users')
-          .insert({
-            id: crypto.randomUUID(),
-            first_name: formData.first_name || '',
-            last_name: formData.last_name || '',
-            role: formData.role || 'user',
-            phone: formData.phone,
-            department_id: formData.department_id,
-            active: formData.active !== undefined ? formData.active : true,
-            profile_image_url: formData.profile_image_url
-          });
-          
-        if (error) throw error;
-        
-        toast.success('User created successfully');
+        toast({
+          title: 'Success',
+          description: 'User created successfully',
+        });
+        fetchUsers(); // Refresh user list
       }
-      
-      setIsEditDialogOpen(false);
-      fetchUsers();
-      
     } catch (error) {
-      console.error('Error saving user:', error);
-      toast.error('Failed to save user');
+      console.error('Error creating user:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create user',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateUser = async (formData: Partial<User>) => {
+    if (!selectedUser) return;
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update(formData)
+        .eq('id', selectedUser.id);
+
+      if (error) {
+        console.error('Error updating user:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to update user',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Success',
+          description: 'User updated successfully',
+        });
+        fetchUsers(); // Refresh user list
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update user',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleConfirmDelete = async () => {
     if (!selectedUser) return;
-    
+
     try {
       const { error } = await supabase
         .from('users')
         .delete()
         .eq('id', selectedUser.id);
-        
-      if (error) throw error;
-      
-      toast.success('User deleted successfully');
-      setIsConfirmDialogOpen(false);
-      fetchUsers();
-      
+
+      if (error) {
+        console.error('Error deleting user:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete user',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Success',
+          description: 'User deleted successfully',
+        });
+        fetchUsers(); // Refresh user list
+      }
     } catch (error) {
       console.error('Error deleting user:', error);
-      toast.error('Failed to delete user');
+      toast({
+        title: 'Error',
+        description: 'Failed to delete user',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -214,131 +273,104 @@ export const UsersTable = ({ filters: initialFilters }: UsersTableProps) => {
         </Button>
       </div>
 
-      <UserFilters 
-        filters={filters}
-        departments={departments}
+      <UserFilters
+        status={filters.status}
+        department={filters.department}
+        search={filters.search}
         onStatusChange={(status) => handleFilterChange({ status })}
         onDepartmentChange={(department) => handleFilterChange({ department })}
         onSearchChange={(search) => handleFilterChange({ search })}
       />
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[150px]">Actions</TableHead>
+              <TableCell colSpan={4} className="text-center">Loading users...</TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
-                  Loading users...
+          ) : users.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center">No users found.</TableCell>
+            </TableRow>
+          ) : (
+            users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>{user.first_name} {user.last_name}</TableCell>
+                <TableCell>
+                  <Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'}>{user.role}</Badge>
+                </TableCell>
+                <TableCell>{user.active ? 'Active' : 'Inactive'}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleViewDetails(user)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleViewPermissions(user)}>
+                      <Key className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDeleteUser(user)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
-            ) : filteredUsers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
-                  No users found
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={user.profile_image_url || undefined} />
-                        <AvatarFallback>{`${user.first_name.charAt(0)}${user.last_name.charAt(0)}`}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{`${user.first_name} ${user.last_name}`}</div>
-                        <div className="text-sm text-muted-foreground">{user.phone || 'No phone'}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>
-                    {user.department?.name || 'No department'}
-                  </TableCell>
-                  <TableCell>
-                    {user.active ? (
-                      <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                        Active
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-muted text-muted-foreground">
-                        Inactive
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleViewDetails(user)}>
-                        <EyeIcon className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleViewPermissions(user)}>
-                        <Shield className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(user)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(user)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {isAddDialogOpen && (
-        <UserFormDialog 
-          open={true} 
-          onOpenChange={setIsAddDialogOpen}
-          departments={departments}
-          onSave={handleFormSubmit}
+            ))
+          )}
+        </TableBody>
+      </Table>
+      
+      {showAddDialog && (
+        <UserFormDialog
+          open={showAddDialog}
+          onOpenChange={setShowAddDialog}
+          onSave={handleCreateUser}
         />
       )}
 
-      {isEditDialogOpen && selectedUser && (
-        <UserFormDialog 
-          open={true} 
-          onOpenChange={setIsEditDialogOpen}
-          departments={departments}
+      {showEditDialog && selectedUser && (
+        <UserFormDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
           user={selectedUser}
-          onSave={handleFormSubmit}
+          onSave={handleUpdateUser}
         />
       )}
 
-      <ConfirmDialog
-        open={isConfirmDialogOpen}
-        onOpenChange={setIsConfirmDialogOpen}
-        onConfirm={handleConfirmDelete}
-        title="Delete User"
-        description={`Are you sure you want to delete ${selectedUser?.first_name} ${selectedUser?.last_name}? This action cannot be undone.`}
-        confirmText="Delete"
-      />
+      {showDeleteDialog && selectedUser && (
+        <ConfirmDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={handleConfirmDelete}
+          title="Delete User"
+          description={`Are you sure you want to delete the user "${selectedUser.first_name} ${selectedUser.last_name}"?`}
+          confirmText="Delete"
+          variant="destructive"
+        />
+      )}
 
-      {isDetailsDialogOpen && selectedUser && (
-        <UserDetailsDialog 
-          open={true}
-          onOpenChange={setIsDetailsDialogOpen}
+      {showDetailsDialog && selectedUser && (
+        <UserDetailsDialog
+          open={showDetailsDialog}
+          onOpenChange={setShowDetailsDialog}
           user={selectedUser}
         />
       )}
-
-      {isPermissionsDialogOpen && selectedUser && (
-        <UserPermissionsDialog 
-          open={true}
-          onOpenChange={setIsPermissionsDialogOpen}
+      
+      {showPermissionsDialog && selectedUser && (
+        <UserPermissionsDialog
+          open={showPermissionsDialog}
+          onOpenChange={setShowPermissionsDialog}
           user={selectedUser}
         />
       )}
