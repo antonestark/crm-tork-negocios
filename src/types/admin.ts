@@ -35,6 +35,7 @@ export interface Department {
   updated_at: string;
   _memberCount?: number;
   manager?: { first_name: string; last_name: string; } | null;
+  children?: Department[];
 }
 
 export interface Permission {
@@ -104,3 +105,18 @@ export interface ActivityLog {
   metadata: Json | null;
   user?: { first_name: string; last_name: string; profile_image_url: string | null; };
 }
+
+export interface DepartmentMetrics {
+  totalMembers: number;
+  activeMembers: number;
+  subDepartments: number;
+  averageActivityLevel: number;
+  recentChanges: number;
+}
+
+export interface DepartmentHierarchyNode extends Department {
+  children: DepartmentHierarchyNode[];
+  depth: number;
+}
+
+export type DepartmentRole = 'manager' | 'deputy' | 'member' | 'guest';
