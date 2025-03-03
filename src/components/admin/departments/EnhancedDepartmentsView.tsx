@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Plus, Layers, Users, Activity, RefreshCw } from 'lucide-react';
 import { DepartmentTreeView } from './DepartmentTreeView';
-import { DepartmentFormDialog } from './DepartmentFormDialog';
-import { DepartmentMembersDialog } from './DepartmentMembersDialog';
+import DepartmentFormDialog from './DepartmentFormDialog';
+import DepartmentMembersDialog from './DepartmentMembersDialog';
 import { DeleteDepartmentDialog } from './DeleteDepartmentDialog';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
