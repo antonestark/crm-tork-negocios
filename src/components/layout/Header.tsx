@@ -108,9 +108,11 @@ export const Header = () => {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Configurações</span>
+            <DropdownMenuItem asChild>
+              <Link to="/admin">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Painel Administrativo</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem className="text-danger">
               <LogOut className="mr-2 h-4 w-4" />
