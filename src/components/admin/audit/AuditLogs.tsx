@@ -1,157 +1,192 @@
 
-import { useState, useEffect } from 'react';
-import { 
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { supabase, activityLogsAdapter } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Filter, Calendar, Info, AlertTriangle, AlertCircle } from 'lucide-react';
+import { mockActivityLogData } from '@/integrations/supabase/mockData';
 import { ActivityLog } from '@/types/admin';
+import { format } from 'date-fns';
 
-const AuditLogs = () => {
+export function AuditLogs() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [severityFilter, setSeverityFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   useEffect(() => {
     const fetchLogs = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from("activity_logs")
-          .select(`
-            *,
-            user:users(first_name, last_name, profile_image_url)
-          `)
-          .order('created_at', { ascending: false })
-          .limit(100);
-
-        if (error) throw error;
-        
-        // Use adapter to ensure the data conforms to ActivityLog interface
-        const adaptedLogs = activityLogsAdapter(data || []);
-        
-        setLogs(adaptedLogs as ActivityLog[]);
+        // In a real app, this would be a call to the Supabase API
+        const data = mockActivityLogData();
+        setLogs(data);
+        setFilteredLogs(data);
       } catch (error) {
-        console.error('Error fetching audit logs:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load audit logs",
-          variant: "destructive",
-        });
+        console.error('Failed to fetch activity logs:', error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchLogs();
-  }, [toast]);
+  }, []);
 
-  const filteredLogs = logs.filter(log => 
-    log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.entity_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (log.user?.first_name + ' ' + log.user?.last_name).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    // Apply filters
+    let filtered = logs;
 
-  const getActionColor = (action: string) => {
-    switch (action.toLowerCase()) {
-      case 'create':
-        return 'text-green-600';
-      case 'update':
-        return 'text-blue-600';
-      case 'delete':
-        return 'text-red-600';
-      case 'login':
-        return 'text-purple-600';
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(log => 
+        (log.user?.first_name.toLowerCase().includes(query) ||
+        log.user?.last_name.toLowerCase().includes(query) ||
+        log.action.toLowerCase().includes(query) ||
+        log.entity_type.toLowerCase().includes(query))
+      );
+    }
+
+    // Apply severity filter
+    if (severityFilter !== 'all') {
+      filtered = filtered.filter(log => log.severity === severityFilter);
+    }
+
+    // Apply category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(log => log.category === categoryFilter);
+    }
+
+    setFilteredLogs(filtered);
+  }, [searchQuery, severityFilter, categoryFilter, logs]);
+
+  const getSeverityIcon = (severity: string | null) => {
+    switch(severity) {
+      case 'high':
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
+      case 'medium':
+        return <AlertTriangle className="h-4 w-4 text-amber-500" />;
+      case 'low':
+        return <Info className="h-4 w-4 text-blue-500" />;
       default:
-        return 'text-gray-600';
+        return <Info className="h-4 w-4 text-gray-400" />;
     }
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    }).format(date);
+    return format(new Date(dateString), 'dd/MM/yyyy HH:mm');
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-xl">Audit Logs</CardTitle>
-        <div className="mt-2">
+    <div>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by action, entity or user..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
+            className="pl-9"
+            placeholder="Buscar logs..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Entity Type</TableHead>
-                <TableHead>Entity ID</TableHead>
-                <TableHead>Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell colSpan={6}>
-                      <Skeleton className="h-6 w-full" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : filteredLogs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6 text-gray-500">
-                    No audit logs found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredLogs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="font-mono text-xs">
-                      {log.created_at ? formatDate(log.created_at) : 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      {log.user ? `${log.user.first_name} ${log.user.last_name}` : 'System'}
-                    </TableCell>
-                    <TableCell className={getActionColor(log.action)}>
-                      {log.action}
-                    </TableCell>
-                    <TableCell>{log.entity_type}</TableCell>
-                    <TableCell className="font-mono text-xs truncate max-w-[100px]">
-                      {log.entity_id || 'N/A'}
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {log.details ? JSON.stringify(log.details) : 'No details'}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
-export default AuditLogs;
+        <div className="flex gap-2">
+          <Select value={severityFilter} onValueChange={setSeverityFilter}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Severidade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="high">Alta</SelectItem>
+              <SelectItem value="medium">Média</SelectItem>
+              <SelectItem value="low">Baixa</SelectItem>
+              <SelectItem value="info">Informativa</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="security">Segurança</SelectItem>
+              <SelectItem value="system">Sistema</SelectItem>
+              <SelectItem value="auth">Autenticação</SelectItem>
+              <SelectItem value="data">Dados</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button variant="outline" size="icon">
+            <Filter className="h-4 w-4" />
+          </Button>
+
+          <Button variant="outline" size="icon">
+            <Calendar className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <p>Carregando logs de atividade...</p>
+      ) : (
+        <div className="space-y-4">
+          {filteredLogs.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">
+              Nenhum log de atividade encontrado com os filtros aplicados.
+            </p>
+          ) : (
+            filteredLogs.map((log) => (
+              <Card key={log.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">{getSeverityIcon(log.severity)}</div>
+                    <div className="flex-grow">
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+                        <div>
+                          <div className="font-medium">
+                            {log.user ? `${log.user.first_name} ${log.user.last_name}` : 'Sistema'}{' '}
+                            <span className="font-normal text-muted-foreground">
+                              {log.action} {log.entity_type}
+                              {log.entity_id ? ` (ID: ${log.entity_id})` : ''}
+                            </span>
+                          </div>
+                          {log.details && (
+                            <div className="text-sm mt-1">
+                              {typeof log.details === 'object' 
+                                ? Object.entries(log.details as Record<string, any>).map(([key, value]) => (
+                                    <span key={key} className="mr-3">
+                                      <span className="font-medium">{key}:</span> {value.toString()}
+                                    </span>
+                                  ))
+                                : log.details.toString()
+                              }
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-sm text-muted-foreground whitespace-nowrap">
+                          {formatDate(log.created_at)}
+                        </div>
+                      </div>
+                      <div className="flex mt-2">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">
+                          {log.category || 'system'}
+                        </span>
+                        <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                          IP: {log.ip_address || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

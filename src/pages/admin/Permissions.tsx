@@ -1,24 +1,23 @@
 
 import { useEffect } from 'react';
-import { AdminNav } from '@/components/admin/AdminNav';
 import { Helmet } from 'react-helmet';
+import { AdminNav } from '@/components/admin/AdminNav';
+import { PermissionsManager } from '@/components/admin/permissions/PermissionsManager';
 
 const PermissionsPage = () => {
   useEffect(() => {
-    document.title = "Permissions | Admin";
+    document.title = "Gerenciamento de Permissões";
   }, []);
 
   return (
     <div className="container mx-auto py-6">
       <Helmet>
-        <title>Permissions | Admin</title>
+        <title>Gerenciamento de Permissões</title>
       </Helmet>
       <AdminNav />
       <div className="mt-6">
-        <h1 className="text-2xl font-bold">Permissions Management</h1>
-        <p className="mt-2 text-gray-600">
-          This feature is coming soon. Stay tuned for updates.
-        </p>
+        <h1 className="text-2xl font-bold mb-6">Gerenciamento de Permissões</h1>
+        <PermissionsManager />
       </div>
     </div>
   );

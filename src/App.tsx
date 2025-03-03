@@ -17,6 +17,10 @@ import ReportsPage from "./pages/services/Reports";
 import AdminIndex from "./pages/admin/Index";
 import UsersPage from "./pages/admin/Users";
 import DepartmentsPage from "./pages/admin/Departments";
+import PermissionsPage from "./pages/admin/Permissions";
+import AuditPage from "./pages/admin/Audit";
+import SettingsPage from "./pages/admin/Settings";
+import AdminReportsPage from "./pages/admin/Reports";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +43,10 @@ const App = () => (
           <Route path="/admin" element={<AdminIndex />} />
           <Route path="/admin/users" element={<UsersPage />} />
           <Route path="/admin/departments" element={<DepartmentsPage />} />
+          <Route path="/admin/permissions" element={<PermissionsPage />} />
+          <Route path="/admin/audit" element={<AuditPage />} />
+          <Route path="/admin/settings" element={<SettingsPage />} />
+          <Route path="/admin/reports" element={<AdminReportsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

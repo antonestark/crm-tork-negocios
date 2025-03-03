@@ -1,7 +1,7 @@
 
 import { useLocation, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Users, FolderKanban, Shield, FileText } from "lucide-react";
+import { Users, FolderKanban, Shield, FileText, Activity, Settings, BarChart } from "lucide-react";
 
 export function AdminNav() {
   const location = useLocation();
@@ -31,7 +31,17 @@ export function AdminNav() {
     {
       title: "Auditoria",
       href: "/admin/audit",
-      icon: <FileText className="h-4 w-4 mr-2" />
+      icon: <Activity className="h-4 w-4 mr-2" />
+    },
+    {
+      title: "Configurações",
+      href: "/admin/settings",
+      icon: <Settings className="h-4 w-4 mr-2" />
+    },
+    {
+      title: "Relatórios",
+      href: "/admin/reports",
+      icon: <BarChart className="h-4 w-4 mr-2" />
     }
   ];
 
