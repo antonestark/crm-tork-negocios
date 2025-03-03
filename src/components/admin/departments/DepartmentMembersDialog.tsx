@@ -1,26 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase, mockUserDepartmentRoleData, userAdapter } from '@/integrations/supabase/client';
+import { mockUserDepartmentRoleData, userAdapter } from '@/integrations/supabase/mockData';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  profile_image_url?: string | null;
-  role: string;
-  // Other user properties
-}
-
-interface Department {
-  id: string;
-  name: string;
-  // Other department properties
-}
+import { toast } from '@/components/ui/use-toast';
+import { User, Department } from '@/types/admin';
 
 interface UserDepartmentRole {
   id: string;
@@ -35,13 +22,13 @@ interface UserDepartmentRole {
 }
 
 export interface DepartmentMembersDialogProps {
-  isOpen: boolean;
+  open: boolean;  // Changed from isOpen to open
   onOpenChange: (open: boolean) => void;
-  department: Department;
+  department: Department | null;
 }
 
 const DepartmentMembersDialog: React.FC<DepartmentMembersDialogProps> = ({
-  isOpen,
+  open,  // Changed from isOpen to open
   onOpenChange,
   department
 }) => {
@@ -51,15 +38,16 @@ const DepartmentMembersDialog: React.FC<DepartmentMembersDialogProps> = ({
   const [selectedRole, setSelectedRole] = useState<string>('member');
   const [isLoading, setIsLoading] = useState(false);
   const [isAddingMember, setIsAddingMember] = useState(false);
-  const { toast } = useToast();
 
   // Fetch department members
   const fetchMembers = async () => {
     setIsLoading(true);
     try {
       // Since we don't have the actual table, we'll use mock data
-      const mockData = mockUserDepartmentRoleData('', department.id);
-      setMembers(mockData);
+      if (department?.id) {
+        const mockData = mockUserDepartmentRoleData('', department.id);
+        setMembers(mockData);
+      }
     } catch (error) {
       console.error('Error fetching department members:', error);
       toast({
@@ -75,14 +63,25 @@ const DepartmentMembersDialog: React.FC<DepartmentMembersDialogProps> = ({
   // Fetch available users
   const fetchAvailableUsers = async () => {
     try {
-      const { data, error } = await supabase.from('users').select('*');
+      // For now, we'll just use mock data to simulate fetching users from Supabase
+      const mockUsers = [{
+        id: '1',
+        first_name: 'John',
+        last_name: 'Doe',
+        profile_image_url: null,
+        role: 'admin',
+        department_id: null
+      }, {
+        id: '2',
+        first_name: 'Jane',
+        last_name: 'Smith',
+        profile_image_url: null,
+        role: 'user',
+        department_id: null
+      }];
       
-      if (error) throw error;
-      
-      if (data) {
-        const adaptedUsers = userAdapter(data);
-        setAvailableUsers(adaptedUsers);
-      }
+      const adaptedUsers = userAdapter(mockUsers);
+      setAvailableUsers(adaptedUsers);
     } catch (error) {
       console.error('Error fetching available users:', error);
       toast({
@@ -95,29 +94,21 @@ const DepartmentMembersDialog: React.FC<DepartmentMembersDialogProps> = ({
 
   // Load data when dialog opens
   useEffect(() => {
-    if (isOpen && department?.id) {
+    if (open && department?.id) {
       fetchMembers();
       fetchAvailableUsers();
     }
-  }, [isOpen, department?.id]);
+  }, [open, department?.id]);
 
   // Add a new member
   const handleAddMember = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser || !department) return;
     
     setIsAddingMember(true);
     try {
       // Mock the API call since we don't have the actual table
-      // In a real app, you would do:
-      // const { error } = await supabase.from('user_department_roles').insert([{
-      //   user_id: selectedUser,
-      //   department_id: department.id,
-      //   role: selectedRole
-      // }]);
       
-      // if (error) throw error;
-      
-      // Instead, we'll just update our local state
+      // Find the user to add
       const userToAdd = availableUsers.find(user => user.id === selectedUser);
       if (userToAdd) {
         const newMember = {
@@ -157,14 +148,6 @@ const DepartmentMembersDialog: React.FC<DepartmentMembersDialogProps> = ({
   const handleRemoveMember = async (userId: string) => {
     try {
       // Mock the API call
-      // In a real app, you would do:
-      // const { error } = await supabase
-      //   .from('user_department_roles')
-      //   .delete()
-      //   .eq('user_id', userId)
-      //   .eq('department_id', department.id);
-      
-      // if (error) throw error;
       
       // Update local state
       setMembers(prev => prev.filter(member => member.user_id !== userId));
@@ -185,7 +168,7 @@ const DepartmentMembersDialog: React.FC<DepartmentMembersDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle>Department Members - {department?.name}</DialogTitle>

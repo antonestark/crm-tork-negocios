@@ -5,32 +5,33 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-
-interface Department {
-  id: string;
-  name: string;
-  description?: string;
-  // Add other department fields as needed
-}
+import { Department, User } from '@/types/admin';
 
 export interface DepartmentFormDialogProps {
-  isOpen: boolean;
+  open: boolean;  // Changed from isOpen to open
   onOpenChange: (open: boolean) => void;
-  onSubmit: (formData: Partial<Department>) => Promise<void> | void;
-  title: string;
-  department?: Department;
+  onSave: (formData: Department) => Promise<void> | void;
+  department?: Department | null;
+  departments?: Department[];
+  users?: User[];
+  isEditing?: boolean;
 }
 
 const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
-  isOpen,
+  open,  // Changed from isOpen to open
   onOpenChange,
-  onSubmit,
-  title,
-  department
+  onSave,
+  department,
+  departments = [], 
+  users = [],
+  isEditing = false
 }) => {
   const [formData, setFormData] = useState<Partial<Department>>({
     name: department?.name || '',
     description: department?.description || '',
+    parent_id: department?.parent_id || null,
+    manager_id: department?.manager_id || null,
+    // Add other fields as needed
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,7 +46,8 @@ const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
     setIsSubmitting(true);
     
     try {
-      await onSubmit(formData);
+      // Casting formData to Department as required by onSave
+      await onSave(formData as Department);
       onOpenChange(false);
     } catch (error) {
       console.error('Error submitting department form:', error);
@@ -55,10 +57,10 @@ const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Department' : 'Create Department'}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
