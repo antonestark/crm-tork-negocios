@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { mockUserDepartmentRoleData, userAdapter } from '@/integrations/supabase/mockData';
+import { mockUserDepartmentRoleData } from '@/integrations/supabase/mockData';
+import { userAdapter } from '@/integrations/supabase/adapters';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
@@ -28,7 +29,7 @@ export interface DepartmentMembersDialogProps {
 }
 
 const DepartmentMembersDialog: React.FC<DepartmentMembersDialogProps> = ({
-  open,  // Changed from isOpen to open
+  open,
   onOpenChange,
   department
 }) => {
