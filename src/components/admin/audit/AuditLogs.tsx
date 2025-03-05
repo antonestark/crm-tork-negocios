@@ -9,6 +9,7 @@ import { ActivityLog } from '@/types/admin';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { activityLogsAdapter } from '@/integrations/supabase/adapters';
 
 export function AuditLogs() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -34,8 +35,9 @@ export function AuditLogs() {
           throw error;
         }
 
-        setLogs(data || []);
-        setFilteredLogs(data || []);
+        const adaptedLogs = activityLogsAdapter(data || []);
+        setLogs(adaptedLogs);
+        setFilteredLogs(adaptedLogs);
       } catch (error) {
         console.error('Failed to fetch activity logs:', error);
         toast({

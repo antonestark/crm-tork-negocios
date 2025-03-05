@@ -1,16 +1,16 @@
 
 // This file contains adapter functions to convert database responses to proper typed objects
 import type { Json } from './types';
-import type { User, UserStatus, Department } from '@/types/admin';
+import type { User, UserStatus, Department, Permission, ActivityLog, PermissionGroup } from '@/types/admin';
 
 // Helper function to handle the additional fields from activity_logs
-export const activityLogsAdapter = (data: any[]) => {
+export const activityLogsAdapter = (data: any[]): ActivityLog[] => {
   return data.map(log => ({
     ...log,
     severity: log.severity || 'low',
     category: log.category || 'system',
     metadata: log.metadata || {}
-  }));
+  })) as ActivityLog[];
 };
 
 // Helper function to adapt user data from database to match the User interface
@@ -62,22 +62,41 @@ export const userDepartmentRoleAdapter = (data: any[]) => {
 };
 
 // Helper function to adapt permission data
-export const permissionAdapter = (data: any[]) => {
-  return data.map(perm => ({
-    id: perm.id || '',
-    code: perm.code || '',
-    name: perm.name || '',
-    description: perm.description || null,
-    module: perm.module || '',
-    resource_type: perm.resource_type || '',
-    actions: perm.actions || [],
-    created_at: perm.created_at || new Date().toISOString(),
-    selected: perm.selected || false
-  }));
+export const permissionAdapter = (data: any[]): Permission[] => {
+  return data.map(perm => {
+    // Ensure actions is always an array of strings
+    let actionsArray: string[] = [];
+    if (perm.actions) {
+      if (Array.isArray(perm.actions)) {
+        actionsArray = perm.actions as string[];
+      } else if (typeof perm.actions === 'object') {
+        // If it's a JSON object, try to parse it as an array
+        try {
+          actionsArray = Array.isArray(JSON.parse(JSON.stringify(perm.actions)))
+            ? JSON.parse(JSON.stringify(perm.actions))
+            : [];
+        } catch {
+          actionsArray = [];
+        }
+      }
+    }
+    
+    return {
+      id: perm.id || '',
+      code: perm.code || '',
+      name: perm.name || '',
+      description: perm.description || null,
+      module: perm.module || '',
+      resource_type: perm.resource_type || '',
+      actions: actionsArray,
+      created_at: perm.created_at || new Date().toISOString(),
+      selected: perm.selected || false
+    };
+  }) as Permission[];
 };
 
 // Helper function to adapt permission group data
-export const permissionGroupAdapter = (data: any[]) => {
+export const permissionGroupAdapter = (data: any[]): PermissionGroup[] => {
   return data.map(group => ({
     id: group.id || '',
     name: group.name || '',
@@ -87,7 +106,7 @@ export const permissionGroupAdapter = (data: any[]) => {
     updated_at: group.updated_at || new Date().toISOString(),
     selected: group.selected || false,
     permissions: group.permissions || []
-  }));
+  })) as PermissionGroup[];
 };
 
 // Helper function to adapt user permission data
@@ -106,7 +125,7 @@ export const userPermissionAdapter = (data: any[]) => {
       description: up.permission.description || null,
       module: up.permission.module || '',
       resource_type: up.permission.resource_type || '',
-      actions: up.permission.actions || [],
+      actions: Array.isArray(up.permission.actions) ? up.permission.actions : [],
       created_at: up.permission.created_at || new Date().toISOString()
     } : null
   }));

@@ -16,6 +16,7 @@ import { Permission, PermissionGroup, User } from '@/types/admin';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { permissionAdapter, permissionGroupAdapter } from '@/integrations/supabase/adapters';
 
 interface UserPermissionsDialogProps {
   open: boolean;
@@ -71,20 +72,24 @@ export function UserPermissionsDialog({
         
         // Mark permissions that the user has
         const userPermissionIds = (userPermissions || []).map(up => up.permission_id);
-        const markedPermissions = (allPermissions || []).map(permission => ({
+        const tempPermissions = (allPermissions || []).map(permission => ({
           ...permission,
           selected: userPermissionIds.includes(permission.id)
         }));
         
         // Mark permission groups that the user has
         const userGroupIds = (userGroups || []).map(ug => ug.group_id);
-        const markedGroups = (allGroups || []).map(group => ({
+        const tempGroups = (allGroups || []).map(group => ({
           ...group,
           selected: userGroupIds.includes(group.id)
         }));
         
-        setPermissions(markedPermissions);
-        setPermissionGroups(markedGroups);
+        // Apply adapters to convert to the correct types
+        const adaptedPermissions = permissionAdapter(tempPermissions);
+        const adaptedGroups = permissionGroupAdapter(tempGroups);
+        
+        setPermissions(adaptedPermissions);
+        setPermissionGroups(adaptedGroups);
       } catch (error) {
         console.error('Error fetching permissions:', error);
         toast({

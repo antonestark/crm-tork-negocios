@@ -9,6 +9,7 @@ import { User } from '@/types/admin';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { userAdapter } from '@/integrations/supabase/adapters';
 
 export function UserPermissionsManager() {
   const [users, setUsers] = useState<User[]>([]);
@@ -31,8 +32,9 @@ export function UserPermissionsManager() {
           throw error;
         }
 
-        setUsers(data || []);
-        setFilteredUsers(data || []);
+        const adaptedUsers = userAdapter(data || []);
+        setUsers(adaptedUsers);
+        setFilteredUsers(adaptedUsers);
       } catch (error) {
         console.error('Failed to fetch users:', error);
         toast({

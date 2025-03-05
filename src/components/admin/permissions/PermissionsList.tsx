@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2 } from 'lucide-react';
 import { Permission } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { permissionAdapter } from '@/integrations/supabase/adapters';
 
 export function PermissionsList() {
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -25,7 +26,8 @@ export function PermissionsList() {
           throw error;
         }
 
-        setPermissions(data || []);
+        const adaptedPermissions = permissionAdapter(data || []);
+        setPermissions(adaptedPermissions);
       } catch (error) {
         console.error('Failed to fetch permissions:', error);
         toast({
