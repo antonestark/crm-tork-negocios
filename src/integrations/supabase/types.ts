@@ -603,6 +603,102 @@ export type Database = {
           },
         ]
       }
+      permission_group_permissions: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          permission_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          permission_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          permission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permission_group_permissions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "permission_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "permission_group_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      permission_groups: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_system: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      permissions: {
+        Row: {
+          actions: Json
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          module: string
+          name: string
+          resource_type: string
+        }
+        Insert: {
+          actions?: Json
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          module: string
+          name: string
+          resource_type: string
+        }
+        Update: {
+          actions?: Json
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          module?: string
+          name?: string
+          resource_type?: string
+        }
+        Relationships: []
+      }
       scheduling: {
         Row: {
           client_id: string | null
@@ -961,6 +1057,91 @@ export type Database = {
         }
         Relationships: []
       }
+      user_permission_groups: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permission_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "permission_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permission_groups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_permissions: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          permission_id: string
+          user_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          permission_id: string
+          user_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          permission_id?: string
+          user_id?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permissions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           active: boolean | null
@@ -1013,7 +1194,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_permission: {
+        Args: {
+          _user_id: string
+          _permission_code: string
+        }
+        Returns: boolean
+      }
+      log_activity: {
+        Args: {
+          _entity_type: string
+          _entity_id: string
+          _action: string
+          _details?: Json
+          _user_id?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       area_type: "common" | "bathroom" | "private" | "external" | "ac"

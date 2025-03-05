@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import { mockPermissionData } from '@/integrations/supabase/mockData';
 import { Permission } from '@/types/admin';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 export function PermissionsList() {
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -15,11 +16,23 @@ export function PermissionsList() {
     const fetchPermissions = async () => {
       try {
         setLoading(true);
-        // In a real app, this would be a call to the Supabase API
-        const data = mockPermissionData();
-        setPermissions(data);
+        const { data, error } = await supabase
+          .from('permissions')
+          .select('*')
+          .order('module');
+
+        if (error) {
+          throw error;
+        }
+
+        setPermissions(data || []);
       } catch (error) {
         console.error('Failed to fetch permissions:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar permissões",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
@@ -33,9 +46,30 @@ export function PermissionsList() {
     console.log('Edit permission:', permission);
   };
 
-  const handleDelete = (permission: Permission) => {
-    // In a real app, this would show a confirmation dialog
-    console.log('Delete permission:', permission);
+  const handleDelete = async (permission: Permission) => {
+    try {
+      const { error } = await supabase
+        .from('permissions')
+        .delete()
+        .eq('id', permission.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setPermissions(permissions.filter(p => p.id !== permission.id));
+      toast({
+        title: "Sucesso",
+        description: "Permissão excluída com sucesso",
+      });
+    } catch (error) {
+      console.error('Failed to delete permission:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir permissão",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -68,7 +102,7 @@ export function PermissionsList() {
                         {permission.module}
                       </span>
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-2">
-                        {permission.actions.join(', ')}
+                        {Array.isArray(permission.actions) ? permission.actions.join(', ') : ''}
                       </span>
                     </div>
                   </div>

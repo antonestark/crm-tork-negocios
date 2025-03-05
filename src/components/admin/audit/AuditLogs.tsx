@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, Calendar, Info, AlertTriangle, AlertCircle } from 'lucide-react';
-import { mockActivityLogData } from '@/integrations/supabase/mockData';
 import { ActivityLog } from '@/types/admin';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 export function AuditLogs() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -21,12 +22,27 @@ export function AuditLogs() {
     const fetchLogs = async () => {
       try {
         setLoading(true);
-        // In a real app, this would be a call to the Supabase API
-        const data = mockActivityLogData();
-        setLogs(data);
-        setFilteredLogs(data);
+        const { data, error } = await supabase
+          .from('activity_logs')
+          .select(`
+            *,
+            user:users(first_name, last_name, profile_image_url)
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        setLogs(data || []);
+        setFilteredLogs(data || []);
       } catch (error) {
         console.error('Failed to fetch activity logs:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar logs de atividade",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
@@ -43,10 +59,10 @@ export function AuditLogs() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(log => 
-        (log.user?.first_name.toLowerCase().includes(query) ||
-        log.user?.last_name.toLowerCase().includes(query) ||
-        log.action.toLowerCase().includes(query) ||
-        log.entity_type.toLowerCase().includes(query))
+        (log.user?.first_name?.toLowerCase().includes(query) ||
+        log.user?.last_name?.toLowerCase().includes(query) ||
+        log.action?.toLowerCase().includes(query) ||
+        log.entity_type?.toLowerCase().includes(query))
       );
     }
 
@@ -159,7 +175,7 @@ export function AuditLogs() {
                               {typeof log.details === 'object' 
                                 ? Object.entries(log.details as Record<string, any>).map(([key, value]) => (
                                     <span key={key} className="mr-3">
-                                      <span className="font-medium">{key}:</span> {value.toString()}
+                                      <span className="font-medium">{key}:</span> {value?.toString()}
                                     </span>
                                   ))
                                 : log.details.toString()

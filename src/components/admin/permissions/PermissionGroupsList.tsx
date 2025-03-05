@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
-import { mockPermissionGroupData } from '@/integrations/supabase/mockData';
 import { PermissionGroup } from '@/types/admin';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 export function PermissionGroupsList() {
   const [groups, setGroups] = useState<PermissionGroup[]>([]);
@@ -17,11 +18,35 @@ export function PermissionGroupsList() {
     const fetchGroups = async () => {
       try {
         setLoading(true);
-        // In a real app, this would be a call to the Supabase API
-        const data = mockPermissionGroupData();
-        setGroups(data);
+        const { data, error } = await supabase
+          .from('permission_groups')
+          .select(`
+            *,
+            permissions:permission_group_permissions(
+              permission:permissions(*)
+            )
+          `);
+
+        if (error) {
+          throw error;
+        }
+
+        const formattedGroups = (data || []).map(group => {
+          const permissions = group.permissions?.map((p: any) => p.permission) || [];
+          return {
+            ...group,
+            permissions
+          };
+        });
+        
+        setGroups(formattedGroups);
       } catch (error) {
         console.error('Failed to fetch permission groups:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar grupos de permissões",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
@@ -42,9 +67,30 @@ export function PermissionGroupsList() {
     console.log('Edit group:', group);
   };
 
-  const handleDelete = (group: PermissionGroup) => {
-    // In a real app, this would show a confirmation dialog
-    console.log('Delete group:', group);
+  const handleDelete = async (group: PermissionGroup) => {
+    try {
+      const { error } = await supabase
+        .from('permission_groups')
+        .delete()
+        .eq('id', group.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setGroups(groups.filter(g => g.id !== group.id));
+      toast({
+        title: "Sucesso",
+        description: "Grupo de permissões excluído com sucesso",
+      });
+    } catch (error) {
+      console.error('Failed to delete permission group:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir grupo de permissões",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

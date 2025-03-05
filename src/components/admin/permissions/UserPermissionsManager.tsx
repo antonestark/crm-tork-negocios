@@ -5,9 +5,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { UserPermissionsDialog } from '@/components/admin/users/UserPermissionsDialog';
-import { mockUserData } from '@/integrations/supabase/mockData';
 import { User } from '@/types/admin';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 export function UserPermissionsManager() {
   const [users, setUsers] = useState<User[]>([]);
@@ -22,12 +23,23 @@ export function UserPermissionsManager() {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        // In a real app, this would be a call to the Supabase API
-        const data = mockUserData();
-        setUsers(data);
-        setFilteredUsers(data);
+        const { data, error } = await supabase
+          .from('users')
+          .select('*, department:departments(*)');
+
+        if (error) {
+          throw error;
+        }
+
+        setUsers(data || []);
+        setFilteredUsers(data || []);
       } catch (error) {
         console.error('Failed to fetch users:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar usuários",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }

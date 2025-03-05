@@ -13,8 +13,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Permission, PermissionGroup, User } from '@/types/admin';
-import { mockPermissionData, mockPermissionGroupData } from '@/integrations/supabase/client';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 interface UserPermissionsDialogProps {
   open: boolean;
@@ -36,21 +37,70 @@ export function UserPermissionsDialog({
     const fetchPermissionsData = async () => {
       try {
         setLoading(true);
-        // Mock data for development
-        const mockPerms = mockPermissionData();
-        const mockGroups = mockPermissionGroupData();
         
-        setPermissions(mockPerms);
-        setPermissionGroups(mockGroups);
+        // Fetch all permissions
+        const { data: allPermissions, error: permError } = await supabase
+          .from('permissions')
+          .select('*')
+          .order('module');
+          
+        if (permError) throw permError;
+        
+        // Fetch all permission groups
+        const { data: allGroups, error: groupError } = await supabase
+          .from('permission_groups')
+          .select('*');
+          
+        if (groupError) throw groupError;
+        
+        // Fetch user's permissions
+        const { data: userPermissions, error: userPermError } = await supabase
+          .from('user_permissions')
+          .select('permission_id')
+          .eq('user_id', user.id);
+          
+        if (userPermError) throw userPermError;
+        
+        // Fetch user's permission groups
+        const { data: userGroups, error: userGroupError } = await supabase
+          .from('user_permission_groups')
+          .select('group_id')
+          .eq('user_id', user.id);
+          
+        if (userGroupError) throw userGroupError;
+        
+        // Mark permissions that the user has
+        const userPermissionIds = (userPermissions || []).map(up => up.permission_id);
+        const markedPermissions = (allPermissions || []).map(permission => ({
+          ...permission,
+          selected: userPermissionIds.includes(permission.id)
+        }));
+        
+        // Mark permission groups that the user has
+        const userGroupIds = (userGroups || []).map(ug => ug.group_id);
+        const markedGroups = (allGroups || []).map(group => ({
+          ...group,
+          selected: userGroupIds.includes(group.id)
+        }));
+        
+        setPermissions(markedPermissions);
+        setPermissionGroups(markedGroups);
       } catch (error) {
         console.error('Error fetching permissions:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar permissões",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
     };
     
-    fetchPermissionsData();
-  }, [user.id]);
+    if (open && user) {
+      fetchPermissionsData();
+    }
+  }, [open, user.id]);
   
   const handlePermissionChange = (permissionId: string, checked: boolean) => {
     setPermissions(prev =>
@@ -73,10 +123,80 @@ export function UserPermissionsDialog({
   };
   
   const handleSave = async () => {
-    // Here we would save the permissions to the database
-    console.log('Selected permissions:', permissions.filter(p => p.selected).map(p => p.id));
-    console.log('Selected groups:', permissionGroups.filter(g => g.selected).map(g => g.id));
-    onOpenChange(false);
+    try {
+      // Start a transaction
+      const selectedPermissionIds = permissions.filter(p => p.selected).map(p => p.id);
+      const selectedGroupIds = permissionGroups.filter(g => g.selected).map(g => g.id);
+      
+      // Remove all existing user permissions
+      const { error: deletePermError } = await supabase
+        .from('user_permissions')
+        .delete()
+        .eq('user_id', user.id);
+      
+      if (deletePermError) throw deletePermError;
+      
+      // Remove all existing user permission groups
+      const { error: deleteGroupError } = await supabase
+        .from('user_permission_groups')
+        .delete()
+        .eq('user_id', user.id);
+      
+      if (deleteGroupError) throw deleteGroupError;
+      
+      // Add new user permissions
+      if (selectedPermissionIds.length > 0) {
+        const permissionsToInsert = selectedPermissionIds.map(permissionId => ({
+          user_id: user.id,
+          permission_id: permissionId
+        }));
+        
+        const { error: insertPermError } = await supabase
+          .from('user_permissions')
+          .insert(permissionsToInsert);
+        
+        if (insertPermError) throw insertPermError;
+      }
+      
+      // Add new user permission groups
+      if (selectedGroupIds.length > 0) {
+        const groupsToInsert = selectedGroupIds.map(groupId => ({
+          user_id: user.id,
+          group_id: groupId
+        }));
+        
+        const { error: insertGroupError } = await supabase
+          .from('user_permission_groups')
+          .insert(groupsToInsert);
+        
+        if (insertGroupError) throw insertGroupError;
+      }
+      
+      // Log the activity
+      await supabase.rpc('log_activity', {
+        _entity_type: 'users',
+        _entity_id: user.id,
+        _action: 'update_permissions',
+        _details: {
+          permissions: selectedPermissionIds.length,
+          groups: selectedGroupIds.length
+        }
+      });
+      
+      toast({
+        title: "Sucesso",
+        description: "Permissões atualizadas com sucesso",
+      });
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error saving permissions:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao salvar permissões",
+        variant: "destructive"
+      });
+    }
   };
   
   return (
