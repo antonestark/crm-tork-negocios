@@ -86,9 +86,30 @@ const AreasPage = () => {
   
   const onSubmit = async (values: z.infer<typeof areaFormSchema>) => {
     try {
+      // Make sure values.name is defined (it should be due to the schema)
+      if (!values.name) {
+        toast.error("Nome da área é obrigatório");
+        return;
+      }
+      
+      // Ensure type is defined
+      if (!values.type) {
+        values.type = "common"; // Default value
+      }
+      
+      // Ensure status is defined
+      if (!values.status) {
+        values.status = "active"; // Default value
+      }
+      
       const { error } = await supabase
         .from("service_areas")
-        .insert([values]);
+        .insert({
+          name: values.name,
+          description: values.description,
+          type: values.type,
+          status: values.status
+        });
         
       if (error) {
         toast.error("Falha ao criar área");

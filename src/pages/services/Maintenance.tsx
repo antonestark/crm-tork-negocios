@@ -123,12 +123,30 @@ const MaintenancePage = () => {
   
   const onSubmit = async (values: z.infer<typeof maintenanceFormSchema>) => {
     try {
+      // Make sure required fields are defined
+      if (!values.title) {
+        toast.error("Título é obrigatório");
+        return;
+      }
+      
+      if (!values.type) {
+        toast.error("Tipo de manutenção é obrigatório");
+        return;
+      }
+      
+      // Prepare data for insertion
+      const maintenanceData = {
+        title: values.title,
+        description: values.description,
+        type: values.type,
+        area_id: values.area_id || null,
+        status: values.status || "pending",
+        scheduled_date: values.scheduled_date ? format(values.scheduled_date, 'yyyy-MM-dd') : null
+      };
+
       const { error } = await supabase
         .from("maintenance_records")
-        .insert([{
-          ...values,
-          scheduled_date: values.scheduled_date ? format(values.scheduled_date, 'yyyy-MM-dd') : null
-        }]);
+        .insert(maintenanceData);
         
       if (error) {
         toast.error("Falha ao criar manutenção");
