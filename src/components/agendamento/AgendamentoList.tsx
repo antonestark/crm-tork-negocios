@@ -19,6 +19,7 @@ import { Loader2, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, isToday, startOfDay, endOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   DropdownMenu,
   DropdownMenuContent,
