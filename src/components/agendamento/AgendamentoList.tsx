@@ -15,9 +15,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Loader2, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { format, isToday, startOfDay, endOfDay } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 type Booking = {
   id: string;
@@ -30,47 +38,17 @@ type Booking = {
   };
 };
 
-export const AgendamentoList = () => {
+type AgendamentoListProps = {
+  selectedDate?: Date;
+};
+
+export const AgendamentoList = ({ selectedDate }: AgendamentoListProps) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchTodayBookings = async () => {
-      try {
-        setLoading(true);
-        
-        // Get today's date range
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        const { data, error } = await supabase
-          .from("scheduling")
-          .select(`
-            id,
-            title,
-            start_time,
-            end_time,
-            status,
-            client:client_id (company_name)
-          `)
-          .gte("start_time", today.toISOString())
-          .lt("start_time", tomorrow.toISOString())
-          .order("start_time", { ascending: true });
-        
-        if (error) throw error;
-        
-        setBookings(data || []);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-        toast.error("Falha ao carregar agendamentos");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchTodayBookings();
+    fetchBookings();
     
     // Set up a realtime subscription
     const subscription = supabase
@@ -80,14 +58,55 @@ export const AgendamentoList = () => {
         schema: 'public', 
         table: 'scheduling' 
       }, () => {
-        fetchTodayBookings();
+        fetchBookings();
       })
       .subscribe();
       
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [selectedDate, statusFilter]);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      
+      // Get date range based on selectedDate or default to today
+      const filterDate = selectedDate || new Date();
+      const dayStart = startOfDay(filterDate);
+      const dayEnd = endOfDay(filterDate);
+      
+      let query = supabase
+        .from("scheduling")
+        .select(`
+          id,
+          title,
+          start_time,
+          end_time,
+          status,
+          client:client_id (company_name)
+        `)
+        .gte("start_time", dayStart.toISOString())
+        .lt("start_time", dayEnd.toISOString())
+        .order("start_time", { ascending: true });
+      
+      // Apply status filter if set
+      if (statusFilter) {
+        query = query.eq("status", statusFilter);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      
+      setBookings(data || []);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      toast.error("Falha ao carregar agendamentos");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusBadge = (status: string, startTime: string, endTime: string) => {
     const now = new Date();
@@ -116,10 +135,46 @@ export const AgendamentoList = () => {
     return `${startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
   };
 
+  const formatDateHeader = () => {
+    if (!selectedDate) return "Hoje";
+    
+    if (isToday(selectedDate)) {
+      return "Hoje";
+    }
+    
+    return format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  };
+
+  const resetFilter = () => {
+    setStatusFilter(null);
+  };
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Agendamentos do Dia</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Agendamentos: {formatDateHeader()}</CardTitle>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Filter className="mr-2 h-4 w-4" />
+              Filtrar
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={resetFilter}>
+              Todos
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("confirmed")}>
+              Agendados
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("cancelled")}>
+              Cancelados
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("completed")}>
+              Concluídos
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -128,7 +183,7 @@ export const AgendamentoList = () => {
           </div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            Nenhum agendamento para hoje
+            Nenhum agendamento para {isToday(selectedDate || new Date()) ? 'hoje' : 'esta data'}
           </div>
         ) : (
           <Table>
@@ -141,7 +196,7 @@ export const AgendamentoList = () => {
             </TableHeader>
             <TableBody>
               {bookings.map((booking) => (
-                <TableRow key={booking.id}>
+                <TableRow key={booking.id} className="cursor-pointer hover:bg-muted">
                   <TableCell>{formatTimeRange(booking.start_time, booking.end_time)}</TableCell>
                   <TableCell>{booking.client?.company_name || booking.title}</TableCell>
                   <TableCell>{getStatusBadge(booking.status, booking.start_time, booking.end_time)}</TableCell>

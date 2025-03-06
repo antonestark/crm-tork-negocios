@@ -10,10 +10,41 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-export const AgendamentoHeader = () => {
-  const [date, setDate] = useState<Date>();
+type AgendamentoHeaderProps = {
+  selectedDate?: Date;
+  onDateSelect: (date: Date | undefined) => void;
+};
+
+export const AgendamentoHeader = ({ selectedDate, onDateSelect }: AgendamentoHeaderProps) => {
   const [view, setView] = useState<"day" | "week" | "month">("week");
+
+  const handleNewBooking = async () => {
+    try {
+      // Here you would open a modal/dialog for creating a new booking
+      toast.info("Funcionalidade de criação de agendamento será implementada em breve.");
+      
+      // Example of what the creation would look like
+      /*
+      const { data, error } = await supabase
+        .from('scheduling')
+        .insert([
+          { 
+            title: 'Nova Reunião', 
+            start_time: new Date().toISOString(),
+            end_time: new Date(Date.now() + 3600000).toISOString(),
+            client_id: 'client-id-here',
+            status: 'confirmed'
+          }
+        ]);
+      */
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      toast.error("Falha ao criar agendamento");
+    }
+  };
 
   return (
     <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
@@ -24,7 +55,7 @@ export const AgendamentoHeader = () => {
         </p>
       </div>
       <div className="flex flex-col sm:flex-row gap-2">
-        <Button className="flex items-center" size="sm">
+        <Button className="flex items-center" size="sm" onClick={handleNewBooking}>
           <CalendarIcon className="mr-2 h-4 w-4" />
           Novo Agendamento
         </Button>
@@ -37,14 +68,14 @@ export const AgendamentoHeader = () => {
               size="sm"
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "PPP", { locale: ptBR }) : "Selecionar data"}
+              {selectedDate ? format(selectedDate, "PPP", { locale: ptBR }) : "Selecionar data"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
             <Calendar
               mode="single"
-              selected={date}
-              onSelect={setDate}
+              selected={selectedDate}
+              onSelect={onDateSelect}
               locale={ptBR}
               initialFocus
             />
