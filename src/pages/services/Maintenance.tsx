@@ -10,13 +10,61 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
+
+const maintenanceFormSchema = z.object({
+  title: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
+  description: z.string().optional(),
+  type: z.string(),
+  area_id: z.string().uuid().optional(),
+  scheduled_date: z.date().optional(),
+  status: z.string().default("pending")
+});
 
 const MaintenancePage = () => {
   const [maintenances, setMaintenances] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [areas, setAreas] = useState<any[]>([]);
+  const [open, setOpen] = useState(false);
+  
+  const form = useForm<z.infer<typeof maintenanceFormSchema>>({
+    resolver: zodResolver(maintenanceFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      type: "preventive",
+      status: "pending"
+    }
+  });
 
   useEffect(() => {
     fetchMaintenances();
+    fetchAreas();
+    
+    // Set up a realtime subscription
+    const subscription = supabase
+      .channel('maintenance_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'maintenance_records' 
+      }, () => {
+        fetchMaintenances();
+      })
+      .subscribe();
+      
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchMaintenances = async () => {
@@ -27,17 +75,36 @@ const MaintenancePage = () => {
         .select(`
           *,
           service_areas(name),
-          users(first_name, last_name)
+          users:assigned_to(first_name, last_name)
         `)
         .order("scheduled_date", { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        toast.error("Erro ao carregar manutenções");
+        throw error;
+      }
       
       setMaintenances(data || []);
     } catch (error) {
       console.error("Erro ao buscar manutenções:", error);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const fetchAreas = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("service_areas")
+        .select("id, name")
+        .eq("status", "active")
+        .order("name", { ascending: true });
+      
+      if (error) throw error;
+      
+      setAreas(data || []);
+    } catch (error) {
+      console.error("Erro ao buscar áreas:", error);
     }
   };
 
@@ -53,6 +120,28 @@ const MaintenancePage = () => {
         return <Badge className="bg-yellow-500">Pendente</Badge>;
     }
   };
+  
+  const onSubmit = async (values: z.infer<typeof maintenanceFormSchema>) => {
+    try {
+      const { error } = await supabase
+        .from("maintenance_records")
+        .insert([{
+          ...values,
+          scheduled_date: values.scheduled_date ? format(values.scheduled_date, 'yyyy-MM-dd') : null
+        }]);
+        
+      if (error) {
+        toast.error("Falha ao criar manutenção");
+        throw error;
+      }
+      
+      toast.success("Manutenção agendada com sucesso");
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      console.error("Erro ao criar manutenção:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -61,10 +150,113 @@ const MaintenancePage = () => {
         <ServicesNav />
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold tracking-tight">Manutenções</h2>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Manutenção
-          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Manutenção
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Agendar Nova Manutenção</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Título</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Título da manutenção" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descrição</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Descrição (opcional)" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="preventive">Preventiva</SelectItem>
+                            <SelectItem value="corrective">Corretiva</SelectItem>
+                            <SelectItem value="scheduled">Programada</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="area_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Área</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a área" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {areas.map(area => (
+                              <SelectItem key={area.id} value={area.id}>{area.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="scheduled_date"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Data Programada</FormLabel>
+                        <DatePicker
+                          date={field.value}
+                          setDate={field.onChange}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button type="submit" className="w-full">Agendar Manutenção</Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
         <div className="grid gap-6 mb-6 grid-cols-1 md:grid-cols-3">
           <Card>

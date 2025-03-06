@@ -1,6 +1,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home, Bath, Building2, TreePine, Wind } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type AreaCardProps = {
   title: string;
@@ -12,10 +15,40 @@ type AreaCardProps = {
 
 type ServiceAreasProps = {
   areasData?: any[];
+  loading?: boolean;
 };
 
-export const ServiceAreas = ({ areasData }: ServiceAreasProps) => {
-  // Fallback para dados estáticos se não recebermos dados do servidor
+export const ServiceAreas = ({ areasData, loading = false }: ServiceAreasProps) => {
+  const [areas, setAreas] = useState<AreaCardProps[]>([]);
+  const [isLoading, setIsLoading] = useState(loading);
+  
+  useEffect(() => {
+    if (areasData && areasData.length > 0) {
+      const formattedAreas = areasData.map(area => ({
+        title: area.name,
+        icon: getIconForType(area.type),
+        tasks: area.task_count || Math.floor(Math.random() * 15) + 1, // Uso de dados reais ou fallback para demonstração
+        status: getStatusForArea(area),
+        type: area.type
+      }));
+      setAreas(formattedAreas);
+      setIsLoading(false);
+    } else if (!loading && (!areasData || areasData.length === 0)) {
+      loadDefaultAreas();
+    }
+  }, [areasData, loading]);
+
+  const loadDefaultAreas = () => {
+    setAreas([
+      { title: "Áreas Comuns", icon: Home, tasks: 12, status: "good", type: "common" },
+      { title: "Banheiros", icon: Bath, tasks: 8, status: "warning", type: "bathroom" },
+      { title: "Salas Privativas", icon: Building2, tasks: 15, status: "good", type: "private" },
+      { title: "Áreas Externas", icon: TreePine, tasks: 6, status: "attention", type: "external" },
+      { title: "Filtros AC", icon: Wind, tasks: 4, status: "good", type: "ac" },
+    ]);
+    setIsLoading(false);
+  };
+
   const getIconForType = (type: string) => {
     switch (type) {
       case "bathroom":
@@ -32,33 +65,39 @@ export const ServiceAreas = ({ areasData }: ServiceAreasProps) => {
   };
 
   const getStatusForArea = (area: any): "good" | "warning" | "attention" => {
-    // Lógica para determinar o status com base nos dados
-    // Esta é uma lógica de exemplo, ajuste conforme necessário
     if (area.status !== "active") return "attention";
     
-    // Se não temos dados de tarefas pendentes, usamos valores fakes de demonstração
+    // Se temos dados de tarefas pendentes, usamos eles para determinar o status
+    if (area.pending_tasks) {
+      const pendingRatio = area.pending_tasks / (area.task_count || 1);
+      if (pendingRatio > 0.5) return "attention";
+      if (pendingRatio > 0.2) return "warning";
+      return "good";
+    }
+    
+    // Fallback para dados aleatórios
     const pendingTasksPercentage = Math.random();
     if (pendingTasksPercentage > 0.7) return "attention";
     if (pendingTasksPercentage > 0.4) return "warning";
     return "good";
   };
 
-  // Se temos dados do servidor, usamos eles, senão usamos dados estáticos
-  const areas: AreaCardProps[] = areasData && areasData.length > 0
-    ? areasData.map(area => ({
-        title: area.name,
-        icon: getIconForType(area.type),
-        tasks: Math.floor(Math.random() * 15) + 1, // Número fictício de tarefas para demonstração
-        status: getStatusForArea(area),
-        type: area.type
-      }))
-    : [
-        { title: "Áreas Comuns", icon: Home, tasks: 12, status: "good", type: "common" },
-        { title: "Banheiros", icon: Bath, tasks: 8, status: "warning", type: "bathroom" },
-        { title: "Salas Privativas", icon: Building2, tasks: 15, status: "good", type: "private" },
-        { title: "Áreas Externas", icon: TreePine, tasks: 6, status: "attention", type: "external" },
-        { title: "Filtros AC", icon: Wind, tasks: 4, status: "good", type: "ac" },
-      ];
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Áreas de Controle</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5].map((index) => (
+              <Skeleton key={index} className="h-24 w-full rounded-xl" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

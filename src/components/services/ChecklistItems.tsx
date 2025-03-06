@@ -4,12 +4,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 type ChecklistItemsProps = {
   items: any[];
+  date?: Date;
 };
 
-export const ChecklistItems = ({ items }: ChecklistItemsProps) => {
+export const ChecklistItems = ({ items, date = new Date() }: ChecklistItemsProps) => {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
 
@@ -35,18 +37,22 @@ export const ChecklistItems = ({ items }: ChecklistItemsProps) => {
       }
 
       // Criar registros de tarefas concluídas
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      
       const serviceEntries = checkedIds.map(id => ({
         checklist_item_id: id,
         status: "completed",
         service_id: "00000000-0000-0000-0000-000000000000", // Placeholder UUID
-        comments: "Verificado via sistema"
+        comments: `Verificado via sistema em ${formattedDate}`
       }));
 
       const { error } = await supabase
         .from("service_checklist_completed")
         .insert(serviceEntries);
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       toast.success(`${checkedIds.length} itens marcados como concluídos!`);
       

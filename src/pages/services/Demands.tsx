@@ -17,19 +17,38 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const DemandsPage = () => {
   const [demands, setDemands] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDemands();
-  }, []);
+    
+    // Set up a realtime subscription
+    const subscription = supabase
+      .channel('demands_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'demands' 
+      }, () => {
+        fetchDemands();
+      })
+      .subscribe();
+      
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [statusFilter]);
 
   const fetchDemands = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("demands")
         .select(`
           *,
@@ -39,7 +58,17 @@ const DemandsPage = () => {
         `)
         .order("updated_at", { ascending: false });
       
-      if (error) throw error;
+      // Apply status filter if set
+      if (statusFilter) {
+        query = query.eq("status", statusFilter);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        toast.error("Erro ao carregar demandas");
+        throw error;
+      }
       
       setDemands(data || []);
     } catch (error) {
@@ -76,6 +105,10 @@ const DemandsPage = () => {
         return <Badge className="bg-yellow-500">Pendente</Badge>;
     }
   };
+  
+  const resetFilter = () => {
+    setStatusFilter(null);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,10 +118,34 @@ const DemandsPage = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold tracking-tight">Demandas</h2>
           <div className="flex gap-2">
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtrar
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filtrar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={resetFilter}>
+                  Todos
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("pending")}>
+                  Pendentes
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("in_progress")}>
+                  Em Andamento
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("completed")}>
+                  Concluídos
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("delayed")}>
+                  Atrasados
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("cancelled")}>
+                  Cancelados
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Nova Demanda
