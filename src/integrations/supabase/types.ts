@@ -9,1175 +9,508 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      activity_logs: {
+      agente_tork: {
         Row: {
-          action: string
           created_at: string | null
-          details: Json | null
-          entity_id: string | null
-          entity_type: string
-          id: string
-          ip_address: string | null
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string | null
-          details?: Json | null
-          entity_id?: string | null
-          entity_type: string
-          id?: string
-          ip_address?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string | null
-          details?: Json | null
-          entity_id?: string | null
-          entity_type?: string
-          id?: string
-          ip_address?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "activity_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      client_contacts: {
-        Row: {
-          client_id: string
-          created_at: string | null
-          email: string | null
-          id: string
-          is_primary: boolean | null
-          name: string
-          phone: string | null
-          position: string | null
+          data: Json | null
+          departamento: string
+          numero: string
           updated_at: string | null
         }
         Insert: {
-          client_id: string
           created_at?: string | null
-          email?: string | null
-          id?: string
-          is_primary?: boolean | null
-          name: string
-          phone?: string | null
-          position?: string | null
+          data?: Json | null
+          departamento: string
+          numero: string
           updated_at?: string | null
         }
         Update: {
-          client_id?: string
           created_at?: string | null
-          email?: string | null
-          id?: string
-          is_primary?: boolean | null
-          name?: string
-          phone?: string | null
-          position?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_contacts_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      clients: {
-        Row: {
-          address: string | null
-          cnpj: string | null
-          company_name: string
-          contract_end_date: string | null
-          contract_start_date: string | null
-          created_at: string | null
-          email: string | null
-          id: string
-          meeting_room_credits: number | null
-          phone: string | null
-          status: string | null
-          trading_name: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          address?: string | null
-          cnpj?: string | null
-          company_name: string
-          contract_end_date?: string | null
-          contract_start_date?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          meeting_room_credits?: number | null
-          phone?: string | null
-          status?: string | null
-          trading_name?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          address?: string | null
-          cnpj?: string | null
-          company_name?: string
-          contract_end_date?: string | null
-          contract_start_date?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          meeting_room_credits?: number | null
-          phone?: string | null
-          status?: string | null
-          trading_name?: string | null
+          data?: Json | null
+          departamento?: string
+          numero?: string
           updated_at?: string | null
         }
         Relationships: []
       }
-      credit_history: {
+      appointment_slots: {
         Row: {
-          balance_after: number
-          client_id: string
+          appointment_id: number | null
           created_at: string | null
-          created_by: string | null
-          credit_amount: number
-          description: string | null
-          id: string
-          scheduling_id: string | null
+          end_time: string
+          id: number
+          start_time: string
+          updated_at: string | null
         }
         Insert: {
-          balance_after: number
-          client_id: string
+          appointment_id?: number | null
           created_at?: string | null
-          created_by?: string | null
-          credit_amount: number
-          description?: string | null
-          id?: string
-          scheduling_id?: string | null
+          end_time: string
+          id?: never
+          start_time: string
+          updated_at?: string | null
         }
         Update: {
-          balance_after?: number
-          client_id?: string
+          appointment_id?: number | null
           created_at?: string | null
-          created_by?: string | null
-          credit_amount?: number
-          description?: string | null
-          id?: string
-          scheduling_id?: string | null
+          end_time?: string
+          id?: never
+          start_time?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "credit_history_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "appointment_slots_appointment_id_fkey"
+            columns: ["appointment_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "credit_history_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "credit_history_scheduling_id_fkey"
-            columns: ["scheduling_id"]
-            isOneToOne: false
-            referencedRelation: "scheduling"
+            referencedRelation: "appointments"
             referencedColumns: ["id"]
           },
         ]
       }
-      demands: {
+      appointments: {
         Row: {
-          area_id: string | null
-          assigned_to: string | null
           client_id: string | null
-          completion_notes: string | null
           created_at: string | null
-          description: string | null
-          due_date: string | null
-          estimated_time: number | null
-          id: string
-          images: string[] | null
-          priority: string
-          requested_by: string | null
-          resolution_comments: string | null
-          status: string
-          title: string
+          email: string
+          end_time: string
+          id: number
+          name: string
+          observations: string | null
+          phone: string
+          start_time: string
           updated_at: string | null
         }
         Insert: {
-          area_id?: string | null
-          assigned_to?: string | null
           client_id?: string | null
-          completion_notes?: string | null
           created_at?: string | null
-          description?: string | null
-          due_date?: string | null
-          estimated_time?: number | null
-          id?: string
-          images?: string[] | null
-          priority: string
-          requested_by?: string | null
-          resolution_comments?: string | null
-          status: string
-          title: string
+          email: string
+          end_time: string
+          id?: number
+          name: string
+          observations?: string | null
+          phone: string
+          start_time: string
           updated_at?: string | null
         }
         Update: {
-          area_id?: string | null
-          assigned_to?: string | null
           client_id?: string | null
-          completion_notes?: string | null
           created_at?: string | null
-          description?: string | null
-          due_date?: string | null
-          estimated_time?: number | null
-          id?: string
-          images?: string[] | null
-          priority?: string
-          requested_by?: string | null
-          resolution_comments?: string | null
-          status?: string
-          title?: string
+          email?: string
+          end_time?: string
+          id?: number
+          name?: string
+          observations?: string | null
+          phone?: string
+          start_time?: string
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "demands_area_id_fkey"
-            columns: ["area_id"]
-            isOneToOne: false
-            referencedRelation: "service_areas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "demands_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "demands_client_id_fkey"
+            foreignKeyName: "appointments_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "demands_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
+      }
+      appointments_2: {
+        Row: {
+          created_at: string | null
+          email: string
+          end_time: string
+          id: number
+          name: string
+          observations: string | null
+          phone: string
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          end_time: string
+          id?: number
+          name: string
+          observations?: string | null
+          phone: string
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          end_time?: string
+          id?: number
+          name?: string
+          observations?: string | null
+          phone?: string
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      cliente: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          nome: string
+          nome_pet: string
+          porte_animal: string | null
+          servico: string
+          status: string | null
+          telefone: string
+          tipo_animal: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          nome: string
+          nome_pet: string
+          porte_animal?: string | null
+          servico: string
+          status?: string | null
+          telefone: string
+          tipo_animal: string
+          valor: number
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          nome_pet?: string
+          porte_animal?: string | null
+          servico?: string
+          status?: string | null
+          telefone?: string
+          tipo_animal?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          auth_id: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          last_login: string | null
+          monthly_hours_limit: unknown | null
+          name: string
+          password_hash: string | null
+          phone: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auth_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          last_login?: string | null
+          monthly_hours_limit?: unknown | null
+          name: string
+          password_hash?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auth_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          last_login?: string | null
+          monthly_hours_limit?: unknown | null
+          name?: string
+          password_hash?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       departments: {
         Row: {
           created_at: string | null
-          description: string | null
-          id: string
+          id: number
           name: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          description?: string | null
-          id?: string
+          id?: number
           name: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          description?: string | null
-          id?: string
+          id?: number
           name?: string
           updated_at?: string | null
         }
         Relationships: []
       }
-      lead_interactions: {
+      documents: {
         Row: {
-          created_at: string | null
-          date: string
-          description: string | null
-          id: string
-          interaction_type: string
-          lead_id: string
-          user_id: string | null
+          content: string | null
+          embedding: string | null
+          id: number
+          metadata: Json | null
         }
         Insert: {
-          created_at?: string | null
-          date: string
-          description?: string | null
-          id?: string
-          interaction_type: string
-          lead_id: string
-          user_id?: string | null
+          content?: string | null
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
         }
         Update: {
-          created_at?: string | null
-          date?: string
-          description?: string | null
-          id?: string
-          interaction_type?: string
-          lead_id?: string
-          user_id?: string | null
+          content?: string | null
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "lead_interactions_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "leads"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lead_interactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      leads: {
+      memoria_classificacao: {
         Row: {
-          assigned_to: string | null
-          company_name: string
-          contact_name: string | null
-          created_at: string | null
-          email: string | null
-          expected_close_date: string | null
-          expected_value: number | null
+          id: number
+          message: Json
+          session_id: string
+        }
+        Insert: {
+          id?: number
+          message: Json
+          session_id: string
+        }
+        Update: {
+          id?: number
+          message?: Json
+          session_id?: string
+        }
+        Relationships: []
+      }
+      mensagem_pet_shop: {
+        Row: {
+          id: number
+          message: Json
+          session_id: string
+        }
+        Insert: {
+          id?: number
+          message: Json
+          session_id: string
+        }
+        Update: {
+          id?: number
+          message?: Json
+          session_id?: string
+        }
+        Relationships: []
+      }
+      n8n_chat_histories: {
+        Row: {
+          id: number
+          message: Json
+          session_id: string
+        }
+        Insert: {
+          id?: number
+          message: Json
+          session_id: string
+        }
+        Update: {
+          id?: number
+          message?: Json
+          session_id?: string
+        }
+        Relationships: []
+      }
+      n8n_chat_history: {
+        Row: {
+          id: number
+          message: Json
+          session_id: string
+        }
+        Insert: {
+          id?: number
+          message: Json
+          session_id: string
+        }
+        Update: {
+          id?: number
+          message?: Json
+          session_id?: string
+        }
+        Relationships: []
+      }
+      petshop_tork: {
+        Row: {
+          data_atualizacao: string | null
+          data_cadastro: string | null
+          email: string
+          id: number
+          nome: string
+          nome_pet: string
+          porte_animal: string | null
+          servico: string
+          status: string | null
+          telefone: string
+          tipo_animal: string
+          valor: number
+        }
+        Insert: {
+          data_atualizacao?: string | null
+          data_cadastro?: string | null
+          email: string
+          id?: number
+          nome: string
+          nome_pet: string
+          porte_animal?: string | null
+          servico: string
+          status?: string | null
+          telefone: string
+          tipo_animal: string
+          valor: number
+        }
+        Update: {
+          data_atualizacao?: string | null
+          data_cadastro?: string | null
+          email?: string
+          id?: number
+          nome?: string
+          nome_pet?: string
+          porte_animal?: string | null
+          servico?: string
+          status?: string | null
+          telefone?: string
+          tipo_animal?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
           id: string
-          interest: string | null
-          notes: string | null
-          phone: string | null
-          source: string | null
-          stage: string
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      qualificacao: {
+        Row: {
+          created_at: string | null
+          id_usuario: string
+          nome_completo: string | null
+          status: string
+          telefone: string | null
           updated_at: string | null
         }
         Insert: {
-          assigned_to?: string | null
-          company_name: string
-          contact_name?: string | null
           created_at?: string | null
-          email?: string | null
-          expected_close_date?: string | null
-          expected_value?: number | null
-          id?: string
-          interest?: string | null
-          notes?: string | null
-          phone?: string | null
-          source?: string | null
-          stage: string
+          id_usuario?: string
+          nome_completo?: string | null
+          status: string
+          telefone?: string | null
           updated_at?: string | null
         }
         Update: {
-          assigned_to?: string | null
-          company_name?: string
-          contact_name?: string | null
           created_at?: string | null
-          email?: string | null
-          expected_close_date?: string | null
-          expected_value?: number | null
-          id?: string
-          interest?: string | null
-          notes?: string | null
-          phone?: string | null
-          source?: string | null
-          stage?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "leads_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      maintenance_executions: {
-        Row: {
-          created_at: string | null
-          executed_by: string | null
-          execution_date: string
-          id: string
-          images: string[] | null
-          maintenance_id: string | null
-          notes: string | null
-          status: string
-        }
-        Insert: {
-          created_at?: string | null
-          executed_by?: string | null
-          execution_date: string
-          id?: string
-          images?: string[] | null
-          maintenance_id?: string | null
-          notes?: string | null
-          status: string
-        }
-        Update: {
-          created_at?: string | null
-          executed_by?: string | null
-          execution_date?: string
-          id?: string
-          images?: string[] | null
-          maintenance_id?: string | null
-          notes?: string | null
+          id_usuario?: string
+          nome_completo?: string | null
           status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "maintenance_executions_executed_by_fkey"
-            columns: ["executed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "maintenance_executions_maintenance_id_fkey"
-            columns: ["maintenance_id"]
-            isOneToOne: false
-            referencedRelation: "maintenance_records"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      maintenance_records: {
-        Row: {
-          area_id: string | null
-          assigned_to: string | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          id: string
-          last_maintenance: string | null
-          next_maintenance: string | null
-          scheduled_date: string | null
-          status: string | null
-          title: string
-          type: string
-          updated_at: string | null
-        }
-        Insert: {
-          area_id?: string | null
-          assigned_to?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          last_maintenance?: string | null
-          next_maintenance?: string | null
-          scheduled_date?: string | null
-          status?: string | null
-          title: string
-          type: string
-          updated_at?: string | null
-        }
-        Update: {
-          area_id?: string | null
-          assigned_to?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          last_maintenance?: string | null
-          next_maintenance?: string | null
-          scheduled_date?: string | null
-          status?: string | null
-          title?: string
-          type?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "maintenance_records_area_id_fkey"
-            columns: ["area_id"]
-            isOneToOne: false
-            referencedRelation: "service_areas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "maintenance_records_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "maintenance_records_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      meeting_rooms: {
-        Row: {
-          capacity: number
-          created_at: string | null
-          description: string | null
-          features: string[] | null
-          id: string
-          name: string
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          capacity: number
-          created_at?: string | null
-          description?: string | null
-          features?: string[] | null
-          id?: string
-          name: string
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          capacity?: number
-          created_at?: string | null
-          description?: string | null
-          features?: string[] | null
-          id?: string
-          name?: string
-          status?: string | null
+          telefone?: string | null
           updated_at?: string | null
         }
         Relationships: []
       }
-      notifications: {
+      tork_gestao: {
         Row: {
           created_at: string | null
-          id: string
-          link: string | null
-          message: string | null
-          read: boolean | null
-          title: string
-          type: string
-          user_id: string
+          departamento: string | null
+          email: string | null
+          id: number
+          nomecliente: string | null
+          sessionid: string | null
+          telefonecliente: string
+          updated_at: string | null
+          usuarioid: string | null
         }
         Insert: {
           created_at?: string | null
-          id?: string
-          link?: string | null
-          message?: string | null
-          read?: boolean | null
-          title: string
-          type: string
-          user_id: string
+          departamento?: string | null
+          email?: string | null
+          id?: number
+          nomecliente?: string | null
+          sessionid?: string | null
+          telefonecliente: string
+          updated_at?: string | null
+          usuarioid?: string | null
         }
         Update: {
           created_at?: string | null
-          id?: string
-          link?: string | null
-          message?: string | null
-          read?: boolean | null
-          title?: string
-          type?: string
-          user_id?: string
+          departamento?: string | null
+          email?: string | null
+          id?: number
+          nomecliente?: string | null
+          sessionid?: string | null
+          telefonecliente?: string
+          updated_at?: string | null
+          usuarioid?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      permission_group_permissions: {
+      users: {
         Row: {
           created_at: string
-          group_id: string
+          department_id: number | null
+          email: string
           id: string
-          permission_id: string
-        }
-        Insert: {
-          created_at?: string
-          group_id: string
-          id?: string
-          permission_id: string
-        }
-        Update: {
-          created_at?: string
-          group_id?: string
-          id?: string
-          permission_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "permission_group_permissions_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "permission_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "permission_group_permissions_permission_id_fkey"
-            columns: ["permission_id"]
-            isOneToOne: false
-            referencedRelation: "permissions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      permission_groups: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          is_system: boolean | null
           name: string
+          password: string
+          role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
         Insert: {
           created_at?: string
-          description?: string | null
+          department_id?: number | null
+          email: string
           id?: string
-          is_system?: boolean | null
           name: string
+          password: string
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Update: {
           created_at?: string
-          description?: string | null
+          department_id?: number | null
+          email?: string
           id?: string
-          is_system?: boolean | null
           name?: string
+          password?: string
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
-        }
-        Relationships: []
-      }
-      permissions: {
-        Row: {
-          actions: Json
-          code: string
-          created_at: string
-          description: string | null
-          id: string
-          module: string
-          name: string
-          resource_type: string
-        }
-        Insert: {
-          actions?: Json
-          code: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          module: string
-          name: string
-          resource_type: string
-        }
-        Update: {
-          actions?: Json
-          code?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          module?: string
-          name?: string
-          resource_type?: string
-        }
-        Relationships: []
-      }
-      scheduling: {
-        Row: {
-          client_id: string | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          end_time: string
-          id: string
-          room_id: string
-          start_time: string
-          status: string | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          client_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          end_time: string
-          id?: string
-          room_id: string
-          start_time: string
-          status?: string | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          client_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          end_time?: string
-          id?: string
-          room_id?: string
-          start_time?: string
-          status?: string | null
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "scheduling_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "scheduling_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "scheduling_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "meeting_rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      service_areas: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          name: string
-          responsible_id: string | null
-          status: string
-          type: string
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          responsible_id?: string | null
-          status?: string
-          type?: string
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          responsible_id?: string | null
-          status?: string
-          type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_areas_responsible_id_fkey"
-            columns: ["responsible_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      service_checklist_completed: {
-        Row: {
-          checklist_item_id: string
-          comments: string | null
-          completed_at: string | null
-          completed_by: string | null
-          id: string
-          image_url: string | null
-          service_id: string
-          status: string
-        }
-        Insert: {
-          checklist_item_id: string
-          comments?: string | null
-          completed_at?: string | null
-          completed_by?: string | null
-          id?: string
-          image_url?: string | null
-          service_id: string
-          status: string
-        }
-        Update: {
-          checklist_item_id?: string
-          comments?: string | null
-          completed_at?: string | null
-          completed_by?: string | null
-          id?: string
-          image_url?: string | null
-          service_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_checklist_completed_checklist_item_id_fkey"
-            columns: ["checklist_item_id"]
-            isOneToOne: false
-            referencedRelation: "service_checklist_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_checklist_completed_completed_by_fkey"
-            columns: ["completed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_checklist_completed_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      service_checklist_items: {
-        Row: {
-          active: boolean | null
-          area_id: string
-          created_at: string | null
-          custom_days: number | null
-          description: string | null
-          expected_time: string | null
-          frequency: string | null
-          id: string
-          name: string
-          period: string
-          priority: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          active?: boolean | null
-          area_id: string
-          created_at?: string | null
-          custom_days?: number | null
-          description?: string | null
-          expected_time?: string | null
-          frequency?: string | null
-          id?: string
-          name: string
-          period?: string
-          priority?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          active?: boolean | null
-          area_id?: string
-          created_at?: string | null
-          custom_days?: number | null
-          description?: string | null
-          expected_time?: string | null
-          frequency?: string | null
-          id?: string
-          name?: string
-          period?: string
-          priority?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_checklist_items_area_id_fkey"
-            columns: ["area_id"]
-            isOneToOne: false
-            referencedRelation: "service_areas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      service_reports: {
-        Row: {
-          area_id: string | null
-          average_completion_time: number | null
-          completed_tasks: number | null
-          created_at: string | null
-          created_by: string | null
-          delayed_tasks: number | null
-          id: string
-          notes: string | null
-          pending_tasks: number | null
-          report_date: string
-        }
-        Insert: {
-          area_id?: string | null
-          average_completion_time?: number | null
-          completed_tasks?: number | null
-          created_at?: string | null
-          created_by?: string | null
-          delayed_tasks?: number | null
-          id?: string
-          notes?: string | null
-          pending_tasks?: number | null
-          report_date: string
-        }
-        Update: {
-          area_id?: string | null
-          average_completion_time?: number | null
-          completed_tasks?: number | null
-          created_at?: string | null
-          created_by?: string | null
-          delayed_tasks?: number | null
-          id?: string
-          notes?: string | null
-          pending_tasks?: number | null
-          report_date?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_reports_area_id_fkey"
-            columns: ["area_id"]
-            isOneToOne: false
-            referencedRelation: "service_areas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_reports_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      services: {
-        Row: {
-          area_id: string
-          completed_by: string | null
-          completed_date: string | null
-          created_at: string | null
-          description: string | null
-          id: string
-          scheduled_date: string | null
-          service_type: string
-          status: string
-          updated_at: string | null
-          verified_by: string | null
-        }
-        Insert: {
-          area_id: string
-          completed_by?: string | null
-          completed_date?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          scheduled_date?: string | null
-          service_type: string
-          status: string
-          updated_at?: string | null
-          verified_by?: string | null
-        }
-        Update: {
-          area_id?: string
-          completed_by?: string | null
-          completed_date?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          scheduled_date?: string | null
-          service_type?: string
-          status?: string
-          updated_at?: string | null
-          verified_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "services_area_id_fkey"
-            columns: ["area_id"]
-            isOneToOne: false
-            referencedRelation: "service_areas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "services_completed_by_fkey"
-            columns: ["completed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "services_verified_by_fkey"
-            columns: ["verified_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      system_settings: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          setting_group: string | null
-          setting_key: string
-          setting_value: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          setting_group?: string | null
-          setting_key: string
-          setting_value?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          setting_group?: string | null
-          setting_key?: string
-          setting_value?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      user_permission_groups: {
-        Row: {
-          created_at: string
-          group_id: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          group_id: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          group_id?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_permission_groups_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "permission_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_permission_groups_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_permissions: {
-        Row: {
-          created_at: string
-          granted_by: string | null
-          id: string
-          permission_id: string
-          user_id: string
-          valid_until: string | null
-        }
-        Insert: {
-          created_at?: string
-          granted_by?: string | null
-          id?: string
-          permission_id: string
-          user_id: string
-          valid_until?: string | null
-        }
-        Update: {
-          created_at?: string
-          granted_by?: string | null
-          id?: string
-          permission_id?: string
-          user_id?: string
-          valid_until?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_permissions_granted_by_fkey"
-            columns: ["granted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_permissions_permission_id_fkey"
-            columns: ["permission_id"]
-            isOneToOne: false
-            referencedRelation: "permissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_permissions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      users: {
-        Row: {
-          active: boolean | null
-          created_at: string | null
-          department_id: string | null
-          first_name: string
-          id: string
-          last_name: string
-          phone: string | null
-          profile_image_url: string | null
-          role: string
-          updated_at: string | null
-        }
-        Insert: {
-          active?: boolean | null
-          created_at?: string | null
-          department_id?: string | null
-          first_name: string
-          id: string
-          last_name: string
-          phone?: string | null
-          profile_image_url?: string | null
-          role: string
-          updated_at?: string | null
-        }
-        Update: {
-          active?: boolean | null
-          created_at?: string | null
-          department_id?: string | null
-          first_name?: string
-          id?: string
-          last_name?: string
-          phone?: string | null
-          profile_image_url?: string | null
-          role?: string
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -1194,44 +527,201 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_permission: {
+      binary_quantize:
+        | {
+            Args: {
+              "": string
+            }
+            Returns: unknown
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: unknown
+          }
+      halfvec_avg: {
         Args: {
-          _user_id: string
-          _permission_code: string
+          "": number[]
         }
-        Returns: boolean
+        Returns: unknown
       }
-      log_activity: {
+      halfvec_out: {
         Args: {
-          _entity_type: string
-          _entity_id: string
-          _action: string
-          _details?: Json
-          _user_id?: string
+          "": unknown
+        }
+        Returns: unknown
+      }
+      halfvec_send: {
+        Args: {
+          "": unknown
         }
         Returns: string
       }
+      halfvec_typmod_in: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: number
+      }
+      hnsw_bit_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      hnsw_halfvec_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      hnsw_sparsevec_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      hnswhandler: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      is_admin_or_super_admin: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
+      ivfflat_bit_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ivfflat_halfvec_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ivfflathandler: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      l2_norm:
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: number
+          }
+      l2_normalize:
+        | {
+            Args: {
+              "": string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: unknown
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: unknown
+          }
+      match_documents: {
+        Args: {
+          query_embedding: string
+          match_count?: number
+          filter?: Json
+        }
+        Returns: {
+          id: number
+          content: string
+          metadata: Json
+          similarity: number
+        }[]
+      }
+      sparsevec_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      sparsevec_send: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      sparsevec_typmod_in: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: number
+      }
+      vector_avg: {
+        Args: {
+          "": number[]
+        }
+        Returns: string
+      }
+      vector_dims:
+        | {
+            Args: {
+              "": string
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: number
+          }
+      vector_norm: {
+        Args: {
+          "": string
+        }
+        Returns: number
+      }
+      vector_out: {
+        Args: {
+          "": string
+        }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: {
+          "": string
+        }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: number
+      }
     }
     Enums: {
-      area_type: "common" | "bathroom" | "private" | "external" | "ac"
-      booking_status: "confirmed" | "canceled" | "completed"
-      client_status: "active" | "inactive"
-      lead_status: "qualified" | "disqualified" | "no_response"
-      maintenance_type: "preventive" | "corrective" | "scheduled"
-      room_status: "occupied" | "free"
-      room_type: "private" | "meeting"
-      schedule_status: "available" | "booked" | "cleaning" | "unavailable"
-      service_area: "common" | "private" | "bathroom" | "external" | "ac_filter"
-      service_status: "pending" | "in_progress" | "completed" | "delayed"
-      task_period: "morning" | "afternoon" | "evening"
-      task_priority: "low" | "medium" | "high" | "urgent"
-      task_status:
-        | "pending"
-        | "in_progress"
-        | "completed"
-        | "delayed"
-        | "cancelled"
-      user_role: "admin" | "user"
+      app_role: "admin" | "user"
+      user_role: "user" | "admin" | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
