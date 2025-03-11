@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PermissionsList } from './PermissionsList';
-import { PermissionGroupsList } from './PermissionGroupsList';
+import { PermissionGroupList } from './PermissionGroupsList';
 import { UserPermissionsManager } from './UserPermissionsManager';
 
 export function PermissionsManager() {
@@ -19,7 +19,7 @@ export function PermissionsManager() {
       </TabsContent>
       
       <TabsContent value="groups" className="mt-6">
-        <PermissionGroupsList />
+        <PermissionGroupList permissionGroups={[]} loading={false} onGroupChange={() => {}} />
       </TabsContent>
       
       <TabsContent value="users" className="mt-6">

@@ -1,60 +1,35 @@
 
 import { useState, useEffect } from 'react';
-import { ServiceArea } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { ServiceArea } from '@/types/admin';
 
-export function useServiceAreas() {
+export const useServiceAreas = () => {
   const [areas, setAreas] = useState<ServiceArea[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const fetchAreas = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('service_areas')
-        .select(`
-          *,
-          users:responsible_id (first_name, last_name)
-        `)
-        .order('name', { ascending: true });
-
-      if (error) throw error;
-      setAreas(data || []);
-    } catch (error) {
-      console.error('Error fetching service areas:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar áreas de serviço",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const [error, setError] = useState<Error | null>(null);
+  
   useEffect(() => {
-    fetchAreas();
-
-    const subscription = supabase
-      .channel('service_areas_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'service_areas' 
-      }, () => {
-        fetchAreas();
-      })
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
+    const fetchAreas = async () => {
+      try {
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from('service_areas')
+          .select('*, responsible:responsible_id(id, first_name, last_name)');
+          
+        if (error) throw error;
+        
+        setAreas(data || []);
+      } catch (err) {
+        console.error('Error fetching service areas:', err);
+        setError(err as Error);
+      } finally {
+        setLoading(false);
+      }
     };
+    
+    fetchAreas();
   }, []);
-
-  return {
-    areas,
-    loading,
-    refreshAreas: fetchAreas
-  };
-}
+  
+  return { areas, loading, error };
+};

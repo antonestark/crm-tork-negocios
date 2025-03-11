@@ -79,11 +79,11 @@ export default function UserFormDialog({
         first_name: user.first_name,
         last_name: user.last_name,
         role: user.role,
-        department_id: user.department_id,
+        department_id: user.department_id ? String(user.department_id) : null,
         phone: user.phone,
         profile_image_url: user.profile_image_url,
         active: user.active,
-        status: user.status,
+        status: user.status as UserStatus,
       });
     } else {
       form.reset({
@@ -103,6 +103,7 @@ export default function UserFormDialog({
     onSave({
       id: user?.id,
       ...data,
+      department_id: data.department_id ? Number(data.department_id) : null,
     });
     onOpenChange(false);
   };

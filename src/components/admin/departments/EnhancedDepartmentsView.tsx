@@ -1,296 +1,373 @@
 import React, { useState, useEffect } from 'react';
-import { User, Department } from '@/types/admin';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Layers, Users, Activity, RefreshCw } from 'lucide-react';
-import { DepartmentTreeView } from './DepartmentTreeView';
+import { Input } from '@/components/ui/input';
+import { Search, Plus, Users, Building, ChevronRight, Edit, Trash2 } from 'lucide-react';
+import { Department, User } from '@/types/admin';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useDepartments } from '@/hooks/use-departments';
+import { useUsers } from '@/hooks/use-users';
 import DepartmentFormDialog from './DepartmentFormDialog';
 import DepartmentMembersDialog from './DepartmentMembersDialog';
-import { DeleteDepartmentDialog } from './DeleteDepartmentDialog';
 import { toast } from '@/components/ui/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockUserData } from '@/integrations/supabase/client';
-import { userAdapter, departmentAdapter } from '@/integrations/supabase/adapters';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+export function compareDepartmentIds(userId: number | null, departmentId: string): boolean {
+  if (userId === null) return false;
+  return String(userId) === departmentId;
+}
 
 export function EnhancedDepartmentsView() {
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const { departments, loading, error, addDepartment, updateDepartment, deleteDepartment } = useDepartments();
+  const { users } = useUsers();
+  
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
-  const [showFormDialog, setShowFormDialog] = useState(false);
-  const [showMembersDialog, setShowMembersDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('structure');
-
-  // Simulated data loading - in a real app, this would fetch from Supabase
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        
-        // Mock data for now - would be replaced with actual Supabase queries
-        const mockDepartments = [{
-          id: "1",
-          name: "Diretoria",
-          description: "Diretoria executiva",
-          path: "/",
-          level: 0,
-          parent_id: null,
-          manager_id: "1",
-          settings: {},
-          metadata: { memberCount: 2 },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          _memberCount: 2,
-          manager: { first_name: "João", last_name: "Silva" }
-        }, {
-          id: "2",
-          name: "Recursos Humanos",
-          description: "Departamento de RH",
-          path: "/1/",
-          level: 1,
-          parent_id: "1",
-          manager_id: "2",
-          settings: {},
-          metadata: { memberCount: 5 },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          _memberCount: 5,
-          manager: { first_name: "Maria", last_name: "Souza" }
-        }];
-        
-        // Adapt the mock data
-        const adaptedDepts = departmentAdapter(mockDepartments);
-        const adaptedUsers = userAdapter(mockUserData());
-        
-        setDepartments(adaptedDepts);
-        setUsers(adaptedUsers);
-      } catch (error) {
-        console.error("Error loading departments:", error);
-        toast({
-          title: "Erro ao carregar departamentos",
-          description: "Não foi possível carregar os departamentos. Tente novamente mais tarde.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      // Mock refresh delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast({
-        title: "Dados atualizados",
-        description: "Os dados dos departamentos foram atualizados com sucesso.",
-      });
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-      toast({
-        title: "Erro ao atualizar dados",
-        description: "Não foi possível atualizar os dados. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    } finally {
-      setRefreshing(false);
-    }
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isMembersOpen, setIsMembersOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [departmentToDelete, setDepartmentToDelete] = useState<Department | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  
+  // Filter departments based on search query
+  const filteredDepartments = departments.filter(dept => 
+    dept.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    dept.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  // Get department members
+  const getDepartmentMembers = (departmentId: string) => {
+    return users.filter(user => compareDepartmentIds(user.department_id, departmentId));
   };
-
-  const handleCreateDepartment = () => {
-    setSelectedDepartment(null);
-    setIsEditing(false);
-    setShowFormDialog(true);
-  };
-
-  const handleEditDepartment = (department: Department) => {
+  
+  // Handle department selection
+  const handleSelectDepartment = (department: Department) => {
     setSelectedDepartment(department);
-    setIsEditing(true);
-    setShowFormDialog(true);
   };
-
+  
+  // Handle new department
+  const handleNewDepartment = () => {
+    setIsEditMode(false);
+    setSelectedDepartment(null);
+    setIsFormOpen(true);
+  };
+  
+  // Handle edit department
+  const handleEditDepartment = (department: Department) => {
+    setIsEditMode(true);
+    setSelectedDepartment(department);
+    setIsFormOpen(true);
+  };
+  
+  // Handle delete department
+  const handleDeleteClick = (department: Department) => {
+    setDepartmentToDelete(department);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  const confirmDelete = async () => {
+    if (!departmentToDelete) return;
+    
+    const departmentMembers = getDepartmentMembers(departmentToDelete.id);
+    if (departmentMembers.length > 0) {
+      toast({
+        title: "Não é possível excluir",
+        description: "Este departamento possui membros associados. Remova os membros primeiro.",
+        variant: "destructive"
+      });
+      setIsDeleteDialogOpen(false);
+      return;
+    }
+    
+    const success = await deleteDepartment(departmentToDelete.id);
+    if (success) {
+      toast({
+        title: "Departamento excluído",
+        description: "O departamento foi excluído com sucesso."
+      });
+      if (selectedDepartment?.id === departmentToDelete.id) {
+        setSelectedDepartment(null);
+      }
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o departamento.",
+        variant: "destructive"
+      });
+    }
+    setIsDeleteDialogOpen(false);
+  };
+  
+  // Handle view members
   const handleViewMembers = (department: Department) => {
     setSelectedDepartment(department);
-    setShowMembersDialog(true);
+    setIsMembersOpen(true);
   };
-
-  const handleDeleteDepartment = (department: Department) => {
-    setSelectedDepartment(department);
-    setShowDeleteDialog(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (!selectedDepartment) return;
+  
+  // Handle save department
+  const handleSaveDepartment = async (data: Partial<Department>) => {
+    let success;
     
-    // Mock deletion - would be replaced with actual Supabase delete query
-    const updatedDepartments = departments.filter(d => d.id !== selectedDepartment.id);
-    setDepartments(updatedDepartments);
-    setShowDeleteDialog(false);
-  };
-
-  const handleSaveDepartment = (department: Department) => {
-    if (isEditing && selectedDepartment) {
-      // Edit existing department
-      const updatedDepartments = departments.map(d => 
-        d.id === department.id ? { ...d, ...department } : d
-      );
-      setDepartments(updatedDepartments);
-      toast({
-        title: "Departamento atualizado",
-        description: `O departamento ${department.name} foi atualizado com sucesso.`,
+    if (isEditMode && selectedDepartment) {
+      // Update existing department
+      success = await updateDepartment({
+        ...selectedDepartment,
+        ...data
       });
+      
+      if (success) {
+        toast({
+          title: "Departamento atualizado",
+          description: "As alterações foram salvas com sucesso."
+        });
+      }
     } else {
-      // Create new department with a mock ID
-      const newDepartment = {
-        ...department,
-        id: `new-${Date.now()}`,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      setDepartments([...departments, newDepartment]);
+      // Create new department
+      success = await addDepartment(data as Department);
+      
+      if (success) {
+        toast({
+          title: "Departamento criado",
+          description: "O novo departamento foi criado com sucesso."
+        });
+      }
+    }
+    
+    if (!success) {
       toast({
-        title: "Departamento criado",
-        description: `O departamento ${department.name} foi criado com sucesso.`,
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar o departamento.",
+        variant: "destructive"
       });
     }
-    setShowFormDialog(false);
   };
-
-  // Function to check if department has dependent entities
-  const hasDependentEntities = (departmentId: string) => {
-    // Check if any users belong to this department
-    const hasUsers = users.some(user => user.department_id === departmentId);
-    
-    // Check if any departments have this as parent
-    const hasChildDepartments = departments.some(dept => dept.parent_id === departmentId);
-    
-    return hasUsers || hasChildDepartments;
-  };
-
+  
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-2xl font-medium">Departamentos</h3>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Atualizar
-          </Button>
-          <Button onClick={handleCreateDepartment}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Departamento
+    <div className="flex h-[calc(100vh-120px)]">
+      {/* Departments List */}
+      <div className="w-1/3 border-r pr-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">Departamentos</h2>
+          <Button onClick={handleNewDepartment} size="sm">
+            <Plus className="h-4 w-4 mr-1" /> Novo
           </Button>
         </div>
+        
+        <div className="relative mb-4">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar departamentos..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        
+        <ScrollArea className="h-[calc(100vh-220px)]">
+          {loading ? (
+            <p className="text-center py-4">Carregando departamentos...</p>
+          ) : error ? (
+            <p className="text-center py-4 text-destructive">Erro ao carregar departamentos</p>
+          ) : filteredDepartments.length === 0 ? (
+            <p className="text-center py-4 text-muted-foreground">Nenhum departamento encontrado</p>
+          ) : (
+            <div className="space-y-2">
+              {filteredDepartments.map((department) => (
+                <div
+                  key={department.id}
+                  className={`p-3 rounded-md cursor-pointer transition-colors ${
+                    selectedDepartment?.id === department.id
+                      ? 'bg-primary/10'
+                      : 'hover:bg-muted'
+                  }`}
+                  onClick={() => handleSelectDepartment(department)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span className="font-medium">{department.name}</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1 truncate">
+                    {department.description || 'Sem descrição'}
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <Users className="h-3 w-3 mr-1 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      {department._memberCount || getDepartmentMembers(department.id).length} membros
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
       </div>
-
-      <Tabs defaultValue="structure" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="structure">
-            <Layers className="h-4 w-4 mr-2" />
-            Estrutura
-          </TabsTrigger>
-          <TabsTrigger value="members">
-            <Users className="h-4 w-4 mr-2" />
-            Membros
-          </TabsTrigger>
-          <TabsTrigger value="activity">
-            <Activity className="h-4 w-4 mr-2" />
-            Atividade
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="structure" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Estrutura Organizacional</CardTitle>
-              <CardDescription>
-                Visualize e gerencie a hierarquia de departamentos da organização.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DepartmentTreeView
-                departments={departments}
-                onEdit={handleEditDepartment}
-                onDelete={handleDeleteDepartment}
-                onViewMembers={handleViewMembers}
-                loading={loading}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="members" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Membros por Departamento</CardTitle>
-              <CardDescription>
-                Visualize os usuários distribuídos por departamento.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="min-h-[300px] flex items-center justify-center">
-                <p className="text-muted-foreground">
-                  Selecione um departamento na estrutura organizacional para visualizar seus membros.
-                </p>
+      
+      {/* Department Details */}
+      <div className="w-2/3 pl-6">
+        {selectedDepartment ? (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">{selectedDepartment.name}</h2>
+                <p className="text-muted-foreground">{selectedDepartment.description}</p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="activity" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Atividade Recente</CardTitle>
-              <CardDescription>
-                Histórico de alterações nos departamentos.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="min-h-[300px] flex items-center justify-center">
-                <p className="text-muted-foreground">
-                  Não há atividades recentes para exibir.
-                </p>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleViewMembers(selectedDepartment)}
+                >
+                  <Users className="h-4 w-4 mr-1" /> Membros
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditDepartment(selectedDepartment)}
+                >
+                  <Edit className="h-4 w-4 mr-1" /> Editar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDeleteClick(selectedDepartment)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Dialogs */}
+            </div>
+            
+            <Separator className="my-4" />
+            
+            <div className="grid grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Informações</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl className="space-y-2">
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">ID</dt>
+                      <dd>{selectedDepartment.id}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">Criado em</dt>
+                      <dd>{new Date(selectedDepartment.created_at).toLocaleDateString()}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">Última atualização</dt>
+                      <dd>{new Date(selectedDepartment.updated_at).toLocaleDateString()}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">Gerente</dt>
+                      <dd>
+                        {selectedDepartment.manager 
+                          ? `${selectedDepartment.manager.first_name} ${selectedDepartment.manager.last_name}`
+                          : 'Não definido'}
+                      </dd>
+                    </div>
+                  </dl>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Membros</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {getDepartmentMembers(selectedDepartment.id).slice(0, 5).map((user) => (
+                      <div key={user.id} className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-2">
+                            {user.first_name.charAt(0)}{user.last_name.charAt(0)}
+                          </div>
+                          <span>{user.first_name} {user.last_name}</span>
+                        </div>
+                        <Badge variant="outline">{user.role}</Badge>
+                      </div>
+                    ))}
+                    
+                    {getDepartmentMembers(selectedDepartment.id).length > 5 && (
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto" 
+                        onClick={() => handleViewMembers(selectedDepartment)}
+                      >
+                        Ver todos os membros
+                      </Button>
+                    )}
+                    
+                    {getDepartmentMembers(selectedDepartment.id).length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        Este departamento não possui membros.
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <Building className="h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-xl font-medium mb-2">Nenhum departamento selecionado</h3>
+            <p className="text-muted-foreground mb-4">
+              Selecione um departamento para ver seus detalhes ou crie um novo.
+            </p>
+            <Button onClick={handleNewDepartment}>
+              <Plus className="h-4 w-4 mr-1" /> Novo Departamento
+            </Button>
+          </div>
+        )}
+      </div>
+      
+      {/* Department Form Dialog */}
       <DepartmentFormDialog
-        open={showFormDialog}
-        onOpenChange={setShowFormDialog}
-        department={selectedDepartment}
-        departments={departments}
-        users={users}
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        department={isEditMode ? selectedDepartment : undefined}
         onSave={handleSaveDepartment}
-        isEditing={isEditing}
       />
-
+      
+      {/* Department Members Dialog */}
       <DepartmentMembersDialog
-        open={showMembersDialog}
-        onOpenChange={setShowMembersDialog}
+        open={isMembersOpen}
+        onOpenChange={setIsMembersOpen}
         department={selectedDepartment}
       />
-
-      <DeleteDepartmentDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        department={selectedDepartment}
-        onDelete={handleConfirmDelete}
-        hasDependentEntities={selectedDepartment ? hasDependentEntities(selectedDepartment.id) : false}
-      />
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o departamento "{departmentToDelete?.name}"?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

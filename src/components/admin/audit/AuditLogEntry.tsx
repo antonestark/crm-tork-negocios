@@ -26,6 +26,13 @@ export function AuditLogEntry({ log }: AuditLogEntryProps) {
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'dd/MM/yyyy HH:mm');
   };
+  
+  // Safe function to convert any value to string
+  const safeToString = (value: any): string => {
+    if (value === null || value === undefined) return 'N/A';
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+  };
 
   return (
     <Card>
@@ -47,10 +54,10 @@ export function AuditLogEntry({ log }: AuditLogEntryProps) {
                     {typeof log.details === 'object' 
                       ? Object.entries(log.details as Record<string, any>).map(([key, value]) => (
                           <span key={key} className="mr-3">
-                            <span className="font-medium">{key}:</span> {value?.toString()}
+                            <span className="font-medium">{key}:</span> {safeToString(value)}
                           </span>
                         ))
-                      : log.details.toString()
+                      : safeToString(log.details)
                     }
                   </div>
                 )}

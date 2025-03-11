@@ -1,51 +1,50 @@
+
 import { useState, useEffect } from 'react';
-import { supabase, permissionAdapter } from '@/integrations/supabase/client';
 import { Permission } from '@/types/admin';
+import { supabase } from '@/integrations/supabase/client';
 
-interface UsePermissionsProps {
-  userId?: string;
-}
-
-export const usePermissions = ({ userId }: UsePermissionsProps = {}) => {
+export const usePermissions = () => {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchPermissions = async () => {
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
-        setError(null);
-
+        // In a real app, this would fetch from Supabase
         const { data, error } = await supabase
-          .from('user_permissions')
-          .select('permission:permissions(*)')
-          .eq('user_id', userId);
-
-        if (error) {
-          setError(error);
-          console.error('Error fetching permissions:', error);
-          return;
-        }
-
-        const extractedPermissions = data?.map(item => item.permission).filter(Boolean) || [];
-        const adaptedPermissions = permissionAdapter(extractedPermissions);
-        setPermissions(adaptedPermissions);
-      } catch (err: any) {
-        setError(err);
-        console.error('Unexpected error fetching permissions:', err);
+          .from('permissions')
+          .select('*')
+          .order('module');
+          
+        if (error) throw error;
+        
+        setPermissions(data?.map(p => ({...p, selected: false})) || []);
+      } catch (err) {
+        console.error('Error fetching permissions:', err);
+        setError(err as Error);
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchPermissions();
-  }, [userId]);
+  }, []);
+  
+  const deletePermission = async (permissionId: string): Promise<boolean> => {
+    try {
+      // In a real app, this would delete from Supabase
+      console.log(`Deleting permission ${permissionId}`);
+      
+      // Update local state
+      setPermissions(prev => prev.filter(p => p.id !== permissionId));
+      return true;
+    } catch (err) {
+      console.error('Error deleting permission:', err);
+      return false;
+    }
+  };
 
-  return { permissions, loading, error };
+  return { permissions, loading, error, deletePermission };
 };

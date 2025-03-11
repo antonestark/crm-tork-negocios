@@ -81,3 +81,17 @@ export interface Booking {
   client_id?: string;
   client?: { company_name: string } | null;
 }
+
+export type UserStatus = 'active' | 'inactive' | 'blocked' | 'pending';
+
+export interface ServiceArea {
+  id: string;
+  name: string;
+  description: string | null;
+  responsible_id: string | null;
+  status: string | null;
+  type: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  responsible?: User | null;
+}

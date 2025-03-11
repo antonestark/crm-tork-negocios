@@ -1,78 +1,77 @@
+
 import { useState, useEffect } from 'react';
 import { ActivityLog } from '@/types/admin';
-import { supabase, activityLogsAdapter } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
-interface UseAuditLogsProps {
-  entityType?: string;
-  entityId?: string;
-  userId?: string;
-  action?: string;
-  orderBy?: string;
-  ascending?: boolean;
-  limit?: number;
-}
-
-const defaultLimit = 20;
-
-export const useAuditLogs = ({
-  entityType,
-  entityId,
-  userId,
-  action,
-  orderBy = 'created_at',
-  ascending = false,
-  limit = defaultLimit,
-}: UseAuditLogsProps = {}) => {
+export const useAuditLogs = () => {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [severityFilter, setSeverityFilter] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLogs = async () => {
-      setLoading(true);
-      setError(null);
-
       try {
+        setLoading(true);
+        
         let query = supabase
           .from('activity_logs')
-          .select('*, user:users(name)')
-          .order(orderBy, { ascending })
-          .limit(limit);
-
-        if (entityType) {
-          query = query.eq('entity_type', entityType);
-        }
-
-        if (entityId) {
-          query = query.eq('entity_id', entityId);
-        }
-
-        if (userId) {
-          query = query.eq('user_id', userId);
-        }
-
-        if (action) {
-          query = query.eq('action', action);
-        }
-
+          .select('*, user:users(first_name, last_name)')
+          .order('created_at', { ascending: false });
+        
         const { data, error } = await query;
-
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        const adaptedLogs = activityLogsAdapter(data);
-        setLogs(adaptedLogs);
-      } catch (err: any) {
-        setError(err);
-        console.error('Failed to fetch audit logs:', err);
+        
+        if (error) throw error;
+        
+        setLogs(data || []);
+      } catch (err) {
+        console.error('Error fetching audit logs:', err);
+        setError(err as Error);
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchLogs();
-  }, [entityType, entityId, userId, action, orderBy, ascending, limit]);
+  }, []);
+  
+  // Apply filters to logs
+  const filteredLogs = logs.filter(log => {
+    // Apply search filter
+    const matchesSearch = searchQuery 
+      ? (log.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         log.entity_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         log.user?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         log.user?.last_name?.toLowerCase().includes(searchQuery.toLowerCase()))
+      : true;
+    
+    // Apply severity filter
+    const matchesSeverity = severityFilter 
+      ? log.severity === severityFilter 
+      : true;
+    
+    // Apply category filter
+    const matchesCategory = categoryFilter 
+      ? log.category === categoryFilter 
+      : true;
+    
+    return matchesSearch && matchesSeverity && matchesCategory;
+  });
 
-  return { logs, loading, error };
+  return {
+    logs,
+    filteredLogs,
+    loading,
+    error,
+    searchQuery,
+    setSearchQuery,
+    severityFilter,
+    setSeverityFilter,
+    categoryFilter,
+    setCategoryFilter
+  };
 };

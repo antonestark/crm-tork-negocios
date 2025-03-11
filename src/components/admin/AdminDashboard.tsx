@@ -5,8 +5,8 @@ import { CountUp } from '@/components/ui/countup';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Building2, CalendarDays, ClipboardList } from 'lucide-react';
-import { toast } from 'sonner';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { toast } from '@/components/ui/use-toast';
+import { format, subDays } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 export function AdminDashboard() {
@@ -29,7 +29,11 @@ export function AdminDashboard() {
         return count;
       } catch (error: any) {
         console.error('Error fetching user count:', error.message);
-        toast.error('Falha ao carregar contagem de usuários');
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar contagem de usuários",
+          variant: "destructive"
+        });
         return 0;
       }
     }
@@ -48,7 +52,11 @@ export function AdminDashboard() {
         return count;
       } catch (error: any) {
         console.error('Error fetching department count:', error.message);
-        toast.error('Falha ao carregar contagem de departamentos');
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar contagem de departamentos",
+          variant: "destructive"
+        });
         return 0;
       }
     }
