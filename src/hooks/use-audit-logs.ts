@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ActivityLog } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
+import { activityLogsAdapter } from '@/integrations/supabase/adapters';
 
 export const useAuditLogs = () => {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -27,7 +28,9 @@ export const useAuditLogs = () => {
         
         if (error) throw error;
         
-        setLogs(data || []);
+        // Use the adapter to ensure type compatibility
+        const adaptedLogs = activityLogsAdapter(data || []);
+        setLogs(adaptedLogs);
       } catch (err) {
         console.error('Error fetching audit logs:', err);
         setError(err as Error);
