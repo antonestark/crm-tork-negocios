@@ -1,3 +1,4 @@
+
 import { Json } from "@/integrations/supabase/types";
 
 export type UserStatus = 'active' | 'inactive' | 'blocked' | 'pending';
@@ -181,13 +182,13 @@ export interface ServiceReport {
 export interface Booking {
   id: string;
   title: string;
-  client_id: string | null;
+  client_id?: string | null;
   start_time: string;
   end_time: string;
   status: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
   client?: {
-    company_name: string;
-  };
+    company_name?: string;
+  } | null;
 }

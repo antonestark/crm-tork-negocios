@@ -27,17 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-
-type Booking = {
-  id: string;
-  title: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  client?: {
-    company_name: string;
-  };
-};
+import { Booking } from "@/types/admin";
 
 type AgendamentoListProps = {
   selectedDate?: Date;
@@ -85,7 +75,7 @@ export const AgendamentoList = ({ selectedDate }: AgendamentoListProps) => {
           start_time,
           end_time,
           status,
-          client:client_id (company_name)
+          client_id
         `)
         .gte("start_time", dayStart.toISOString())
         .lt("start_time", dayEnd.toISOString())
@@ -100,7 +90,18 @@ export const AgendamentoList = ({ selectedDate }: AgendamentoListProps) => {
       
       if (error) throw error;
       
-      setBookings(data || []);
+      // Format the data to match the Booking type
+      const formattedBookings: Booking[] = (data || []).map(booking => ({
+        id: booking.id,
+        title: booking.title,
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        status: booking.status,
+        client_id: booking.client_id,
+        client: booking.client_id ? { company_name: '' } : null
+      }));
+      
+      setBookings(formattedBookings);
     } catch (error) {
       console.error("Error fetching bookings:", error);
       toast.error("Falha ao carregar agendamentos");

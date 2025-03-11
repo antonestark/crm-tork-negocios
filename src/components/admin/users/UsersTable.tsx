@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusIcon, PencilIcon, Trash2Icon, EyeIcon, KeyRoundIcon } from 'lucide-react';
@@ -56,6 +55,7 @@ export function UsersTable({ filters: initialFilters }: UsersTableProps) {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      // Use the imported mock data function
       const mockUsers = mockUserData();
       
       let filteredUsers = [...mockUsers];

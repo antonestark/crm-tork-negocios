@@ -1,218 +1,203 @@
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Building2, ShieldCheck, FileText } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CountUp } from '@/components/ui/countup';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Users, Building2, CalendarDays, ClipboardList } from 'lucide-react';
+import { toast } from 'sonner';
+import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { Link } from 'react-router-dom';
 
-interface StatsCard {
-  title: string;
-  count: number | null;
-  icon: React.ReactNode;
-  description: string;
-  link: string;
-  color: string;
-}
+export function AdminDashboard() {
+  const [userCount, setUserCount] = useState(0);
+  const [departmentCount, setDepartmentCount] = useState(0);
+  const [activityCount, setActivityCount] = useState(0);
+  const [recentActivityLogs, setRecentActivityLogs] = useState<any[]>([]);
 
-const AdminDashboard = () => {
-  const [stats, setStats] = useState<{
-    usersCount: number | null;
-    departmentsCount: number | null;
-    activeUsers: number | null;
-    recentActivities: number | null;
-  }>({
-    usersCount: null,
-    departmentsCount: null,
-    activeUsers: null,
-    recentActivities: null,
-  });
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchStats = async () => {
+  // Get counts from various tables
+  const { isLoading: isLoadingUsers } = useQuery({
+    queryKey: ['admin-dashboard-users'],
+    queryFn: async () => {
       try {
-        // Fetch users count
-        const { count: usersCount, error: usersError } = await supabase
-          .from("users")
-          .select("*", { count: "exact", head: true });
-
-        // Fetch departments count
-        const { count: departmentsCount, error: deptsError } = await supabase
-          .from("departments")
-          .select("*", { count: "exact", head: true });
-
-        // Fetch active users count
-        const { count: activeUsers, error: activeError } = await supabase
-          .from("users")
-          .select("*", { count: "exact", head: true })
-          .eq("active", true);
-
-        // Fetch recent activities count
-        const { count: recentActivities, error: activitiesError } = await supabase
-          .from("activity_logs")
-          .select("*", { count: "exact", head: true })
-          .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-
-        if (usersError || deptsError || activeError || activitiesError) {
-          throw new Error("Error fetching dashboard stats");
-        }
-
-        setStats({
-          usersCount: usersCount || 0,
-          departmentsCount: departmentsCount || 0,
-          activeUsers: activeUsers || 0,
-          recentActivities: recentActivities || 0,
-        });
-      } catch (error) {
-        console.error("Error fetching dashboard stats:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load dashboard statistics",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
+        const { count, error } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) throw error;
+        setUserCount(count || 0);
+        return count;
+      } catch (error: any) {
+        console.error('Error fetching user count:', error.message);
+        toast.error('Falha ao carregar contagem de usuários');
+        return 0;
       }
-    };
+    }
+  });
 
-    fetchStats();
-  }, [toast]);
+  const { isLoading: isLoadingDepartments } = useQuery({
+    queryKey: ['admin-dashboard-departments'],
+    queryFn: async () => {
+      try {
+        const { count, error } = await supabase
+          .from('departments')
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) throw error;
+        setDepartmentCount(count || 0);
+        return count;
+      } catch (error: any) {
+        console.error('Error fetching department count:', error.message);
+        toast.error('Falha ao carregar contagem de departamentos');
+        return 0;
+      }
+    }
+  });
 
-  const statsCards: StatsCard[] = [
-    {
-      title: "Total Users",
-      count: stats.usersCount,
-      icon: <Users className="h-5 w-5" />,
-      description: "Total users in the system",
-      link: "/admin/users",
-      color: "bg-blue-500",
-    },
-    {
-      title: "Departments",
-      count: stats.departmentsCount,
-      icon: <Building2 className="h-5 w-5" />,
-      description: "Organizational structure",
-      link: "/admin/departments",
-      color: "bg-green-500",
-    },
-    {
-      title: "Active Users",
-      count: stats.activeUsers,
-      icon: <Users className="h-5 w-5" />,
-      description: "Currently active users",
-      link: "/admin/users?status=active",
-      color: "bg-purple-500",
-    },
-    {
-      title: "Recent Activity",
-      count: stats.recentActivities,
-      icon: <FileText className="h-5 w-5" />,
-      description: "Activities in the last 7 days",
-      link: "/admin/audit",
-      color: "bg-amber-500",
-    },
-  ];
+  // Mock active logs count
+  useEffect(() => {
+    // Set some mock data temporarily
+    setActivityCount(24);
+    setRecentActivityLogs([
+      {
+        id: '1',
+        action: 'login',
+        entity_type: 'auth',
+        created_at: new Date().toISOString(),
+        user: { first_name: 'João', last_name: 'Silva' }
+      },
+      {
+        id: '2',
+        action: 'create',
+        entity_type: 'user',
+        created_at: subDays(new Date(), 1).toISOString(),
+        user: { first_name: 'Maria', last_name: 'Oliveira' }
+      },
+      {
+        id: '3',
+        action: 'update',
+        entity_type: 'department',
+        created_at: subDays(new Date(), 2).toISOString(),
+        user: { first_name: 'Carlos', last_name: 'Santos' }
+      }
+    ]);
+  }, []);
 
   return (
-    <div className="p-4 space-y-6">
-      <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-      <p className="text-gray-500">
-        Manage your organization's users, departments, and permissions.
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsCards.map((card, index) => (
-          <Link to={card.link} key={index}>
-            <Card className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg">{card.title}</CardTitle>
-                  <div className={`p-2 rounded-md text-white ${card.color}`}>
-                    {card.icon}
-                  </div>
-                </div>
-                <CardDescription>{card.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <Skeleton className="h-8 w-16" />
+    <div className="grid gap-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Link to="/admin/users" className="block">
+          <Card className="hover:bg-muted/50 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Usuários
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {isLoadingUsers ? (
+                  <span className="text-muted-foreground">...</span>
                 ) : (
-                  <div className="text-3xl font-bold">{card.count}</div>
+                  <CountUp end={userCount} duration={1.5} />
                 )}
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Total de usuários cadastrados
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/admin/departments" className="block">
+          <Card className="hover:bg-muted/50 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Departamentos
+              </CardTitle>
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {isLoadingDepartments ? (
+                  <span className="text-muted-foreground">...</span>
+                ) : (
+                  <CountUp end={departmentCount} duration={1.5} />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Total de departamentos
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/admin/audit" className="block">
+          <Card className="hover:bg-muted/50 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Atividades Recentes
+              </CardTitle>
+              <ClipboardList className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                <CountUp end={activityCount} duration={1.5} />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Ações nas últimas 24 horas
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/admin/reports" className="block">
+          <Card className="hover:bg-muted/50 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Relatórios
+              </CardTitle>
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                <span>4</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Relatórios disponíveis
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>User Activity</CardTitle>
-            <CardDescription>Active vs. Inactive Users</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {loading ? (
-              <Skeleton className="h-4 w-full" />
-            ) : (
-              <>
-                <div className="flex justify-between text-sm">
-                  <span>Active: {stats.activeUsers || 0}</span>
-                  <span>Total: {stats.usersCount || 0}</span>
+      <Card>
+        <CardHeader>
+          <CardTitle>Atividades Recentes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentActivityLogs.map((log) => (
+              <div key={log.id} className="flex items-start gap-4">
+                <div className="rounded-full bg-primary/10 p-2">
+                  <ClipboardList className="h-4 w-4 text-primary" />
                 </div>
-                <Progress
-                  value={
-                    stats.usersCount
-                      ? (stats.activeUsers || 0) / (stats.usersCount || 1) * 100
-                      : 0
-                  }
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common administrative tasks</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-2">
-              <Link to="/admin/users/new">
-                <div className="p-3 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center space-x-2">
-                  <Users className="h-5 w-5" />
-                  <span>Add User</span>
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {log.user.first_name} {log.user.last_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {log.action} - {log.entity_type}
+                  </p>
                 </div>
-              </Link>
-              <Link to="/admin/departments/new">
-                <div className="p-3 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center space-x-2">
-                  <Building2 className="h-5 w-5" />
-                  <span>Add Department</span>
+                <div className="text-xs text-muted-foreground">
+                  {format(new Date(log.created_at), 'dd/MM HH:mm')}
                 </div>
-              </Link>
-              <Link to="/admin/permissions">
-                <div className="p-3 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center space-x-2">
-                  <ShieldCheck className="h-5 w-5" />
-                  <span>Manage Permissions</span>
-                </div>
-              </Link>
-              <Link to="/admin/audit">
-                <div className="p-3 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center space-x-2">
-                  <FileText className="h-5 w-5" />
-                  <span>View Audit Logs</span>
-                </div>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default AdminDashboard;
+}
