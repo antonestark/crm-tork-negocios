@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { User, Department } from '@/types/admin';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import DepartmentMembersDialog from './DepartmentMembersDialog';
 import { DeleteDepartmentDialog } from './DeleteDepartmentDialog';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockUserData, mockDepartmentTreeViewProps } from '@/integrations/supabase/mockData';
+import { mockUserData } from '@/integrations/supabase/client';
 import { userAdapter, departmentAdapter } from '@/integrations/supabase/adapters';
 
 export function EnhancedDepartmentsView() {

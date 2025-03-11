@@ -1,18 +1,42 @@
 
+import { Department, User } from '@/types/admin';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { User, Department } from '@/types/admin';
-import { mockUserDepartmentRoleData } from '@/integrations/supabase/mockData';
-import { userAdapter } from '@/integrations/supabase/adapters';
-import { UserDepartmentRoleMember } from './DepartmentMembersList';
 
-// Fetch department members
-export const fetchDepartmentMembers = async (departmentId?: string): Promise<UserDepartmentRoleMember[]> => {
+export interface UserDepartmentRoleMember {
+  user_id: string;
+  user_name: string;
+  role: string;
+  department_id: string;
+  department_name: string;
+  joined_at: string;
+}
+
+// Mock data function to use until we have real backend implementation
+const mockUserDepartmentRoleData = (): UserDepartmentRoleMember[] => [
+  {
+    user_id: "1",
+    user_name: "John Doe",
+    role: "manager",
+    department_id: "1",
+    department_name: "Engineering",
+    joined_at: new Date().toISOString()
+  },
+  {
+    user_id: "2",
+    user_name: "Jane Smith",
+    role: "member",
+    department_id: "1",
+    department_name: "Engineering",
+    joined_at: new Date().toISOString()
+  }
+];
+
+export const fetchDepartmentMembers = async (departmentId: string): Promise<UserDepartmentRoleMember[]> => {
   try {
-    // Since we don't have the actual table, we'll use mock data
-    if (departmentId) {
-      return mockUserDepartmentRoleData('', departmentId);
-    }
-    return [];
+    // For now, return mock data
+    // In a real implementation, we would fetch from Supabase
+    return mockUserDepartmentRoleData().filter(member => member.department_id === departmentId);
   } catch (error) {
     console.error('Error fetching department members:', error);
     toast({
@@ -24,96 +48,77 @@ export const fetchDepartmentMembers = async (departmentId?: string): Promise<Use
   }
 };
 
-// Fetch available users
 export const fetchAvailableUsers = async (): Promise<User[]> => {
   try {
-    // For now, we'll just use mock data to simulate fetching users from Supabase
-    const mockUsers = [{
-      id: '1',
-      first_name: 'John',
-      last_name: 'Doe',
-      profile_image_url: null,
-      role: 'admin',
-      department_id: null
-    }, {
-      id: '2',
-      first_name: 'Jane',
-      last_name: 'Smith',
-      profile_image_url: null,
-      role: 'user',
-      department_id: null
+    // In a real implementation, we would fetch users who aren't already in the department
+    // For now, return mock data
+    return [{
+      id: "3",
+      first_name: "Bob",
+      last_name: "Johnson",
+      role: "user",
+      department_id: null,
+      email: "bob@example.com",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }];
-    
-    return userAdapter(mockUsers);
   } catch (error) {
     console.error('Error fetching available users:', error);
     toast({
       title: 'Error',
-      description: 'Failed to load users',
+      description: 'Failed to load available users',
       variant: 'destructive',
     });
     return [];
   }
 };
 
-// Add a new member
 export const addDepartmentMember = async (
-  selectedUser: string, 
-  department: Department,
-  selectedRole: string,
-  availableUsers: User[]
+  userId: string, 
+  department: Department, 
+  role: string, 
+  availableUsers: any[]
 ): Promise<UserDepartmentRoleMember | null> => {
   try {
-    // Find the user to add
-    const userToAdd = availableUsers.find(user => user.id === selectedUser);
-    if (userToAdd) {
-      const newMember = {
-        id: `new-${Date.now()}`,
-        user_id: selectedUser,
-        department_id: department.id,
-        role: selectedRole,
-        start_date: new Date().toISOString(),
-        end_date: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user: userToAdd
-      };
-      
-      toast({
-        title: 'Success',
-        description: 'Member added to department',
-        variant: 'default',
-      });
-      
-      return newMember;
+    // Find the user in the available users list
+    const user = availableUsers.find(u => u.id === userId);
+    
+    if (!user) {
+      throw new Error('User not found');
     }
-    return null;
+    
+    // In a real implementation, we would add the user to the department in Supabase
+    
+    // Return the new member object
+    return {
+      user_id: userId,
+      user_name: `${user.first_name} ${user.last_name}`,
+      role: role,
+      department_id: department.id,
+      department_name: department.name,
+      joined_at: new Date().toISOString()
+    };
   } catch (error) {
-    console.error('Error adding member:', error);
+    console.error('Error adding department member:', error);
     toast({
       title: 'Error',
-      description: 'Failed to add member',
+      description: 'Failed to add member to department',
       variant: 'destructive',
     });
     return null;
   }
 };
 
-// Remove a member
 export const removeDepartmentMember = async (userId: string): Promise<boolean> => {
   try {
-    // Mock the API call
-    toast({
-      title: 'Success',
-      description: 'Member removed from department',
-      variant: 'default',
-    });
+    // In a real implementation, we would remove the user from the department in Supabase
+    
     return true;
   } catch (error) {
-    console.error('Error removing member:', error);
+    console.error('Error removing department member:', error);
     toast({
       title: 'Error',
-      description: 'Failed to remove member',
+      description: 'Failed to remove member from department',
       variant: 'destructive',
     });
     return false;

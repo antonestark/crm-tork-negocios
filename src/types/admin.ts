@@ -1,94 +1,61 @@
-
-import { Json } from "@/integrations/supabase/types";
-
-export type UserStatus = 'active' | 'inactive' | 'blocked' | 'pending';
-
 export interface User {
   id: string;
   first_name: string;
   last_name: string;
   profile_image_url: string | null;
   role: string;
-  department_id: string | null;
+  department_id: number | null;
   phone: string | null;
   active: boolean;
-  status: UserStatus;
+  status: string;
   last_login: string | null;
-  settings: Json;
-  metadata: Json;
+  settings: Record<string, any>;
+  metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
-  department?: Department;
+  department?: Department | null;
 }
 
 export interface Department {
   id: string;
   name: string;
-  description: string | null;
+  description: string;
   path: string;
   level: number;
   parent_id: string | null;
   manager_id: string | null;
-  settings: Json;
-  metadata: Json;
+  settings: Record<string, any>;
+  metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
-  _memberCount?: number;
-  manager?: { first_name: string; last_name: string; } | null;
-  children?: Department[];
+  _memberCount: number;
+  manager?: {
+    first_name: string;
+    last_name: string;
+  } | null;
 }
 
 export interface Permission {
   id: string;
-  code: string;
   name: string;
-  description: string | null;
+  code: string;
+  description: string;
   module: string;
   resource_type: string;
   actions: string[];
   created_at: string;
-  selected?: boolean;
+  selected: boolean;
 }
 
 export interface PermissionGroup {
   id: string;
   name: string;
-  description: string | null;
+  description: string;
   is_system: boolean;
   created_at: string;
   updated_at: string;
-  selected?: boolean;
-  permissions?: Permission[];
-}
-
-export interface UserPermission {
-  id: string;
-  user_id: string;
-  permission_id: string;
-  granted_by: string | null;
-  valid_until: string | null;
-  created_at: string;
-  permission?: Permission;
-}
-
-export interface UserPermissionGroup {
-  id: string;
-  user_id: string;
-  group_id: string;
-  created_at: string;
-  group?: PermissionGroup;
-}
-
-export interface UserDepartmentRole {
-  id: string;
-  user_id: string;
-  department_id: string;
-  role: string;
-  start_date: string | null;
-  end_date: string | null;
-  created_at: string;
-  updated_at: string;
-  department?: Department;
+  permissions: Permission[];
+  selected: boolean;
 }
 
 export interface ActivityLog {
@@ -97,98 +64,20 @@ export interface ActivityLog {
   entity_type: string;
   entity_id: string | null;
   action: string;
-  details: Json | null;
+  details: Record<string, any> | null;
   ip_address: string | null;
+  severity: string;
+  category: string;
   created_at: string;
-  severity: string | null;
-  category: string | null;
-  metadata: Json | null;
-  user?: { first_name: string; last_name: string; profile_image_url: string | null; };
-}
-
-export interface DepartmentMetrics {
-  totalMembers: number;
-  activeMembers: number;
-  subDepartments: number;
-  averageActivityLevel: number;
-  recentChanges: number;
-}
-
-export interface DepartmentHierarchyNode extends Department {
-  children: DepartmentHierarchyNode[];
-  depth: number;
-}
-
-export type DepartmentRole = 'manager' | 'deputy' | 'member' | 'guest';
-export interface ServiceArea {
-  id: string;
-  name: string;
-  type: string | null;
-  status: string;
-  description: string | null;
-  responsible_id: string | null;
-  created_at: string;
-  updated_at: string;
-  user?: { first_name: string; last_name: string; };
-}
-
-export interface MaintenanceRecord {
-  id: string;
-  title: string;
-  type: string;
-  scheduled_date: string | null;
-  status: string;
-  description: string | null;
-  area_id: string | null;
-  assigned_to: string | null;
-  created_by: string | null;
-  last_maintenance: string | null;
-  next_maintenance: string | null;
-  created_at: string;
-  updated_at: string;
-  service_areas?: { name: string; };
-  users?: { first_name: string; last_name: string; };
-}
-
-export interface Demand {
-  id: string;
-  title: string;
-  description: string | null;
-  priority: string;
-  status: string;
-  due_date: string | null;
-  area_id: string | null;
-  assigned_to: string | null;
-  requested_by: string | null;
-  created_at: string;
-  updated_at: string;
-  service_areas?: { name: string; };
-  users?: { first_name: string; last_name: string; };
-  requester?: { first_name: string; last_name: string; };
-}
-
-export interface ServiceReport {
-  id: string;
-  report_date: string;
-  average_completion_time: number;
-  area_id: string | null;
-  created_by: string | null;
-  created_at: string;
-  updated_at: string;
-  service_areas?: { name: string; };
-  users?: { first_name: string; last_name: string; };
+  user?: User | null;
 }
 
 export interface Booking {
   id: string;
   title: string;
-  client_id?: string | null;
   start_time: string;
   end_time: string;
   status: string;
-  created_at?: string;
-  updated_at?: string;
-  client?: {
-    company_name?: string;
-  } | null;
+  client_id?: string;
+  client?: { company_name: string } | null;
 }

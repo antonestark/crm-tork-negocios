@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -14,9 +13,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Permission, PermissionGroup, User } from '@/types/admin';
 import { Separator } from '@/components/ui/separator';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, permissionAdapter, permissionGroupAdapter } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { permissionAdapter, permissionGroupAdapter } from '@/integrations/supabase/adapters';
 
 interface UserPermissionsDialogProps {
   open: boolean;
@@ -178,15 +176,20 @@ export function UserPermissionsDialog({
       }
       
       // Log the activity
-      await supabase.rpc('log_activity', {
-        _entity_type: 'users',
-        _entity_id: user.id,
-        _action: 'update_permissions',
-        _details: {
-          permissions: selectedPermissionIds.length,
-          groups: selectedGroupIds.length
-        }
-      });
+      try {
+        await supabase.rpc('log_activity', {
+          _entity_type: 'users',
+          _entity_id: user.id,
+          _action: 'update_permissions',
+          _details: {
+            permissions: selectedPermissionIds.length,
+            groups: selectedGroupIds.length
+          }
+        });
+      } catch (logError) {
+        console.error('Error logging activity:', logError);
+        // Continue even if logging fails
+      }
       
       toast({
         title: "Sucesso",
