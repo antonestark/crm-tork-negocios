@@ -9,6 +9,56 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          category: string | null
+          created_at: string | null
+          details: Json | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          severity: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          category?: string | null
+          created_at?: string | null
+          details?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          severity?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          category?: string | null
+          created_at?: string | null
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          severity?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agente_tork: {
         Row: {
           created_at: string | null
@@ -235,6 +285,70 @@ export type Database = {
         }
         Relationships: []
       }
+      demands: {
+        Row: {
+          area_id: string | null
+          assigned_to: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          requested_by: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          requested_by?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          requested_by?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demands_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demands_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demands_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string | null
@@ -276,6 +390,76 @@ export type Database = {
           metadata?: Json | null
         }
         Relationships: []
+      }
+      maintenance_records: {
+        Row: {
+          area_id: string | null
+          assigned_to: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          last_maintenance: string | null
+          next_maintenance: string | null
+          scheduled_date: string | null
+          status: string | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          last_maintenance?: string | null
+          next_maintenance?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          last_maintenance?: string | null
+          next_maintenance?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_records_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       memoria_classificacao: {
         Row: {
@@ -346,6 +530,102 @@ export type Database = {
           id?: number
           message?: Json
           session_id?: string
+        }
+        Relationships: []
+      }
+      permission_group_permissions: {
+        Row: {
+          created_at: string | null
+          group_id: string | null
+          id: string
+          permission_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          permission_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          permission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permission_group_permissions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "permission_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "permission_group_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      permission_groups: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_system: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      permissions: {
+        Row: {
+          actions: string[]
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          module: string
+          name: string
+          resource_type: string
+        }
+        Insert: {
+          actions: string[]
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          module: string
+          name: string
+          resource_type: string
+        }
+        Update: {
+          actions?: string[]
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          module?: string
+          name?: string
+          resource_type?: string
         }
         Relationships: []
       }
@@ -445,6 +725,251 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduling: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          end_time: string
+          id: string
+          start_time: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          end_time: string
+          id?: string
+          start_time: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          end_time?: string
+          id?: string
+          start_time?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduling_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_areas: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          responsible_id: string | null
+          status: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          responsible_id?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          responsible_id?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_areas_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_checklist_completed: {
+        Row: {
+          checklist_item_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          checklist_item_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          checklist_item_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_checklist_completed_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "service_checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_checklist_completed_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_checklist_items: {
+        Row: {
+          active: boolean | null
+          area_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          period: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          area_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          period: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          area_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          period?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_checklist_items_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_reports: {
+        Row: {
+          area_id: string | null
+          average_completion_time: number | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          report_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          average_completion_time?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          report_date?: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          average_completion_time?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          report_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_reports_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          area_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tork_gestao: {
         Row: {
           created_at: string | null
@@ -480,6 +1005,91 @@ export type Database = {
           usuarioid?: string | null
         }
         Relationships: []
+      }
+      user_permission_groups: {
+        Row: {
+          created_at: string | null
+          group_id: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permission_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "permission_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permission_groups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_permissions: {
+        Row: {
+          created_at: string | null
+          granted_by: string | null
+          id: string
+          permission_id: string | null
+          user_id: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission_id?: string | null
+          user_id?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission_id?: string | null
+          user_id?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permissions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
@@ -644,6 +1254,17 @@ export type Database = {
             }
             Returns: unknown
           }
+      log_activity: {
+        Args: {
+          _entity_type: string
+          _entity_id: string
+          _action: string
+          _details?: Json
+          _severity?: string
+          _category?: string
+        }
+        Returns: string
+      }
       match_documents: {
         Args: {
           query_embedding: string

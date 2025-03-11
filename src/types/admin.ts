@@ -1,4 +1,3 @@
-
 import { Json } from "@/integrations/supabase/types";
 
 export type UserStatus = 'active' | 'inactive' | 'blocked' | 'pending';
@@ -120,3 +119,75 @@ export interface DepartmentHierarchyNode extends Department {
 }
 
 export type DepartmentRole = 'manager' | 'deputy' | 'member' | 'guest';
+export interface ServiceArea {
+  id: string;
+  name: string;
+  type: string | null;
+  status: string;
+  description: string | null;
+  responsible_id: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: { first_name: string; last_name: string; };
+}
+
+export interface MaintenanceRecord {
+  id: string;
+  title: string;
+  type: string;
+  scheduled_date: string | null;
+  status: string;
+  description: string | null;
+  area_id: string | null;
+  assigned_to: string | null;
+  created_by: string | null;
+  last_maintenance: string | null;
+  next_maintenance: string | null;
+  created_at: string;
+  updated_at: string;
+  service_areas?: { name: string; };
+  users?: { first_name: string; last_name: string; };
+}
+
+export interface Demand {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: string;
+  status: string;
+  due_date: string | null;
+  area_id: string | null;
+  assigned_to: string | null;
+  requested_by: string | null;
+  created_at: string;
+  updated_at: string;
+  service_areas?: { name: string; };
+  users?: { first_name: string; last_name: string; };
+  requester?: { first_name: string; last_name: string; };
+}
+
+export interface ServiceReport {
+  id: string;
+  report_date: string;
+  average_completion_time: number;
+  area_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  service_areas?: { name: string; };
+  users?: { first_name: string; last_name: string; };
+}
+
+export interface Booking {
+  id: string;
+  title: string;
+  client_id: string | null;
+  start_time: string;
+  end_time: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  client?: {
+    company_name: string;
+  };
+}
