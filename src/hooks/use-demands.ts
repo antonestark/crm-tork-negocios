@@ -28,7 +28,7 @@ export interface DemandCreate {
   priority?: string;
   assigned_to?: string;
   requested_by?: string;
-  due_date?: string | Date;
+  due_date?: string | Date | null;
   status?: string;
 }
 
@@ -97,12 +97,20 @@ export const useDemands = () => {
 
   const addDemand = async (demandData: DemandCreate): Promise<boolean> => {
     try {
-      // Ensure due_date is in the correct format if provided
+      // Format due_date as string if it's a Date object
+      let formattedDueDate: string | undefined = undefined;
+      
+      if (demandData.due_date) {
+        if (typeof demandData.due_date === 'object' && demandData.due_date !== null) {
+          formattedDueDate = demandData.due_date.toISOString();
+        } else if (typeof demandData.due_date === 'string') {
+          formattedDueDate = demandData.due_date;
+        }
+      }
+      
       const formattedData = {
         ...demandData,
-        due_date: demandData.due_date && typeof demandData.due_date === 'object' && demandData.due_date !== null
-          ? demandData.due_date.toISOString() 
-          : demandData.due_date
+        due_date: formattedDueDate
       };
       
       const { data, error } = await supabase
@@ -131,12 +139,20 @@ export const useDemands = () => {
     try {
       const { id, ...updateData } = demandData;
       
-      // Ensure due_date is in the correct format if provided
+      // Format due_date as string if it's a Date object
+      let formattedDueDate: string | undefined = undefined;
+      
+      if (updateData.due_date) {
+        if (typeof updateData.due_date === 'object' && updateData.due_date !== null) {
+          formattedDueDate = updateData.due_date.toISOString();
+        } else if (typeof updateData.due_date === 'string') {
+          formattedDueDate = updateData.due_date;
+        }
+      }
+      
       const formattedData = {
         ...updateData,
-        due_date: updateData.due_date && typeof updateData.due_date === 'object' && updateData.due_date !== null
-          ? updateData.due_date.toISOString() 
-          : updateData.due_date
+        due_date: formattedDueDate
       };
       
       const { error } = await supabase
