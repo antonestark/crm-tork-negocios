@@ -11,25 +11,24 @@ export interface Demand {
   priority?: string;
   assigned_to?: string;
   requested_by?: string;
-  due_date?: string; // Changed to string to match Supabase
+  due_date?: string;
   status?: string;
   created_at: string;
   updated_at: string;
-  // Adding nested objects from join queries
   area?: { name: string } | null;
-  assigned_user?: { first_name: string; last_name: string } | null;
-  requester?: { first_name: string; last_name: string } | null;
+  assigned_user?: { name: string } | null;
+  requester?: { name: string } | null;
 }
 
 export interface DemandCreate {
   id?: string;
-  title: string; // Required field
+  title: string;
   description?: string;
   area_id?: string;
   priority?: string;
   assigned_to?: string;
   requested_by?: string;
-  due_date?: Date | string; // Accept both Date and string
+  due_date?: string;
   status?: string;
 }
 
@@ -41,7 +40,6 @@ export const useDemands = () => {
   useEffect(() => {
     fetchDemands();
     
-    // Set up a realtime subscription
     const subscription = supabase
       .channel('demands_changes')
       .on('postgres_changes', { 
@@ -67,12 +65,11 @@ export const useDemands = () => {
         .select(`
           *,
           area:service_areas(name),
-          assigned_user:users!assigned_to(first_name, last_name),
-          requester:users!requested_by(first_name, last_name)
+          assigned_user:users!assigned_to(name),
+          requester:users!requested_by(name)
         `)
         .order("updated_at", { ascending: false });
       
-      // Apply status filter if set
       if (statusFilter) {
         query = query.eq("status", statusFilter);
       }
@@ -81,7 +78,6 @@ export const useDemands = () => {
       
       if (error) throw error;
       
-      // Transform the data to match our Demand interface
       const formattedDemands: Demand[] = data?.map(item => ({
         ...item,
         area: item.area,
@@ -101,11 +97,14 @@ export const useDemands = () => {
 
   const addDemand = async (demandData: DemandCreate): Promise<boolean> => {
     try {
-      // Ensure date is in ISO format if provided as a Date object
-      const formattedData = demandData.due_date instanceof Date
-        ? { ...demandData, due_date: demandData.due_date.toISOString() } 
-        : demandData;
-        
+      // Ensure due_date is in the correct format if provided
+      const formattedData = {
+        ...demandData,
+        due_date: demandData.due_date instanceof Date 
+          ? demandData.due_date.toISOString() 
+          : demandData.due_date
+      };
+      
       const { data, error } = await supabase
         .from('demands')
         .insert([formattedData])
@@ -114,7 +113,7 @@ export const useDemands = () => {
       if (error) throw error;
       
       toast.success('Demanda criada com sucesso');
-      await fetchDemands(); // Refresh the list
+      await fetchDemands();
       return true;
     } catch (err) {
       console.error('Error adding demand:', err);
@@ -130,23 +129,25 @@ export const useDemands = () => {
     }
 
     try {
-      // Ensure date is in ISO format if provided as a Date object
-      const formattedData = demandData.due_date instanceof Date
-        ? { ...demandData, due_date: demandData.due_date.toISOString() } 
-        : demandData;
+      const { id, ...updateData } = demandData;
       
-      // Remove id from update data
-      const { id, ...updateData } = formattedData;
+      // Ensure due_date is in the correct format if provided
+      const formattedData = {
+        ...updateData,
+        due_date: updateData.due_date instanceof Date 
+          ? updateData.due_date.toISOString() 
+          : updateData.due_date
+      };
       
       const { error } = await supabase
         .from('demands')
-        .update(updateData)
+        .update(formattedData)
         .eq('id', id);
       
       if (error) throw error;
       
       toast.success('Demanda atualizada com sucesso');
-      await fetchDemands(); // Refresh the list
+      await fetchDemands();
       return true;
     } catch (err) {
       console.error('Error updating demand:', err);

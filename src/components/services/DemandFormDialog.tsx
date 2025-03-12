@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,7 +23,12 @@ const formSchema = z.object({
   status: z.string()
 });
 
-type FormValues = z.infer<typeof formSchema>;
+interface DemandFormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: DemandCreate) => Promise<boolean>;
+  demand: DemandCreate | null;
+}
 
 interface Area {
   id: string;
@@ -33,16 +37,7 @@ interface Area {
 
 interface User {
   id: string;
-  first_name: string;
-  last_name: string;
   name: string;
-}
-
-interface DemandFormDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (data: DemandCreate) => Promise<boolean>;
-  demand: DemandCreate | null;
 }
 
 export const DemandFormDialog: React.FC<DemandFormDialogProps> = ({
@@ -55,16 +50,7 @@ export const DemandFormDialog: React.FC<DemandFormDialogProps> = ({
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const isEditing = !!demand?.id;
-  
-  useEffect(() => {
-    if (open) {
-      fetchAreas();
-      fetchUsers();
-    }
-  }, [open]);
-  
-  const form = useForm<FormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: demand?.title || '',
@@ -73,67 +59,67 @@ export const DemandFormDialog: React.FC<DemandFormDialogProps> = ({
       priority: demand?.priority || 'medium',
       assigned_to: demand?.assigned_to || '',
       requested_by: demand?.requested_by || '',
-      due_date: demand?.due_date instanceof Date ? demand.due_date : undefined,
+      due_date: demand?.due_date ? new Date(demand.due_date) : undefined,
       status: demand?.status || 'pending'
     }
   });
   
-  const fetchAreas = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('service_areas')
-        .select('id, name')
-        .eq('status', 'active')
-        .order('name');
-      
-      if (error) throw error;
-      setAreas(data || []);
-    } catch (err) {
-      console.error('Error fetching areas:', err);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch areas
+        const { data: areasData } = await supabase
+          .from('service_areas')
+          .select('id, name')
+          .eq('status', 'active');
+          
+        if (areasData) {
+          setAreas(areasData);
+        }
+        
+        // Fetch users
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('id, name');
+          
+        if (usersData) {
+          setUsers(usersData);
+        }
+      } catch (error) {
+        console.error('Error fetching form data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (open) {
+      fetchData();
     }
-  };
-  
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, first_name, last_name')
-        .order('first_name');
-      
-      if (error) throw error;
-      
-      // Transform the data to include a name property
-      const formattedUsers = data?.map(user => ({
-        ...user,
-        name: `${user.first_name} ${user.last_name}`
-      })) || [];
-      
-      setUsers(formattedUsers);
-    } catch (err) {
-      console.error('Error fetching users:', err);
-    } finally {
-      setLoading(false);
+  }, [open]);
+
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    const demandData: DemandCreate = {
+      ...(demand?.id ? { id: demand.id } : {}),
+      title: values.title,
+      description: values.description,
+      area_id: values.area_id,
+      priority: values.priority,
+      assigned_to: values.assigned_to,
+      requested_by: values.requested_by,
+      due_date: values.due_date?.toISOString(),
+      status: values.status
+    };
+
+    const success = await onSubmit(demandData);
+    if (success) {
+      form.reset();
+      onOpenChange(false);
     }
   };
 
-  const handleSubmit = async (values: FormValues) => {
-    try {
-      const demandData: DemandCreate = {
-        id: demand?.id,
-        ...values
-      };
-      
-      const result = await onSubmit(demandData);
-      
-      if (result) {
-        form.reset();
-        onOpenChange(false);
-      }
-    } catch (error) {
-      console.error('Error saving demand:', error);
-    }
-  };
+  const isEditing = !!demand?.id;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
