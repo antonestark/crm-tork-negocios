@@ -28,7 +28,7 @@ export interface DemandCreate {
   priority?: string;
   assigned_to?: string;
   requested_by?: string;
-  due_date?: string;
+  due_date?: string | Date;
   status?: string;
 }
 
@@ -100,7 +100,7 @@ export const useDemands = () => {
       // Ensure due_date is in the correct format if provided
       const formattedData = {
         ...demandData,
-        due_date: demandData.due_date && typeof demandData.due_date === 'object' 
+        due_date: demandData.due_date && typeof demandData.due_date === 'object' && demandData.due_date !== null
           ? demandData.due_date.toISOString() 
           : demandData.due_date
       };
@@ -134,7 +134,7 @@ export const useDemands = () => {
       // Ensure due_date is in the correct format if provided
       const formattedData = {
         ...updateData,
-        due_date: updateData.due_date && typeof updateData.due_date === 'object' 
+        due_date: updateData.due_date && typeof updateData.due_date === 'object' && updateData.due_date !== null
           ? updateData.due_date.toISOString() 
           : updateData.due_date
       };
