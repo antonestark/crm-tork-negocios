@@ -17,7 +17,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { DemandFormDialog } from "@/components/services/DemandFormDialog";
+import { DemandFormDialog } from "@/components/services/demand-form";
 import { useDemands } from "@/hooks/use-demands";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
