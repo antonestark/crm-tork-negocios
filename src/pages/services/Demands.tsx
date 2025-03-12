@@ -149,13 +149,13 @@ const DemandsPage = () => {
                         <TableCell>{demand.area?.name || 'N/A'}</TableCell>
                         <TableCell>{getPriorityBadge(demand.priority || 'low')}</TableCell>
                         <TableCell>
-                          {demand.assigned_user?.first_name 
-                            ? `${demand.assigned_user.first_name} ${demand.assigned_user.last_name}` 
+                          {demand.assigned_user?.name
+                            ? demand.assigned_user.name
                             : 'Não atribuído'}
                         </TableCell>
                         <TableCell>
-                          {demand.requester?.first_name 
-                            ? `${demand.requester.first_name} ${demand.requester.last_name}` 
+                          {demand.requester?.name
+                            ? demand.requester.name
                             : 'N/A'}
                         </TableCell>
                         <TableCell>

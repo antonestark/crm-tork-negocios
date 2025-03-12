@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -108,7 +109,7 @@ export const DemandFormDialog: React.FC<DemandFormDialogProps> = ({
       priority: values.priority,
       assigned_to: values.assigned_to,
       requested_by: values.requested_by,
-      due_date: values.due_date?.toISOString(),
+      due_date: values.due_date ? values.due_date.toISOString() : undefined,
       status: values.status
     };
 
