@@ -1,9 +1,8 @@
-
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Filter } from "lucide-react";
 import { 
@@ -23,18 +22,19 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 const DemandsPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [formOpen, setFormOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const { demands, loading, addDemand, fetchDemands } = useDemands();
 
-  // Check if we should open the form dialog on mount (coming from ServicesHeader)
+  // Verificação aprimorada para o state na navegação
   useEffect(() => {
     if (location.state?.openDemandForm) {
       setFormOpen(true);
-      // Clean up the state to prevent reopening on page refresh
-      window.history.replaceState({}, document.title);
+      // Limpar o state após processar para evitar reabertura em refresh
+      navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state]);
+  }, [location.state, navigate, location.pathname]);
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
@@ -72,6 +72,14 @@ const DemandsPage = () => {
   const applyFilter = (status: string) => {
     setStatusFilter(status);
     fetchDemands(status);
+  };
+
+  const handleFormClose = (open: boolean) => {
+    setFormOpen(open);
+    if (!open) {
+      // Atualiza a lista após fechar o formulário
+      fetchDemands(statusFilter);
+    }
   };
 
   return (
@@ -181,7 +189,7 @@ const DemandsPage = () => {
         
         <DemandFormDialog 
           open={formOpen}
-          onOpenChange={setFormOpen}
+          onOpenChange={handleFormClose}
           onSubmit={addDemand}
           demand={null}
         />

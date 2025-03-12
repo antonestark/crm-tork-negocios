@@ -1,13 +1,25 @@
 
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo, Filter } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const ServicesHeader = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   const handleNovaDemanda = () => {
-    navigate('/services/demands', { state: { openDemandForm: true } });
+    // Se já estiver na página de demandas, apenas abra o formulário usando state
+    if (location.pathname === '/services/demands') {
+      navigate('/services/demands', { 
+        state: { openDemandForm: true },
+        replace: true 
+      });
+    } else {
+      // Se estiver em outra página, navegue para a página de demandas com o state
+      navigate('/services/demands', { 
+        state: { openDemandForm: true } 
+      });
+    }
   };
   
   return (
