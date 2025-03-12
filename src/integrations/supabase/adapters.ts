@@ -9,10 +9,11 @@ export const userAdapter = (data: any[]): User[] => {
     id: item.id,
     first_name: item.name?.split(' ')[0] || '',
     last_name: item.name?.split(' ').slice(1).join(' ') || '',
-    profile_image_url: item.profile_image_url,
+    profile_image_url: item.profile_image_url || null,
     role: item.role,
     department_id: item.department_id,
-    phone: item.phone,
+    phone: item.phone || null,
+    email: item.email || '', // Ensure email is included
     active: item.active || false,
     status: item.status || 'inactive',
     last_login: item.last_login,

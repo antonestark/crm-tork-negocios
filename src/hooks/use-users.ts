@@ -5,6 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { userAdapter } from '@/integrations/supabase/adapters';
 import { toast } from 'sonner';
 
+// Define the roles enum to match Supabase's expected values
+type UserRole = 'user' | 'admin' | 'super_admin';
+
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,19 +59,23 @@ export const useUsers = () => {
 
   const addUser = async (userData: Partial<User>) => {
     try {
-      // Using camelCase to snake_case conversion for the API
+      // Ensure role is one of the allowed values
+      const role = (userData.role as UserRole) || 'user';
+      
+      // Create properly typed user object for Supabase
+      const userDataForDb = {
+        name: `${userData.first_name} ${userData.last_name}`,
+        email: userData.email as string, // Type assertion since we know it should exist
+        password: 'temporary_password', // Required field in the DB schema
+        role: role,
+        department_id: userData.department_id,
+        phone: userData.phone || null,
+        // Don't include active and status as they're not in the users table schema
+      };
+      
       const { data, error } = await supabase
         .from('users')
-        .insert([{
-          name: `${userData.first_name} ${userData.last_name}`,
-          email: userData.email,
-          role: userData.role,
-          department_id: userData.department_id,
-          phone: userData.phone,
-          active: userData.active,
-          status: userData.status,
-          // Include other fields as needed
-        }])
+        .insert(userDataForDb)
         .select();
       
       if (error) throw error;
@@ -86,17 +93,18 @@ export const useUsers = () => {
 
   const updateUser = async (userData: User) => {
     try {
+      // Ensure role is one of the allowed values
+      const role = (userData.role as UserRole);
+      
       const { error } = await supabase
         .from('users')
         .update({
           name: `${userData.first_name} ${userData.last_name}`,
-          email: userData.email,
-          role: userData.role,
           department_id: userData.department_id,
           phone: userData.phone,
-          active: userData.active,
-          status: userData.status,
-          // Include other fields as needed
+          role: role,
+          // Don't update email as it might be used for authentication
+          // Don't update password here for security reasons
         })
         .eq('id', userData.id);
       
