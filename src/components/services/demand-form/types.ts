@@ -1,5 +1,5 @@
 
-import { DemandCreate } from "@/hooks/use-demands";
+import { DemandCreate } from "@/types/demands";
 import { z } from "zod";
 
 export const formSchema = z.object({

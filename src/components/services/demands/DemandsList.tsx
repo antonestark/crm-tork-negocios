@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { Demand } from "@/hooks/use-demands";
+import { Demand } from "@/types/demands";
 import { getPriorityBadge, getStatusBadge } from "./DemandStatus";
 
 interface DemandsListProps {

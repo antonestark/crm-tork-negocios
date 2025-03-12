@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
-import { DemandCreate } from '@/hooks/use-demands';
+import { DemandCreate } from '@/types/demands';
 import { formSchema, FormValues, DemandFormProps } from './types';
 import { useFormData } from './useFormData';
 import { BasicInfoFields } from './BasicInfoFields';
