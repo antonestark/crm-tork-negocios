@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +6,11 @@ import { toast } from 'sonner';
 
 // Define the roles enum to match Supabase's expected values
 type UserRole = 'user' | 'admin' | 'super_admin';
+
+// Define interface for user creation that includes email
+interface UserCreate extends Partial<User> {
+  email?: string;
+}
 
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -57,7 +61,7 @@ export const useUsers = () => {
     }
   };
 
-  const addUser = async (userData: Partial<User>) => {
+  const addUser = async (userData: UserCreate) => {
     try {
       // Ensure role is one of the allowed values
       const role = (userData.role as UserRole) || 'user';
@@ -65,12 +69,11 @@ export const useUsers = () => {
       // Create properly typed user object for Supabase
       const userDataForDb = {
         name: `${userData.first_name} ${userData.last_name}`,
-        email: userData.email as string, // Type assertion since we know it should exist
-        password: 'temporary_password', // Required field in the DB schema
+        email: userData.email || '', // Now TypeScript knows email exists
+        password: 'temporary_password',
         role: role,
         department_id: userData.department_id,
         phone: userData.phone || null,
-        // Don't include active and status as they're not in the users table schema
       };
       
       const { data, error } = await supabase
