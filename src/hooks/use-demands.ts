@@ -1,90 +1,24 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { toast } from 'sonner';
-
-export interface Demand {
-  id: string;
-  title: string;
-  description?: string;
-  area_id?: string;
-  priority?: string;
-  assigned_to?: string;
-  requested_by?: string;
-  due_date?: string;
-  status?: string;
-  created_at: string;
-  updated_at: string;
-  area?: { name: string } | null;
-  assigned_user?: { name: string } | null;
-  requester?: { name: string } | null;
-}
-
-export interface DemandCreate {
-  id?: string;
-  title: string;
-  description?: string;
-  area_id?: string;
-  priority?: string;
-  assigned_to?: string;
-  requested_by?: string;
-  due_date?: string | Date | null;
-  status?: string;
-}
+import { Demand, DemandCreate } from '@/types/demands';
+import { 
+  fetchDemandsFromDB, 
+  addDemandToDB, 
+  updateDemandInDB, 
+  deleteDemandFromDB 
+} from '@/services/demands';
+import { useDemandsSubscription } from './use-demands-subscription';
 
 export const useDemands = () => {
   const [demands, setDemands] = useState<Demand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    fetchDemands();
-    
-    const subscription = supabase
-      .channel('demands_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'demands' 
-      }, () => {
-        fetchDemands();
-      })
-      .subscribe();
-      
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
   const fetchDemands = async (statusFilter?: string | null) => {
     try {
       setLoading(true);
-      
-      let query = supabase
-        .from("demands")
-        .select(`
-          *,
-          area:service_areas(name),
-          assigned_user:users!assigned_to(name),
-          requester:users!requested_by(name)
-        `)
-        .order("updated_at", { ascending: false });
-      
-      if (statusFilter) {
-        query = query.eq("status", statusFilter);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      const formattedDemands: Demand[] = data?.map(item => ({
-        ...item,
-        area: item.area,
-        assigned_user: item.assigned_user,
-        requester: item.requester
-      })) || [];
-      
+      const formattedDemands = await fetchDemandsFromDB(statusFilter);
       setDemands(formattedDemands);
     } catch (err) {
       console.error('Error fetching demands:', err);
@@ -97,29 +31,7 @@ export const useDemands = () => {
 
   const addDemand = async (demandData: DemandCreate): Promise<boolean> => {
     try {
-      // Format due_date as string if it's a Date object
-      let formattedDueDate: string | undefined = undefined;
-      
-      if (demandData.due_date) {
-        if (typeof demandData.due_date === 'object' && demandData.due_date !== null) {
-          formattedDueDate = demandData.due_date.toISOString();
-        } else if (typeof demandData.due_date === 'string') {
-          formattedDueDate = demandData.due_date;
-        }
-      }
-      
-      const formattedData = {
-        ...demandData,
-        due_date: formattedDueDate
-      };
-      
-      const { data, error } = await supabase
-        .from('demands')
-        .insert([formattedData])
-        .select();
-      
-      if (error) throw error;
-      
+      await addDemandToDB(demandData);
       toast.success('Demanda criada com sucesso');
       await fetchDemands();
       return true;
@@ -131,37 +43,8 @@ export const useDemands = () => {
   };
 
   const updateDemand = async (demandData: DemandCreate): Promise<boolean> => {
-    if (!demandData.id) {
-      console.error('Demand ID is required for update');
-      return false;
-    }
-
     try {
-      const { id, ...updateData } = demandData;
-      
-      // Format due_date as string if it's a Date object
-      let formattedDueDate: string | undefined = undefined;
-      
-      if (updateData.due_date) {
-        if (typeof updateData.due_date === 'object' && updateData.due_date !== null) {
-          formattedDueDate = updateData.due_date.toISOString();
-        } else if (typeof updateData.due_date === 'string') {
-          formattedDueDate = updateData.due_date;
-        }
-      }
-      
-      const formattedData = {
-        ...updateData,
-        due_date: formattedDueDate
-      };
-      
-      const { error } = await supabase
-        .from('demands')
-        .update(formattedData)
-        .eq('id', id);
-      
-      if (error) throw error;
-      
+      await updateDemandInDB(demandData);
       toast.success('Demanda atualizada com sucesso');
       await fetchDemands();
       return true;
@@ -174,13 +57,7 @@ export const useDemands = () => {
 
   const deleteDemand = async (id: string): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from('demands')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      
+      await deleteDemandFromDB(id);
       setDemands(prev => prev.filter(d => d.id !== id));
       toast.success('Demanda excluída com sucesso');
       return true;
@@ -190,6 +67,9 @@ export const useDemands = () => {
       return false;
     }
   };
+
+  // Set up real-time subscription
+  useDemandsSubscription(fetchDemands);
 
   return {
     demands,
