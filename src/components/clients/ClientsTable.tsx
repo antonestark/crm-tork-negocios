@@ -28,19 +28,9 @@ import {
 import { toast } from "sonner"
 import { MoreVertical, Edit, Trash2, FileText, Copy, Loader2, Search } from "lucide-react"
 import { supabase } from '@/integrations/supabase/client';
-import { clientAdapter } from '@/integrations/supabase/client';
+import { clientAdapter } from '@/integrations/supabase/adapters';
 import { Badge } from "@/components/ui/badge";
-
-type Client = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  status: string;
-  company_name: string;
-  created_at: string;
-  updated_at: string;
-};
+import { Client } from '@/types/clients';
 
 export function ClientsTable() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -92,7 +82,7 @@ export function ClientsTable() {
       }
       
       // Usar o adaptador para converter os dados
-      const adaptedClients = clientAdapter(data);
+      const adaptedClients = clientAdapter(data || []);
       setClients(adaptedClients);
     } catch (error) {
       console.error('Error fetching clients:', error);
@@ -124,7 +114,7 @@ export function ClientsTable() {
   };
 
   const handleCopyInfo = (client: Client) => {
-    const text = `${client.name}\n${client.email}\n${client.phone}`;
+    const text = `${client.company_name}\n${client.email || ''}\n${client.phone || ''}`;
     navigator.clipboard.writeText(text);
     toast.success('Informações copiadas para a área de transferência');
   };
@@ -192,9 +182,9 @@ export function ClientsTable() {
               ) : (
                 clients.map((client) => (
                   <TableRow key={client.id}>
-                    <TableCell className="font-medium">{client.name || client.company_name}</TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>{client.phone}</TableCell>
+                    <TableCell className="font-medium">{client.company_name}</TableCell>
+                    <TableCell>{client.email || ''}</TableCell>
+                    <TableCell>{client.phone || ''}</TableCell>
                     <TableCell>{getStatusBadge(client.status)}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
