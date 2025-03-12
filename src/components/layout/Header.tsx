@@ -1,5 +1,4 @@
-
-import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, Home, Users, LayoutGrid } from "lucide-react";
+import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, Home, Users, LayoutGrid, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -44,6 +43,17 @@ export const Header = () => {
             <Link to="/clients">
               <Users className="h-4 w-4 mr-2" />
               Clientes
+            </Link>
+          </Button>
+          <Button 
+            variant={isActive('/leads') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/leads">
+              <Target className="h-4 w-4 mr-2" />
+              Leads
             </Link>
           </Button>
           <Button 
