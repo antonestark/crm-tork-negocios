@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Department } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
 import { departmentAdapter } from '@/integrations/supabase/adapters';
+import { toast } from 'sonner';
 
 export const useDepartments = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -11,6 +12,22 @@ export const useDepartments = () => {
 
   useEffect(() => {
     fetchDepartments();
+
+    // Set up a realtime subscription
+    const subscription = supabase
+      .channel('departments_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'departments' 
+      }, () => {
+        fetchDepartments();
+      })
+      .subscribe();
+      
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchDepartments = async () => {
@@ -19,32 +36,57 @@ export const useDepartments = () => {
       
       const { data, error } = await supabase
         .from('departments')
-        .select('*');
+        .select(`
+          *,
+          manager:users(id, name)
+        `);
       
       if (error) throw error;
       
       const adaptedData = departmentAdapter(data || []);
-      // Add _memberCount property to each department
-      const departmentsWithCount = adaptedData.map(dept => ({
-        ...dept,
-        _memberCount: 0 // Default value, will be calculated later
-      }));
       
-      setDepartments(departmentsWithCount);
+      // Get member counts for each department
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('department_id');
+        
+      if (!userError) {
+        // Count members per department
+        const counts: Record<string, number> = {};
+        userData?.forEach(user => {
+          if (user.department_id) {
+            const deptId = user.department_id.toString();
+            counts[deptId] = (counts[deptId] || 0) + 1;
+          }
+        });
+        
+        // Add member counts to departments
+        const departmentsWithCount = adaptedData.map(dept => ({
+          ...dept,
+          _memberCount: counts[dept.id] || 0
+        }));
+        
+        setDepartments(departmentsWithCount);
+      } else {
+        // If we can't get member counts, just use the adapted data
+        setDepartments(adaptedData);
+      }
     } catch (err) {
       console.error('Error fetching departments:', err);
       setError(err as Error);
+      toast.error('Falha ao carregar departamentos');
     } finally {
       setLoading(false);
     }
   };
 
-  const addDepartment = async (department: Department) => {
+  const addDepartment = async (department: Partial<Department>) => {
     try {
       const { data, error } = await supabase
         .from('departments')
         .insert([{
           name: department.name,
+          description: department.description,
           // Add other properties as needed
         }])
         .select();
@@ -58,6 +100,7 @@ export const useDepartments = () => {
       return true;
     } catch (err) {
       console.error('Error adding department:', err);
+      toast.error('Falha ao adicionar departamento');
       return false;
     }
   };
@@ -71,6 +114,7 @@ export const useDepartments = () => {
         .from('departments')
         .update({
           name: department.name,
+          description: department.description,
           // Add other properties as needed
         })
         .eq('id', departmentId);
@@ -80,9 +124,11 @@ export const useDepartments = () => {
       setDepartments(prev => 
         prev.map(d => d.id === department.id ? { ...d, ...department } : d)
       );
+      toast.success('Departamento atualizado com sucesso');
       return true;
     } catch (err) {
       console.error('Error updating department:', err);
+      toast.error('Falha ao atualizar departamento');
       return false;
     }
   };
@@ -100,9 +146,11 @@ export const useDepartments = () => {
       if (error) throw error;
       
       setDepartments(prev => prev.filter(d => d.id !== id));
+      toast.success('Departamento excluído com sucesso');
       return true;
     } catch (err) {
       console.error('Error deleting department:', err);
+      toast.error('Falha ao excluir departamento');
       return false;
     }
   };
@@ -113,6 +161,7 @@ export const useDepartments = () => {
     error,
     addDepartment,
     updateDepartment,
-    deleteDepartment
+    deleteDepartment,
+    fetchDepartments
   };
 };

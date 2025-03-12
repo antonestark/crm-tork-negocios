@@ -5,15 +5,17 @@ import { CountUp } from '@/components/ui/countup';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Building2, CalendarDays, ClipboardList } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { format, subDays } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { ActivityLog } from '@/types/admin';
+import { activityLogsAdapter } from '@/integrations/supabase/adapters';
 
 export function AdminDashboard() {
   const [userCount, setUserCount] = useState(0);
   const [departmentCount, setDepartmentCount] = useState(0);
   const [activityCount, setActivityCount] = useState(0);
-  const [recentActivityLogs, setRecentActivityLogs] = useState<any[]>([]);
+  const [recentActivityLogs, setRecentActivityLogs] = useState<ActivityLog[]>([]);
 
   // Get counts from various tables
   const { isLoading: isLoadingUsers } = useQuery({
@@ -29,11 +31,7 @@ export function AdminDashboard() {
         return count;
       } catch (error: any) {
         console.error('Error fetching user count:', error.message);
-        toast({
-          title: "Erro",
-          description: "Falha ao carregar contagem de usuários",
-          variant: "destructive"
-        });
+        toast.error("Falha ao carregar contagem de usuários");
         return 0;
       }
     }
@@ -52,44 +50,50 @@ export function AdminDashboard() {
         return count;
       } catch (error: any) {
         console.error('Error fetching department count:', error.message);
-        toast({
-          title: "Erro",
-          description: "Falha ao carregar contagem de departamentos",
-          variant: "destructive"
-        });
+        toast.error("Falha ao carregar contagem de departamentos");
         return 0;
       }
     }
   });
 
-  // Mock active logs count
-  useEffect(() => {
-    // Set some mock data temporarily
-    setActivityCount(24);
-    setRecentActivityLogs([
-      {
-        id: '1',
-        action: 'login',
-        entity_type: 'auth',
-        created_at: new Date().toISOString(),
-        user: { first_name: 'João', last_name: 'Silva' }
-      },
-      {
-        id: '2',
-        action: 'create',
-        entity_type: 'user',
-        created_at: subDays(new Date(), 1).toISOString(),
-        user: { first_name: 'Maria', last_name: 'Oliveira' }
-      },
-      {
-        id: '3',
-        action: 'update',
-        entity_type: 'department',
-        created_at: subDays(new Date(), 2).toISOString(),
-        user: { first_name: 'Carlos', last_name: 'Santos' }
+  const { isLoading: isLoadingActivities } = useQuery({
+    queryKey: ['admin-dashboard-activities'],
+    queryFn: async () => {
+      try {
+        // Get activity logs from the last 24 hours
+        const oneDayAgo = subDays(new Date(), 1).toISOString();
+        
+        const { count, error: countError } = await supabase
+          .from('activity_logs')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', oneDayAgo);
+        
+        if (countError) throw countError;
+        setActivityCount(count || 0);
+        
+        // Get recent activity logs
+        const { data, error } = await supabase
+          .from('activity_logs')
+          .select(`
+            *,
+            user:users(*)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        if (error) throw error;
+        
+        const adaptedLogs = activityLogsAdapter(data || []);
+        setRecentActivityLogs(adaptedLogs);
+        
+        return count;
+      } catch (error: any) {
+        console.error('Error fetching activity logs:', error.message);
+        toast.error("Falha ao carregar atividades recentes");
+        return 0;
       }
-    ]);
-  }, []);
+    }
+  });
 
   return (
     <div className="grid gap-4">
@@ -150,7 +154,11 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                <CountUp end={activityCount} duration={1.5} />
+                {isLoadingActivities ? (
+                  <span className="text-muted-foreground">...</span>
+                ) : (
+                  <CountUp end={activityCount} duration={1.5} />
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 Ações nas últimas 24 horas
@@ -185,24 +193,32 @@ export function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {recentActivityLogs.map((log) => (
-              <div key={log.id} className="flex items-start gap-4">
-                <div className="rounded-full bg-primary/10 p-2">
-                  <ClipboardList className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {log.user.first_name} {log.user.last_name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {log.action} - {log.entity_type}
-                  </p>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {format(new Date(log.created_at), 'dd/MM HH:mm')}
-                </div>
+            {isLoadingActivities ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
               </div>
-            ))}
+            ) : recentActivityLogs.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">Nenhuma atividade recente</p>
+            ) : (
+              recentActivityLogs.map((log) => (
+                <div key={log.id} className="flex items-start gap-4">
+                  <div className="rounded-full bg-primary/10 p-2">
+                    <ClipboardList className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {log.user ? `${log.user.first_name} ${log.user.last_name}` : 'Usuário desconhecido'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {log.action} - {log.entity_type}
+                    </p>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {format(new Date(log.created_at), 'dd/MM HH:mm')}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

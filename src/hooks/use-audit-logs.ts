@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { ActivityLog } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
 import { activityLogsAdapter } from '@/integrations/supabase/adapters';
+import { toast } from 'sonner';
 
 export const useAuditLogs = () => {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -15,32 +16,52 @@ export const useAuditLogs = () => {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchLogs = async () => {
-      try {
-        setLoading(true);
-        
-        let query = supabase
-          .from('activity_logs')
-          .select('*, user:users(first_name, last_name)')
-          .order('created_at', { ascending: false });
-        
-        const { data, error } = await query;
-        
-        if (error) throw error;
-        
-        // Use the adapter to ensure type compatibility
-        const adaptedLogs = activityLogsAdapter(data || []);
-        setLogs(adaptedLogs);
-      } catch (err) {
-        console.error('Error fetching audit logs:', err);
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchLogs();
+    
+    // Set up a realtime subscription
+    const subscription = supabase
+      .channel('activity_logs_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'activity_logs' 
+      }, () => {
+        fetchLogs();
+      })
+      .subscribe();
+      
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+  
+  const fetchLogs = async () => {
+    try {
+      setLoading(true);
+      
+      let query = supabase
+        .from('activity_logs')
+        .select(`
+          *,
+          user:users(*)
+        `)
+        .order('created_at', { ascending: false });
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      
+      // Use the adapter to ensure type compatibility
+      const adaptedLogs = activityLogsAdapter(data || []);
+      setLogs(adaptedLogs);
+    } catch (err) {
+      console.error('Error fetching audit logs:', err);
+      setError(err as Error);
+      toast.error('Falha ao carregar registros de auditoria');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Apply filters to logs
   const filteredLogs = logs.filter(log => {
@@ -75,6 +96,7 @@ export const useAuditLogs = () => {
     severityFilter,
     setSeverityFilter,
     categoryFilter,
-    setCategoryFilter
+    setCategoryFilter,
+    fetchLogs
   };
 };
