@@ -1,108 +1,71 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Bath, Building2, TreePine, Wind } from "lucide-react";
-import { useServiceAreasData, ServiceArea } from "@/hooks/use-service-areas-data";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
+import { ArrowRight, Users } from "lucide-react";
 
-type AreaCardProps = {
-  area: ServiceArea;
-};
+interface ServiceAreasProps {
+  areas: any[];
+  loading: boolean;
+}
 
-const AreaCard = ({ area }: AreaCardProps) => {
-  const getIconForType = (type: string) => {
-    switch (type) {
-      case "bathroom":
-        return Bath;
-      case "private":
-        return Building2;
-      case "external":
-        return TreePine;
-      case "ac":
-        return Wind;
-      default:
-        return Home;
-    }
-  };
-
-  const getStatusColor = (area: ServiceArea): "good" | "warning" | "attention" => {
-    if (area.status !== "active") return "attention";
-    
-    // Determinar o status com base nas tarefas pendentes/atrasadas
-    const pendingRatio = area.pending_tasks / (area.task_count || 1);
-    const delayedTasks = area.delayed_tasks;
-    
-    if (delayedTasks > 2 || pendingRatio > 0.5) return "attention";
-    if (delayedTasks > 0 || pendingRatio > 0.2) return "warning";
-    return "good";
-  };
-
-  const Icon = getIconForType(area.type);
-  const status = getStatusColor(area);
-
-  return (
-    <div
-      className="flex flex-col space-y-3 rounded-xl border p-4 transition-colors hover:bg-muted/50 cursor-pointer"
-    >
-      <div className="flex items-center space-x-3">
-        <Icon className="h-5 w-5" />
-        <span className="font-medium">{area.name}</span>
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
-          {area.task_count} tarefas
-        </span>
-        <div
-          className={`h-2 w-2 rounded-full ${
-            status === "good"
-              ? "bg-green-500"
-              : status === "warning"
-              ? "bg-yellow-500"
-              : "bg-red-500"
-          }`}
-        />
-      </div>
-    </div>
-  );
-};
-
-export const ServiceAreas = () => {
-  const { areas, loading } = useServiceAreasData();
-
+export const ServiceAreas = ({ areas, loading }: ServiceAreasProps) => {
   if (loading) {
     return (
+      <div className="grid gap-4 md:grid-cols-2">
+        {[1, 2, 3, 4].map((index) => (
+          <Skeleton key={index} className="h-[200px] w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!areas.length) {
+    return (
       <Card>
-        <CardHeader>
-          <CardTitle>Áreas de Controle</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5].map((index) => (
-              <Skeleton key={index} className="h-24 w-full rounded-xl" />
-            ))}
-          </div>
+        <CardContent className="flex flex-col items-center justify-center h-[200px]">
+          <p className="text-muted-foreground">Nenhuma área de serviço encontrada</p>
+          <Button asChild className="mt-4">
+            <Link to="/services/areas">Adicionar Área</Link>
+          </Button>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Áreas de Controle</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {areas.length > 0 ? (
-            areas.map((area) => (
-              <AreaCard key={area.id} area={area} />
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-8 text-muted-foreground">
-              Nenhuma área de serviço cadastrada
+    <div className="grid gap-4 md:grid-cols-2">
+      {areas.map((area) => (
+        <Card key={area.id}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {area.name}
+            </CardTitle>
+            <Badge variant={area.status === 'active' ? 'default' : 'secondary'}>
+              {area.status === 'active' ? 'Ativo' : 'Inativo'}
+            </Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground mb-2">
+                  {area.description || 'Sem descrição'}
+                </p>
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Users className="mr-2 h-4 w-4" />
+                  <span>{area.task_count} tarefas</span>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" asChild>
+                <Link to={`/services/areas/${area.id}`}>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };

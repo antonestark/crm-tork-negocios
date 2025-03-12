@@ -34,65 +34,54 @@ export const useServiceReports = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    fetchReports();
-    fetchMetrics();
-    
-    // Set up a realtime subscription for report updates
-    const subscription = supabase
-      .channel('reports_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'service_reports' 
-      }, () => {
-        fetchReports();
-        fetchMetrics();
-      })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'services' 
-      }, () => {
-        fetchMetrics();
-      })
-      .subscribe();
-      
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
   const fetchReports = async () => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      // Primeiro, buscar a contagem de serviços por status
+      const { data: servicesData, error: servicesError } = await supabase
+        .from("services")
+        .select("status");
+      
+      if (servicesError) throw servicesError;
+      
+      // Contar por status
+      const completed = servicesData?.filter(s => s.status === 'completed').length || 0;
+      const pending = servicesData?.filter(s => s.status === 'pending').length || 0;
+      const delayed = servicesData?.filter(s => s.status === 'delayed').length || 0;
+      
+      // Buscar relatórios com dados da área
+      const { data: reportsData, error: reportsError } = await supabase
         .from("service_reports")
         .select(`
           *,
-          service_areas(name),
-          users:created_by(first_name, last_name)
+          service_areas (name)
         `)
         .order("report_date", { ascending: false });
       
-      if (error) throw error;
+      if (reportsError) throw reportsError;
       
-      // Process the data
-      const processedReports: ServiceReport[] = data.map(report => ({
+      // Processar os relatórios
+      const processedReports: ServiceReport[] = (reportsData || []).map(report => ({
         id: report.id,
         report_date: report.report_date,
         area_id: report.area_id,
         area_name: report.service_areas?.name,
-        completed_tasks: report.completed_tasks || 0,
-        pending_tasks: report.pending_tasks || 0,
-        delayed_tasks: report.delayed_tasks || 0,
+        completed_tasks: completed,
+        pending_tasks: pending,
+        delayed_tasks: delayed,
         average_completion_time: report.average_completion_time || 0,
         created_by: report.created_by,
         created_at: report.created_at
       }));
       
       setReports(processedReports);
+      setMetrics({
+        completed,
+        pending,
+        delayed,
+        averageTime: processedReports[0]?.average_completion_time || 0
+      });
     } catch (err) {
       console.error("Error fetching reports:", err);
       setError(err as Error);
@@ -102,51 +91,33 @@ export const useServiceReports = () => {
     }
   };
 
-  const fetchMetrics = async () => {
-    try {
-      // Fetch services statistics
-      const { data: servicesData, error: servicesError } = await supabase
-        .from("services")
-        .select("status");
+  useEffect(() => {
+    fetchReports();
+    
+    const subscription = supabase
+      .channel('reports_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'service_reports' 
+      }, fetchReports)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'services' 
+      }, fetchReports)
+      .subscribe();
       
-      if (servicesError) throw servicesError;
-      
-      // Count by status
-      const completed = servicesData?.filter(s => s.status === 'completed').length || 0;
-      const pending = servicesData?.filter(s => s.status === 'pending').length || 0;
-      const delayed = servicesData?.filter(s => s.status === 'delayed').length || 0;
-      
-      // Get average completion time from latest report
-      const { data: reportsData, error: reportsError } = await supabase
-        .from("service_reports")
-        .select("average_completion_time")
-        .order("report_date", { ascending: false })
-        .limit(1);
-      
-      if (reportsError) throw reportsError;
-      
-      const averageTime = reportsData && reportsData.length > 0 
-        ? reportsData[0].average_completion_time 
-        : 45;
-      
-      setMetrics({
-        completed,
-        pending,
-        delayed,
-        averageTime
-      });
-    } catch (err) {
-      console.error("Error fetching metrics:", err);
-      setError(err as Error);
-    }
-  };
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return {
     reports,
     metrics,
     loading,
     error,
-    fetchReports,
-    fetchMetrics
+    fetchReports
   };
 };

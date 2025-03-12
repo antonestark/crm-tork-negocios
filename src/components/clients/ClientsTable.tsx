@@ -76,7 +76,7 @@ export function ClientsTable() {
         .select('*');
       
       if (searchTerm) {
-        query = query.or(`name.ilike.%${searchTerm}%,company_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`);
+        query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`);
       }
       
       if (statusFilter !== 'all') {
@@ -91,7 +91,9 @@ export function ClientsTable() {
         throw error;
       }
       
-      setClients(data || []);
+      // Usar o adaptador para converter os dados
+      const adaptedClients = clientAdapter(data);
+      setClients(adaptedClients);
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast.error('Falha ao carregar dados dos clientes');
