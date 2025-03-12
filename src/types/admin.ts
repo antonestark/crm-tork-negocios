@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   first_name: string;
@@ -95,3 +96,30 @@ export interface ServiceArea {
 }
 
 export type UserStatus = 'active' | 'inactive' | 'blocked' | 'pending';
+
+export type LeadStatus = 'qualificado' | 'neutro' | 'não qualificado';
+
+export interface Lead {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  source: string | null;
+  notes: string | null;
+  status: LeadStatus | string;
+  assigned_to: string | null;
+  created_at: string;
+  updated_at: string;
+  assignedUser?: User;
+}
+
+export interface LeadActivity {
+  id: string;
+  lead_id: string;
+  user_id: string | null;
+  action: string;
+  details: Record<string, any> | null;
+  created_at: string;
+  user?: User | null;
+}

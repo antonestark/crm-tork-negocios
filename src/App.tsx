@@ -21,6 +21,7 @@ import PermissionsPage from "./pages/admin/Permissions";
 import AuditPage from "./pages/admin/Audit";
 import SettingsPage from "./pages/admin/Settings";
 import AdminReportsPage from "./pages/admin/Reports";
+import LeadsPage from "./pages/Leads";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/agendamento" element={<Agendamento />} />
+          <Route path="/leads" element={<LeadsPage />} />
           <Route path="/services" element={<ServicesIndex />} />
           <Route path="/services/areas" element={<AreasPage />} />
           <Route path="/services/checklist" element={<ChecklistPage />} />
