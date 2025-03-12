@@ -65,9 +65,14 @@ export const useLeads = () => {
 
   const addLead = async (lead: Partial<Lead>) => {
     try {
+      // Ensure the lead has a name before inserting
+      if (!lead.name) {
+        throw new Error('Lead name is required');
+      }
+
       const { data, error } = await supabase
         .from('leads')
-        .insert([lead])
+        .insert([lead]) // Passing as an array of one object to match Supabase's expected format
         .select();
       
       if (error) throw error;
