@@ -8,17 +8,16 @@ export const ServicesHeader = () => {
   const location = useLocation();
   
   const handleNovaDemanda = () => {
-    // Se já estiver na página de demandas, apenas abra o formulário usando state
+    // Simplify the approach to avoid race conditions
     if (location.pathname === '/services/demands') {
-      navigate('/services/demands', { 
-        state: { openDemandForm: true },
-        replace: true 
-      });
+      // If already on the demands page, just set a local storage flag
+      // This avoids navigation issues that can cause the form to flash
+      localStorage.setItem('openDemandForm', 'true');
+      // Force a re-render by using a small state update
+      window.dispatchEvent(new Event('storage'));
     } else {
-      // Se estiver em outra página, navegue para a página de demandas com o state
-      navigate('/services/demands', { 
-        state: { openDemandForm: true } 
-      });
+      // If on a different page, navigate normally
+      navigate('/services/demands', { state: { openDemandForm: true } });
     }
   };
   

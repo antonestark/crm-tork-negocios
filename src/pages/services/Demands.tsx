@@ -1,7 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServicesNav } from "@/components/services/ServicesNav";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Filter } from "lucide-react";
@@ -27,14 +27,61 @@ const DemandsPage = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const { demands, loading, addDemand, fetchDemands } = useDemands();
 
-  // Verificação aprimorada para o state na navegação
+  // Handler to safely open the form
+  const openDemandForm = useCallback(() => {
+    console.log("Opening demand form");
+    setFormOpen(true);
+  }, []);
+
+  // Handle navigation state
   useEffect(() => {
+    // Check URL state parameter first
     if (location.state?.openDemandForm) {
-      setFormOpen(true);
-      // Limpar o state após processar para evitar reabertura em refresh
-      navigate(location.pathname, { replace: true, state: {} });
+      console.log("Opening form from navigation state");
+      // Add a small delay to ensure all components are fully mounted
+      setTimeout(() => {
+        openDemandForm();
+        // Clean up navigation state to prevent reopening on refresh
+        navigate(location.pathname, { replace: true, state: {} });
+      }, 100);
     }
-  }, [location.state, navigate, location.pathname]);
+  }, [location.state, navigate, location.pathname, openDemandForm]);
+
+  // Also listen for localStorage changes (for when already on this page)
+  useEffect(() => {
+    const checkLocalStorage = () => {
+      const shouldOpen = localStorage.getItem('openDemandForm');
+      if (shouldOpen === 'true') {
+        console.log("Opening form from localStorage");
+        localStorage.removeItem('openDemandForm');
+        // Delay to ensure render cycle completes
+        setTimeout(() => {
+          openDemandForm();
+        }, 100);
+      }
+    };
+
+    // Check on mount
+    checkLocalStorage();
+    
+    // Also listen for storage events
+    window.addEventListener('storage', checkLocalStorage);
+    return () => {
+      window.removeEventListener('storage', checkLocalStorage);
+    };
+  }, [openDemandForm]);
+
+  // Safe form close handler with retries if needed
+  const handleFormClose = (open: boolean) => {
+    console.log("Form open state changing to:", open);
+    setFormOpen(open);
+    
+    if (!open) {
+      // Refresh data after closing
+      console.log("Form closed, refreshing demands");
+      fetchDemands(statusFilter);
+    }
+  };
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
@@ -74,14 +121,6 @@ const DemandsPage = () => {
     fetchDemands(status);
   };
 
-  const handleFormClose = (open: boolean) => {
-    setFormOpen(open);
-    if (!open) {
-      // Atualiza a lista após fechar o formulário
-      fetchDemands(statusFilter);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -118,7 +157,7 @@ const DemandsPage = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button onClick={() => setFormOpen(true)}>
+            <Button onClick={() => openDemandForm()}>
               <Plus className="h-4 w-4 mr-2" />
               Nova Demanda
             </Button>
