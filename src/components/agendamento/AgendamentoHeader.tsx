@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { supabase } from "@/integrations/supabase/client";
+import { AgendamentoFormDialog } from "./AgendamentoFormDialog";
+import { useSchedulingData } from "@/hooks/use-scheduling-data";
 import { toast } from "sonner";
 
 type AgendamentoHeaderProps = {
@@ -20,29 +21,22 @@ type AgendamentoHeaderProps = {
 
 export const AgendamentoHeader = ({ selectedDate, onDateSelect }: AgendamentoHeaderProps) => {
   const [view, setView] = useState<"day" | "week" | "month">("week");
+  const [formOpen, setFormOpen] = useState(false);
+  const { createBooking } = useSchedulingData(selectedDate);
 
-  const handleNewBooking = async () => {
+  const handleNewBooking = () => {
+    setFormOpen(true);
+  };
+
+  const handleSubmitBooking = async (bookingData: any) => {
     try {
-      // Here you would open a modal/dialog for creating a new booking
-      toast.info("Funcionalidade de criação de agendamento será implementada em breve.");
-      
-      // Example of what the creation would look like
-      /*
-      const { data, error } = await supabase
-        .from('scheduling')
-        .insert([
-          { 
-            title: 'Nova Reunião', 
-            start_time: new Date().toISOString(),
-            end_time: new Date(Date.now() + 3600000).toISOString(),
-            client_id: 'client-id-here',
-            status: 'confirmed'
-          }
-        ]);
-      */
+      await createBooking(bookingData);
+      toast.success("Agendamento criado com sucesso");
+      return true;
     } catch (error) {
       console.error("Error creating booking:", error);
       toast.error("Falha ao criar agendamento");
+      return false;
     }
   };
 
@@ -106,6 +100,13 @@ export const AgendamentoHeader = ({ selectedDate, onDateSelect }: AgendamentoHea
           </Button>
         </div>
       </div>
+      
+      <AgendamentoFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        onSubmit={handleSubmitBooking}
+        selectedDate={selectedDate}
+      />
     </div>
   );
 };

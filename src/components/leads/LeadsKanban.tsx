@@ -5,7 +5,7 @@ import { LeadFormDialog } from './LeadFormDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Lead } from '@/types/admin';
-import { Plus, Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 
 interface LeadsKanbanProps {
   leads: Lead[];
@@ -95,13 +95,7 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             Atualizar
           </Button>
           
-          <Button onClick={() => {
-            setSelectedLead(null);
-            setFormOpen(true);
-          }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Lead
-          </Button>
+          {/* "Novo Lead" button has been removed as requested */}
         </div>
       </div>
       

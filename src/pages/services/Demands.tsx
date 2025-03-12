@@ -3,7 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Filter } from "lucide-react";
 import { 
@@ -17,66 +17,24 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { toast } from "sonner";
+import { DemandFormDialog } from "@/components/services/DemandFormDialog";
+import { useDemands } from "@/hooks/use-demands";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const DemandsPage = () => {
-  const [demands, setDemands] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const [formOpen, setFormOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const { demands, loading, addDemand, fetchDemands } = useDemands();
 
+  // Check if we should open the form dialog on mount (coming from ServicesHeader)
   useEffect(() => {
-    fetchDemands();
-    
-    // Set up a realtime subscription
-    const subscription = supabase
-      .channel('demands_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'demands' 
-      }, () => {
-        fetchDemands();
-      })
-      .subscribe();
-      
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [statusFilter]);
-
-  const fetchDemands = async () => {
-    setLoading(true);
-    try {
-      let query = supabase
-        .from("demands")
-        .select(`
-          *,
-          service_areas(name),
-          users:assigned_to(first_name, last_name),
-          requester:requested_by(first_name, last_name)
-        `)
-        .order("updated_at", { ascending: false });
-      
-      // Apply status filter if set
-      if (statusFilter) {
-        query = query.eq("status", statusFilter);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        toast.error("Erro ao carregar demandas");
-        throw error;
-      }
-      
-      setDemands(data || []);
-    } catch (error) {
-      console.error("Erro ao buscar demandas:", error);
-    } finally {
-      setLoading(false);
+    if (location.state?.openDemandForm) {
+      setFormOpen(true);
+      // Clean up the state to prevent reopening on page refresh
+      window.history.replaceState({}, document.title);
     }
-  };
+  }, [location.state]);
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
@@ -108,6 +66,12 @@ const DemandsPage = () => {
   
   const resetFilter = () => {
     setStatusFilter(null);
+    fetchDemands();
+  };
+
+  const applyFilter = (status: string) => {
+    setStatusFilter(status);
+    fetchDemands(status);
   };
 
   return (
@@ -129,24 +93,24 @@ const DemandsPage = () => {
                 <DropdownMenuItem onClick={resetFilter}>
                   Todos
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("pending")}>
+                <DropdownMenuItem onClick={() => applyFilter("pending")}>
                   Pendentes
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("in_progress")}>
+                <DropdownMenuItem onClick={() => applyFilter("in_progress")}>
                   Em Andamento
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("completed")}>
+                <DropdownMenuItem onClick={() => applyFilter("completed")}>
                   Concluídos
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("delayed")}>
+                <DropdownMenuItem onClick={() => applyFilter("delayed")}>
                   Atrasados
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("cancelled")}>
+                <DropdownMenuItem onClick={() => applyFilter("cancelled")}>
                   Cancelados
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button>
+            <Button onClick={() => setFormOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Nova Demanda
             </Button>
@@ -183,7 +147,7 @@ const DemandsPage = () => {
                       <TableRow key={demand.id} className="cursor-pointer hover:bg-muted">
                         <TableCell className="font-medium">{demand.title}</TableCell>
                         <TableCell>{demand.service_areas?.name || 'N/A'}</TableCell>
-                        <TableCell>{getPriorityBadge(demand.priority)}</TableCell>
+                        <TableCell>{getPriorityBadge(demand.priority || 'low')}</TableCell>
                         <TableCell>
                           {demand.users?.first_name 
                             ? `${demand.users.first_name} ${demand.users.last_name}` 
@@ -199,7 +163,7 @@ const DemandsPage = () => {
                             ? format(new Date(demand.due_date), 'dd/MM/yyyy') 
                             : 'Sem prazo'}
                         </TableCell>
-                        <TableCell>{getStatusBadge(demand.status)}</TableCell>
+                        <TableCell>{getStatusBadge(demand.status || 'pending')}</TableCell>
                       </TableRow>
                     ))
                   ) : (
@@ -214,6 +178,13 @@ const DemandsPage = () => {
             )}
           </CardContent>
         </Card>
+        
+        <DemandFormDialog 
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          onSubmit={addDemand}
+          demand={null}
+        />
       </main>
     </div>
   );

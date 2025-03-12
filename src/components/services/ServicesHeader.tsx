@@ -1,8 +1,15 @@
 
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo, Filter } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const ServicesHeader = () => {
+  const navigate = useNavigate();
+  
+  const handleNovaDemanda = () => {
+    navigate('/services/demands', { state: { openDemandForm: true } });
+  };
+  
   return (
     <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
       <div>
@@ -16,7 +23,12 @@ export const ServicesHeader = () => {
           <Plus className="mr-2 h-4 w-4" />
           Nova Tarefa
         </Button>
-        <Button className="flex items-center" variant="outline" size="sm">
+        <Button 
+          className="flex items-center" 
+          variant="outline" 
+          size="sm"
+          onClick={handleNovaDemanda}
+        >
           <ListTodo className="mr-2 h-4 w-4" />
           Nova Demanda
         </Button>
