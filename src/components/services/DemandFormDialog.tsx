@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { supabase } from '@/integrations/supabase/client';
+import { DemandCreate } from '@/hooks/use-demands';
 
 const formSchema = z.object({
   title: z.string().min(2, { message: 'O título deve ter pelo menos 2 caracteres' }),
@@ -25,18 +26,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface Demand {
-  id?: string;
-  title: string;
-  description?: string;
-  area_id?: string;
-  priority?: string;
-  assigned_to?: string;
-  requested_by?: string;
-  due_date?: Date;
-  status?: string;
-}
-
 interface Area {
   id: string;
   name: string;
@@ -44,14 +33,16 @@ interface Area {
 
 interface User {
   id: string;
+  first_name: string;
+  last_name: string;
   name: string;
 }
 
 interface DemandFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Demand) => Promise<boolean>;
-  demand?: Demand | null;
+  onSubmit: (data: DemandCreate) => Promise<boolean>;
+  demand: DemandCreate | null;
 }
 
 export const DemandFormDialog: React.FC<DemandFormDialogProps> = ({
@@ -82,7 +73,7 @@ export const DemandFormDialog: React.FC<DemandFormDialogProps> = ({
       priority: demand?.priority || 'medium',
       assigned_to: demand?.assigned_to || '',
       requested_by: demand?.requested_by || '',
-      due_date: demand?.due_date,
+      due_date: demand?.due_date instanceof Date ? demand.due_date : undefined,
       status: demand?.status || 'pending'
     }
   });
@@ -107,12 +98,18 @@ export const DemandFormDialog: React.FC<DemandFormDialogProps> = ({
       setLoading(true);
       const { data, error } = await supabase
         .from('users')
-        .select('id, name')
-        .order('name');
+        .select('id, first_name, last_name')
+        .order('first_name');
       
       if (error) throw error;
       
-      setUsers(data || []);
+      // Transform the data to include a name property
+      const formattedUsers = data?.map(user => ({
+        ...user,
+        name: `${user.first_name} ${user.last_name}`
+      })) || [];
+      
+      setUsers(formattedUsers);
     } catch (err) {
       console.error('Error fetching users:', err);
     } finally {
@@ -122,10 +119,12 @@ export const DemandFormDialog: React.FC<DemandFormDialogProps> = ({
 
   const handleSubmit = async (values: FormValues) => {
     try {
-      const result = await onSubmit({
+      const demandData: DemandCreate = {
         id: demand?.id,
         ...values
-      });
+      };
+      
+      const result = await onSubmit(demandData);
       
       if (result) {
         form.reset();

@@ -11,10 +11,11 @@ export interface Demand {
   priority?: string;
   assigned_to?: string;
   requested_by?: string;
-  due_date?: Date;
+  due_date?: string; // Changed from Date to string to match Supabase
   status?: string;
   created_at: string;
   updated_at: string;
+  // Adding nested objects from join queries
   area?: { name: string } | null;
   assigned_user?: { first_name: string; last_name: string } | null;
   requester?: { first_name: string; last_name: string } | null;
@@ -22,13 +23,13 @@ export interface Demand {
 
 export interface DemandCreate {
   id?: string;
-  title: string;
+  title: string; // Required field
   description?: string;
   area_id?: string;
   priority?: string;
   assigned_to?: string;
   requested_by?: string;
-  due_date?: Date;
+  due_date?: Date | string; // Accept both Date and string
   status?: string;
 }
 
@@ -65,9 +66,9 @@ export const useDemands = () => {
         .from("demands")
         .select(`
           *,
-          service_areas(name),
-          users:assigned_to(first_name, last_name),
-          requester:requested_by(first_name, last_name)
+          area:service_areas(name),
+          assigned_user:users!assigned_to(first_name, last_name),
+          requester:users!requested_by(first_name, last_name)
         `)
         .order("updated_at", { ascending: false });
       
@@ -80,7 +81,15 @@ export const useDemands = () => {
       
       if (error) throw error;
       
-      setDemands(data || []);
+      // Transform the data to match our Demand interface
+      const formattedDemands: Demand[] = data?.map(item => ({
+        ...item,
+        area: item.area,
+        assigned_user: item.assigned_user,
+        requester: item.requester
+      })) || [];
+      
+      setDemands(formattedDemands);
     } catch (err) {
       console.error('Error fetching demands:', err);
       setError(err as Error);
@@ -90,10 +99,10 @@ export const useDemands = () => {
     }
   };
 
-  const addDemand = async (demandData: DemandCreate) => {
+  const addDemand = async (demandData: DemandCreate): Promise<boolean> => {
     try {
-      // Ensure date is in ISO format if provided
-      const formattedData = demandData.due_date 
+      // Ensure date is in ISO format if provided as a Date object
+      const formattedData = demandData.due_date instanceof Date
         ? { ...demandData, due_date: demandData.due_date.toISOString() } 
         : demandData;
         
@@ -114,15 +123,15 @@ export const useDemands = () => {
     }
   };
 
-  const updateDemand = async (demandData: DemandCreate) => {
+  const updateDemand = async (demandData: DemandCreate): Promise<boolean> => {
     if (!demandData.id) {
       console.error('Demand ID is required for update');
       return false;
     }
 
     try {
-      // Ensure date is in ISO format if provided
-      const formattedData = demandData.due_date 
+      // Ensure date is in ISO format if provided as a Date object
+      const formattedData = demandData.due_date instanceof Date
         ? { ...demandData, due_date: demandData.due_date.toISOString() } 
         : demandData;
       
@@ -146,7 +155,7 @@ export const useDemands = () => {
     }
   };
 
-  const deleteDemand = async (id: string) => {
+  const deleteDemand = async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('demands')

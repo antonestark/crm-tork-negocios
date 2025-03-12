@@ -146,11 +146,11 @@ const DemandsPage = () => {
                     demands.map((demand) => (
                       <TableRow key={demand.id} className="cursor-pointer hover:bg-muted">
                         <TableCell className="font-medium">{demand.title}</TableCell>
-                        <TableCell>{demand.service_areas?.name || 'N/A'}</TableCell>
+                        <TableCell>{demand.area?.name || 'N/A'}</TableCell>
                         <TableCell>{getPriorityBadge(demand.priority || 'low')}</TableCell>
                         <TableCell>
-                          {demand.users?.first_name 
-                            ? `${demand.users.first_name} ${demand.users.last_name}` 
+                          {demand.assigned_user?.first_name 
+                            ? `${demand.assigned_user.first_name} ${demand.assigned_user.last_name}` 
                             : 'Não atribuído'}
                         </TableCell>
                         <TableCell>
