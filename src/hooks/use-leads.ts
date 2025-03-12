@@ -1,8 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Lead } from '@/types/admin';
 import { toast } from 'sonner';
+
+// Create a type that ensures name is required
+type NewLead = Partial<Lead> & { name: string };
 
 export const useLeads = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -63,16 +65,11 @@ export const useLeads = () => {
     }
   };
 
-  const addLead = async (lead: Partial<Lead>) => {
+  const addLead = async (lead: NewLead) => {
     try {
-      // Ensure the lead has a name before inserting
-      if (!lead.name) {
-        throw new Error('Lead name is required');
-      }
-
       const { data, error } = await supabase
         .from('leads')
-        .insert([lead]) // Passing as an array of one object to match Supabase's expected format
+        .insert([lead])
         .select();
       
       if (error) throw error;
