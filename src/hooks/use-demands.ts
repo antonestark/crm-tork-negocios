@@ -11,7 +11,7 @@ export interface Demand {
   priority?: string;
   assigned_to?: string;
   requested_by?: string;
-  due_date?: string; // Changed from Date to string to match Supabase
+  due_date?: string; // Changed to string to match Supabase
   status?: string;
   created_at: string;
   updated_at: string;
