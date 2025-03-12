@@ -31,20 +31,32 @@ export const fetchDemandsFromDB = async (statusFilter?: string | null) => {
 };
 
 export const addDemandToDB = async (demandData: DemandCreate): Promise<boolean> => {
-  const formattedDueDate = formatDueDate(demandData.due_date);
-  
-  const formattedData = {
-    ...demandData,
-    due_date: formattedDueDate
-  };
-  
-  const { error } = await supabase
-    .from('demands')
-    .insert([formattedData])
-    .select();
-  
-  if (error) throw error;
-  return true;
+  try {
+    console.log("Adding demand to DB:", demandData);
+    
+    const formattedDueDate = formatDueDate(demandData.due_date);
+    console.log("Formatted due date:", formattedDueDate);
+    
+    const formattedData = {
+      ...demandData,
+      due_date: formattedDueDate
+    };
+    
+    const { error } = await supabase
+      .from('demands')
+      .insert([formattedData])
+      .select();
+    
+    if (error) {
+      console.error("Supabase error adding demand:", error);
+      throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error in addDemandToDB:", error);
+    throw error;
+  }
 };
 
 export const updateDemandInDB = async (demandData: DemandCreate): Promise<boolean> => {
@@ -79,11 +91,19 @@ export const deleteDemandFromDB = async (id: string): Promise<boolean> => {
   return true;
 };
 
-const formatDueDate = (dueDate: string | Date | null | undefined): string | undefined => {
-  if (!dueDate) return undefined;
+const formatDueDate = (dueDate: string | Date | null | undefined): string | null => {
+  if (!dueDate) return null;
   
-  if (typeof dueDate === 'object' && dueDate !== null) {
-    return dueDate.toISOString();
+  try {
+    if (typeof dueDate === 'object' && dueDate instanceof Date) {
+      // Format Date object to ISO string
+      return dueDate.toISOString();
+    }
+    
+    // If it's already a string, return it
+    return dueDate as string;
+  } catch (error) {
+    console.error("Error formatting due date:", error);
+    return null;
   }
-  return dueDate as string;
 };

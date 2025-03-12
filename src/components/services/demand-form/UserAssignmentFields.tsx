@@ -21,7 +21,7 @@ export const UserAssignmentFields: React.FC<UserAssignmentFieldsProps> = ({ form
             <FormLabel>Responsável</FormLabel>
             <Select 
               onValueChange={field.onChange} 
-              value={field.value || "unassigned"}
+              value={field.value || ""}
             >
               <FormControl>
                 <SelectTrigger>
@@ -29,7 +29,7 @@ export const UserAssignmentFields: React.FC<UserAssignmentFieldsProps> = ({ form
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="unassigned">Não atribuído</SelectItem>
+                <SelectItem value="">Não atribuído</SelectItem>
                 {users.map(user => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.name}
@@ -50,7 +50,7 @@ export const UserAssignmentFields: React.FC<UserAssignmentFieldsProps> = ({ form
             <FormLabel>Solicitante</FormLabel>
             <Select 
               onValueChange={field.onChange} 
-              value={field.value || "unspecified"}
+              value={field.value || ""}
             >
               <FormControl>
                 <SelectTrigger>
@@ -58,7 +58,7 @@ export const UserAssignmentFields: React.FC<UserAssignmentFieldsProps> = ({ form
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="unspecified">Não especificado</SelectItem>
+                <SelectItem value="">Não especificado</SelectItem>
                 {users.map(user => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.name}

@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServicesNav } from "@/components/services/ServicesNav";
@@ -134,14 +133,21 @@ const MaintenancePage = () => {
         return;
       }
       
+      // Create a formatted date string if scheduled_date exists
+      const formattedDate = values.scheduled_date 
+        ? format(values.scheduled_date, 'yyyy-MM-dd')
+        : null;
+        
+      console.log("Submitting maintenance with scheduled date:", formattedDate);
+      
       // Prepare data for insertion
       const maintenanceData = {
         title: values.title,
-        description: values.description,
+        description: values.description || null,
         type: values.type,
         area_id: values.area_id || null,
         status: values.status || "pending",
-        scheduled_date: values.scheduled_date ? format(values.scheduled_date, 'yyyy-MM-dd') : null
+        scheduled_date: formattedDate
       };
 
       const { error } = await supabase
@@ -149,6 +155,7 @@ const MaintenancePage = () => {
         .insert(maintenanceData);
         
       if (error) {
+        console.error("Error creating maintenance:", error);
         toast.error("Falha ao criar manutenção");
         throw error;
       }
@@ -263,7 +270,10 @@ const MaintenancePage = () => {
                         <FormLabel>Data Programada</FormLabel>
                         <DatePicker
                           date={field.value}
-                          setDate={field.onChange}
+                          setDate={(date) => {
+                            console.log("Setting scheduled date:", date);
+                            field.onChange(date);
+                          }}
                         />
                         <FormMessage />
                       </FormItem>

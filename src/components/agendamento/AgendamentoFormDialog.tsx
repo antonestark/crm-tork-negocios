@@ -9,9 +9,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
-import { format, addHours } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format } from 'date-fns';
 import { BookingEvent } from '@/hooks/use-scheduling-data';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'O nome deve ter pelo menos 2 caracteres' }),
@@ -51,6 +51,13 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
     }
   });
 
+  // Update the date field whenever selectedDate changes
+  React.useEffect(() => {
+    if (selectedDate && open) {
+      form.setValue('date', selectedDate);
+    }
+  }, [selectedDate, open, form]);
+
   const handleSubmit = async (values: FormValues) => {
     try {
       // Parse date and times to create ISO strings
@@ -58,18 +65,26 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
       const startDateTime = new Date(`${dateStr}T${values.start_time}:00`);
       const endDateTime = new Date(`${dateStr}T${values.end_time}:00`);
       
-      await onSubmit({
+      // Create booking data object to submit
+      const bookingData = {
         title: `Reunião: ${values.name}`,
         start_time: startDateTime.toISOString(),
         end_time: endDateTime.toISOString(),
         status: 'confirmed',
         client: { company_name: values.name },
-      });
+      };
       
-      form.reset();
-      onOpenChange(false);
+      // Try to submit and handle success/failure
+      const result = await onSubmit(bookingData);
+      
+      if (result) {
+        form.reset();
+        onOpenChange(false);
+        toast.success("Agendamento criado com sucesso");
+      }
     } catch (error) {
       console.error('Error creating booking:', error);
+      toast.error("Erro ao criar agendamento. Tente novamente.");
     }
   };
 
@@ -132,12 +147,12 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Data*</FormLabel>
-                  <FormControl>
-                    <DatePicker 
-                      date={field.value} 
-                      setDate={field.onChange}
-                    />
-                  </FormControl>
+                  <DatePicker 
+                    date={field.value} 
+                    setDate={(date) => {
+                      if (date) field.onChange(date);
+                    }}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -184,6 +199,7 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
                       placeholder="Observações sobre o agendamento"
                       className="min-h-[80px]"
                       {...field}
+                      value={field.value || ''}
                     />
                   </FormControl>
                   <FormMessage />

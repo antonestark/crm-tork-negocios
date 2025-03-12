@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/layout/Header";
 import { ServiceAreas } from "@/components/services/ServiceAreas";
 import { ServicesNav } from "@/components/services/ServicesNav";
@@ -39,6 +38,18 @@ const AreasPage = () => {
       status: "active"
     }
   });
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: "",
+        description: "",
+        type: "common",
+        status: "active"
+      });
+    }
+  }, [open, form]);
 
   useEffect(() => {
     fetchAreas();
@@ -102,16 +113,19 @@ const AreasPage = () => {
         values.status = "active"; // Default value
       }
       
+      console.log("Submitting area:", values);
+      
       const { error } = await supabase
         .from("service_areas")
         .insert({
           name: values.name,
-          description: values.description,
+          description: values.description || null,
           type: values.type,
           status: values.status
         });
         
       if (error) {
+        console.error("Error creating area:", error);
         toast.error("Falha ao criar área");
         throw error;
       }
@@ -165,7 +179,7 @@ const AreasPage = () => {
                       <FormItem>
                         <FormLabel>Descrição</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Descrição (opcional)" {...field} />
+                          <Textarea placeholder="Descrição (opcional)" {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -178,7 +192,7 @@ const AreasPage = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tipo</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || 'common'}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione o tipo" />

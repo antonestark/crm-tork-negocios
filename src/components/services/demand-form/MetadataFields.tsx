@@ -22,7 +22,10 @@ export const MetadataFields: React.FC<MetadataFieldsProps> = ({ form }) => {
             <FormControl>
               <DatePicker 
                 date={field.value} 
-                setDate={field.onChange}
+                setDate={(date) => {
+                  console.log("Setting due date:", date);
+                  field.onChange(date);
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -38,7 +41,7 @@ export const MetadataFields: React.FC<MetadataFieldsProps> = ({ form }) => {
             <FormLabel>Status</FormLabel>
             <Select 
               onValueChange={field.onChange} 
-              defaultValue={field.value}
+              value={field.value || 'pending'}
             >
               <FormControl>
                 <SelectTrigger>
