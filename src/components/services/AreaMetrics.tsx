@@ -9,12 +9,22 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Progress } from "@/components/ui/progress";
+import { useServiceReports, ServiceReport } from "@/hooks/use-service-reports";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type AreaMetricsProps = {
-  reports: any[];
-};
+export const AreaMetrics = () => {
+  const { reports, loading } = useServiceReports();
 
-export const AreaMetrics = ({ reports }: AreaMetricsProps) => {
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {[1, 2, 3].map((_, i) => (
+          <Skeleton key={i} className="h-20 w-full" />
+        ))}
+      </div>
+    );
+  }
+
   if (!reports || reports.length === 0) {
     return (
       <div className="text-center py-6 text-muted-foreground">
@@ -45,7 +55,7 @@ export const AreaMetrics = ({ reports }: AreaMetricsProps) => {
           return (
             <TableRow key={report.id}>
               <TableCell className="font-medium">
-                {report.service_areas?.name || "N/A"}
+                {report.area_name || "N/A"}
               </TableCell>
               <TableCell>
                 {format(new Date(report.report_date), "dd/MM/yyyy")}

@@ -1,26 +1,21 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Clock, AlertTriangle, Calendar } from "lucide-react";
+import { useServiceReports } from "@/hooks/use-service-reports";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type ServicesMetricsProps = {
-  metrics?: {
-    completed: number;
-    pending: number;
-    delayed: number;
-    averageTime: number;
+export const ServicesMetrics = () => {
+  const { metrics, loading } = useServiceReports();
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((index) => (
+          <Skeleton key={index} className="h-[120px] w-full rounded-xl" />
+        ))}
+      </div>
+    );
   }
-};
-
-export const ServicesMetrics = ({ metrics }: ServicesMetricsProps) => {
-  const defaultMetrics = {
-    completed: 24,
-    pending: 8,
-    delayed: 2,
-    averageTime: 45
-  };
-
-  // Use os valores fornecidos, ou caia nos valores padrão
-  const { completed, pending, delayed, averageTime } = metrics || defaultMetrics;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -30,7 +25,7 @@ export const ServicesMetrics = ({ metrics }: ServicesMetricsProps) => {
           <CheckCircle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{completed}</div>
+          <div className="text-2xl font-bold">{metrics.completed}</div>
           <p className="text-xs text-muted-foreground">+2 desde ontem</p>
         </CardContent>
       </Card>
@@ -41,7 +36,7 @@ export const ServicesMetrics = ({ metrics }: ServicesMetricsProps) => {
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{averageTime}min</div>
+          <div className="text-2xl font-bold">{metrics.averageTime}min</div>
           <p className="text-xs text-muted-foreground">Por tarefa</p>
         </CardContent>
       </Card>
@@ -52,7 +47,7 @@ export const ServicesMetrics = ({ metrics }: ServicesMetricsProps) => {
           <Calendar className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{pending}</div>
+          <div className="text-2xl font-bold">{metrics.pending}</div>
           <p className="text-xs text-muted-foreground">Tarefas pendentes</p>
         </CardContent>
       </Card>
@@ -63,7 +58,7 @@ export const ServicesMetrics = ({ metrics }: ServicesMetricsProps) => {
           <AlertTriangle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{delayed}</div>
+          <div className="text-2xl font-bold">{metrics.delayed}</div>
           <p className="text-xs text-muted-foreground">Tarefas atrasadas</p>
         </CardContent>
       </Card>

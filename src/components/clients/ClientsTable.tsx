@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import {
   Card,
@@ -7,11 +8,9 @@ import {
   CardContent,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -26,21 +25,47 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { toast } from "@/components/ui/use-toast"
-import { MoreVertical, Edit, Trash2, FileText, Copy } from "lucide-react"
-
-import { Client } from "@/types/clients";
+import { toast } from "sonner"
+import { MoreVertical, Edit, Trash2, FileText, Copy, Loader2, Search } from "lucide-react"
 import { supabase } from '@/integrations/supabase/client';
 import { clientAdapter } from '@/integrations/supabase/client';
+import { Badge } from "@/components/ui/badge";
+
+type Client = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: string;
+  company_name: string;
+  created_at: string;
+  updated_at: string;
+};
 
 export function ClientsTable() {
   const [clients, setClients] = useState<Client[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     fetchClients();
+    
+    // Set up a realtime subscription
+    const subscription = supabase
+      .channel('clients_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'clients' 
+      }, () => {
+        fetchClients();
+      })
+      .subscribe();
+      
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [searchTerm, statusFilter]);
 
   const fetchClients = async () => {
@@ -51,7 +76,7 @@ export function ClientsTable() {
         .select('*');
       
       if (searchTerm) {
-        query = query.or(`name.ilike.%${searchTerm}%,company_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+        query = query.or(`name.ilike.%${searchTerm}%,company_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`);
       }
       
       if (statusFilter !== 'all') {
@@ -66,18 +91,25 @@ export function ClientsTable() {
         throw error;
       }
       
-      // Use the adapter to convert the data to the Client type
-      const adaptedClients = clientAdapter(data || []);
-      setClients(adaptedClients);
+      setClients(data || []);
     } catch (error) {
       console.error('Error fetching clients:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load clients data',
-        variant: 'destructive',
-      });
+      toast.error('Falha ao carregar dados dos clientes');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
+      case 'inactive':
+        return <Badge variant="outline" className="bg-gray-100 text-gray-800">Inativo</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800">Pendente</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
@@ -89,37 +121,45 @@ export function ClientsTable() {
     setStatusFilter(status);
   };
 
+  const handleCopyInfo = (client: Client) => {
+    const text = `${client.name}\n${client.email}\n${client.phone}`;
+    navigator.clipboard.writeText(text);
+    toast.success('Informações copiadas para a área de transferência');
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Clients</CardTitle>
+        <CardTitle>Clientes</CardTitle>
         <CardDescription>
-          A list of all your clients.
+          Lista de todos os seus clientes.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search clients..."
+              placeholder="Buscar clientes..."
               value={searchTerm}
               onChange={handleSearchChange}
+              className="pl-8"
             />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
-                Filter by Status
+                Filtrar por Status
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
               <DropdownMenuLabel>Status</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleStatusFilterChange('all')}>All</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusFilterChange('active')}>Active</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusFilterChange('inactive')}>Inactive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusFilterChange('pending')}>Pending</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusFilterChange('all')}>Todos</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusFilterChange('active')}>Ativos</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusFilterChange('inactive')}>Inativos</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusFilterChange('pending')}>Pendentes</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -127,48 +167,55 @@ export function ClientsTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[200px]">Name</TableHead>
+                <TableHead className="w-[200px]">Nome</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
+                <TableHead>Telefone</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">Loading...</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    <div className="flex justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
+                  </TableCell>
                 </TableRow>
               ) : clients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">No clients found.</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8">Nenhum cliente encontrado.</TableCell>
                 </TableRow>
               ) : (
                 clients.map((client) => (
                   <TableRow key={client.id}>
-                    <TableCell className="font-medium">{client.company_name}</TableCell>
+                    <TableCell className="font-medium">{client.name || client.company_name}</TableCell>
                     <TableCell>{client.email}</TableCell>
                     <TableCell>{client.phone}</TableCell>
-                    <TableCell>{client.status}</TableCell>
+                    <TableCell>{getStatusBadge(client.status)}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
+                            <span className="sr-only">Abrir menu</span>
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
                           <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" /> Edit
+                            <Edit className="mr-2 h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleCopyInfo(client)}>
+                            <Copy className="mr-2 h-4 w-4" /> Copiar Informações
                           </DropdownMenuItem>
                           <DropdownMenuItem>
-                            <Copy className="mr-2 h-4 w-4" /> Copy Info
+                            <FileText className="mr-2 h-4 w-4" /> Ver Detalhes
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          <DropdownMenuItem className="text-red-600">
+                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

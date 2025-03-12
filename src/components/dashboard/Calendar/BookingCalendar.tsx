@@ -1,28 +1,25 @@
 
-import { useState } from "react";
-import { addDays, format } from "date-fns";
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSchedulingData } from "@/hooks/use-scheduling-data";
 
-// Função auxiliar para gerar datas de exemplo
-const generateSampleDates = () => {
-  const today = new Date();
-  const available = Array.from({ length: 5 }, (_, i) => addDays(today, i + 1));
-  const booked = Array.from({ length: 3 }, (_, i) => addDays(today, i + 3));
-  const unavailable = Array.from({ length: 2 }, (_, i) => addDays(today, i + 6));
-
-  return {
-    available: available.map(date => date.toISOString().split('T')[0]),
-    booked: booked.map(date => date.toISOString().split('T')[0]),
-    unavailable: unavailable.map(date => date.toISOString().split('T')[0])
-  };
+type BookingCalendarProps = {
+  onDateSelect?: (date: Date | undefined) => void;
 };
 
-const dates = generateSampleDates();
-
-export const BookingCalendar = () => {
+export const BookingCalendar = ({ onDateSelect }: BookingCalendarProps) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const { availableDates, bookedDates, loading } = useSchedulingData();
+
+  const handleDateChange = (newDate: Date | undefined) => {
+    setDate(newDate);
+    if (onDateSelect) {
+      onDateSelect(newDate);
+    }
+  };
 
   return (
     <Card className="animate-fade-in h-full">
@@ -33,15 +30,13 @@ export const BookingCalendar = () => {
         <Calendar
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={handleDateChange}
           locale={ptBR}
           modifiers={{
             available: (date) => 
-              dates.available.includes(format(date, 'yyyy-MM-dd')),
+              availableDates.includes(format(date, 'yyyy-MM-dd')),
             booked: (date) => 
-              dates.booked.includes(format(date, 'yyyy-MM-dd')),
-            unavailable: (date) => 
-              dates.unavailable.includes(format(date, 'yyyy-MM-dd')),
+              bookedDates.includes(format(date, 'yyyy-MM-dd'))
           }}
           modifiersStyles={{
             available: { 
@@ -51,13 +46,10 @@ export const BookingCalendar = () => {
             booked: { 
               backgroundColor: "#3B82F6",
               color: "white" 
-            },
-            unavailable: { 
-              backgroundColor: "#E5E7EB",
-              color: "#9CA3AF" 
-            },
+            }
           }}
           className="rounded-md border"
+          disabled={loading}
         />
       </CardContent>
     </Card>

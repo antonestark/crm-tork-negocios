@@ -2,125 +2,103 @@
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { format } from "date-fns";
+import { AlertCircle, Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useServiceChecklist, ChecklistItem } from "@/hooks/use-service-checklist";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 type ChecklistItemsProps = {
-  items: any[];
-  date?: Date;
+  period: string;
 };
 
-export const ChecklistItems = ({ items, date = new Date() }: ChecklistItemsProps) => {
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
-  const [saving, setSaving] = useState(false);
-
-  const handleCheck = (id: string, checked: boolean) => {
-    setCheckedItems(prev => ({
-      ...prev,
-      [id]: checked
-    }));
+export const ChecklistItems = ({ period }: ChecklistItemsProps) => {
+  const { items, loading, toggleItemCompletion } = useServiceChecklist(period);
+  
+  const handleToggle = async (item: ChecklistItem) => {
+    await toggleItemCompletion(item.id, !item.completed);
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-
-    try {
-      // Obter IDs dos itens marcados
-      const checkedIds = Object.entries(checkedItems)
-        .filter(([_, checked]) => checked)
-        .map(([id]) => id);
-
-      if (checkedIds.length === 0) {
-        toast.warning("Nenhum item selecionado");
-        return;
-      }
-
-      // Criar registros de tarefas concluídas
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      
-      const serviceEntries = checkedIds.map(id => ({
-        checklist_item_id: id,
-        status: "completed",
-        service_id: "00000000-0000-0000-0000-000000000000", // Placeholder UUID
-        comments: `Verificado via sistema em ${formattedDate}`
-      }));
-
-      const { error } = await supabase
-        .from("service_checklist_completed")
-        .insert(serviceEntries);
-
-      if (error) {
-        throw error;
-      }
-
-      toast.success(`${checkedIds.length} itens marcados como concluídos!`);
-      
-      // Limpar checagens após salvar
-      setCheckedItems({});
-    } catch (error) {
-      console.error("Erro ao salvar itens de checklist:", error);
-      toast.error("Erro ao salvar. Tente novamente.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (items.length === 0) {
+  if (loading) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        Nenhuma tarefa cadastrada para este período
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map((_, i) => (
+          <Skeleton key={i} className="h-20 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!items || items.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <AlertCircle className="h-10 w-10 text-muted-foreground mb-4" />
+        <p className="text-muted-foreground">Nenhum item no checklist para este período</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        {items.map((item) => (
-          <div 
-            key={item.id} 
-            className="flex items-start space-x-4 p-4 rounded-lg border hover:bg-slate-50"
-          >
-            <Checkbox 
-              id={item.id} 
-              checked={!!checkedItems[item.id]}
-              onCheckedChange={(checked) => handleCheck(item.id, !!checked)}
+    <div className="space-y-4">
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className={`flex items-start justify-between p-4 rounded-lg border ${
+            item.completed ? "bg-green-50 border-green-200" : "bg-white"
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id={item.id}
+              checked={item.completed}
+              onCheckedChange={() => handleToggle(item)}
+              className="mt-1"
             />
-            <div className="space-y-1">
-              <label 
-                htmlFor={item.id} 
-                className="font-medium cursor-pointer"
-              >
-                {item.name}
-              </label>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                <span>Área: {item.service_areas?.name || "Não especificada"}</span>
-                {item.expected_time && (
-                  <span>Tempo estimado: {item.expected_time}</span>
-                )}
-                {item.priority && (
-                  <span>
-                    Prioridade: {
-                      item.priority === 'high' ? 'Alta' : 
-                      item.priority === 'medium' ? 'Média' : 
-                      'Baixa'
-                    }
-                  </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor={item.id}
+                  className={`font-medium ${
+                    item.completed ? "line-through text-muted-foreground" : ""
+                  }`}
+                >
+                  {item.name}
+                </label>
+                {item.area_name && (
+                  <Badge variant="outline" className="text-xs">
+                    {item.area_name}
+                  </Badge>
                 )}
               </div>
               {item.description && (
-                <p className="text-sm text-muted-foreground mt-2">{item.description}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {item.description}
+                </p>
               )}
             </div>
           </div>
-        ))}
-      </div>
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? "Salvando..." : "Salvar verificações"}
-        </Button>
-      </div>
+          
+          {item.description && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Info className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{item.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+      ))}
     </div>
   );
 };
