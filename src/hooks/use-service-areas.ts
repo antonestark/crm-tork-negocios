@@ -14,7 +14,7 @@ export const useServiceAreas = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from('service_areas')
-          .select('*, responsible_id, responsible:users(id, first_name, last_name, role)');
+          .select('*, responsible:users(id, first_name, last_name, role)');
 
         if (error) throw error;
 
@@ -29,12 +29,12 @@ export const useServiceAreas = () => {
           created_at: area.created_at || null,
           updated_at: area.updated_at || null,
           // Handle potential errors in join by providing a null responsible when needed
-          responsible: area.responsible ? {
-            id: area.responsible.id,
-            first_name: area.responsible.first_name,
-            last_name: area.responsible.last_name,
+          responsible: area.responsible && !('error' in area.responsible) ? {
+            id: area.responsible.id || '',
+            first_name: area.responsible.first_name || '',
+            last_name: area.responsible.last_name || '',
             profile_image_url: null, // Default values for required fields
-            role: area.responsible.role,
+            role: area.responsible.role || 'user',
             department_id: null,
             phone: null,
             active: true,

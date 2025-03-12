@@ -82,8 +82,6 @@ export interface Booking {
   client?: { company_name: string } | null;
 }
 
-export type UserStatus = 'active' | 'inactive' | 'blocked' | 'pending';
-
 export interface ServiceArea {
   id: string;
   name: string;
@@ -95,3 +93,5 @@ export interface ServiceArea {
   updated_at: string | null;
   responsible?: User | null;
 }
+
+export type UserStatus = 'active' | 'inactive' | 'blocked' | 'pending';

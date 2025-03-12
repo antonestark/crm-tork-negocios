@@ -64,13 +64,16 @@ export const useDepartments = () => {
 
   const updateDepartment = async (department: Department) => {
     try {
+      // Convert department.id to number if it's a string
+      const departmentId = typeof department.id === 'string' ? parseInt(department.id, 10) : department.id;
+      
       const { error } = await supabase
         .from('departments')
         .update({
           name: department.name,
           // Add other properties as needed
         })
-        .eq('id', department.id);
+        .eq('id', departmentId);
       
       if (error) throw error;
       
@@ -86,10 +89,13 @@ export const useDepartments = () => {
 
   const deleteDepartment = async (id: string) => {
     try {
+      // Convert id to number if it's a string
+      const departmentId = typeof id === 'string' ? parseInt(id, 10) : id;
+      
       const { error } = await supabase
         .from('departments')
         .delete()
-        .eq('id', id);
+        .eq('id', departmentId);
       
       if (error) throw error;
       
