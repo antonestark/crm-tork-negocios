@@ -42,9 +42,9 @@ export const AppointmentRegistration: React.FC<AppointmentRegistrationProps> = (
       start_time: '09:00',
       end_time: '10:00',
       observations: '',
-      // Remove user field default values
       description: '',
-      location: ''
+      location: '',
+      customer_id: ''
     }
   });
 
@@ -100,6 +100,22 @@ export const AppointmentRegistration: React.FC<AppointmentRegistrationProps> = (
               
               <FormField
                 control={form.control}
+                name="customer_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID do Cliente</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ID do cliente (numérico)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
@@ -111,23 +127,21 @@ export const AppointmentRegistration: React.FC<AppointmentRegistrationProps> = (
                   </FormItem>
                 )}
               />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="email@exemplo.com" type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email*</FormLabel>
-                  <FormControl>
-                    <Input placeholder="email@exemplo.com" type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Removed user ID and name fields */}
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField

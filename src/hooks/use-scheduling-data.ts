@@ -13,10 +13,11 @@ export type BookingEvent = {
   end_time: string;
   status: string;
   date: string;
-  user_id?: string | null; // Keep as optional
+  user_id?: string | null;
   user_name?: string | null;
   description?: string | null;
   location?: string | null;
+  customer_id?: string | null;
 };
 
 export const useSchedulingData = (selectedDate?: Date) => {
@@ -69,7 +70,8 @@ export const useSchedulingData = (selectedDate?: Date) => {
           client_id,
           user_id,
           description,
-          location
+          location,
+          customer_id
         `)
         .gte("start_time", dayStart.toISOString())
         .lt("start_time", dayEnd.toISOString())
@@ -88,6 +90,7 @@ export const useSchedulingData = (selectedDate?: Date) => {
         user_id: booking.user_id,
         description: booking.description,
         location: booking.location,
+        customer_id: booking.customer_id,
         client: booking.client_id ? { company_name: '' } : null,
         date: format(new Date(booking.start_time), 'yyyy-MM-dd')
       }));
@@ -155,21 +158,18 @@ export const useSchedulingData = (selectedDate?: Date) => {
         throw new Error("O horário de término deve ser posterior ao horário de início");
       }
       
-      // Create the booking object without user_id if it's not provided
+      // Create the booking object
       const bookingObject: any = {
         title: bookingData.title,
         start_time: bookingData.start_time,
         end_time: bookingData.end_time,
         status: bookingData.status,
         client_id: bookingData.client_id,
+        user_id: bookingData.user_id,
         description: bookingData.description,
-        location: bookingData.location
+        location: bookingData.location,
+        customer_id: bookingData.customer_id
       };
-      
-      // Only add user_id if it exists
-      if (bookingData.user_id) {
-        bookingObject.user_id = bookingData.user_id;
-      }
       
       const { data, error } = await supabase
         .from("scheduling")
@@ -182,6 +182,8 @@ export const useSchedulingData = (selectedDate?: Date) => {
           throw new Error("O horário de término deve ser posterior ao horário de início");
         } else if (error.message.includes('conflito com outro agendamento')) {
           throw new Error("Este horário já está reservado. Por favor, escolha outro horário");
+        } else if (error.message.includes('validate_customer_id')) {
+          throw new Error("ID do cliente inválido. Deve ser numérico");
         } else {
           throw error;
         }
@@ -200,6 +202,10 @@ export const useSchedulingData = (selectedDate?: Date) => {
     try {
       if (!id || !status) {
         throw new Error("ID e status são obrigatórios");
+      }
+      
+      if (!['confirmed', 'cancelled', 'pending'].includes(status)) {
+        throw new Error("Status inválido. Deve ser confirmed, cancelled ou pending");
       }
       
       const { error } = await supabase

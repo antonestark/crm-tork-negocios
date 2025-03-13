@@ -22,7 +22,8 @@ export const agendamentoFormSchema = z.object({
   // User is now optional
   user: userSchema.optional().default({}),
   description: z.string().min(5, { message: 'Descrição deve ter pelo menos 5 caracteres' }),
-  location: z.string().optional()
+  location: z.string().optional(),
+  customer_id: z.string().regex(/^[0-9]+$/, { message: 'ID do cliente deve ser numérico' }).optional()
 })
 .refine(data => {
   // Validate start_time is before end_time
@@ -53,17 +54,15 @@ export const createBookingData = (values: AgendamentoFormValues) => {
     end_time: endDateTime.toISOString(),
     status: 'confirmed',
     client: { company_name: values.name },
-    // Remove user_id and user_name fields
     description: values.description,
-    location: values.location || null
+    location: values.location || null,
+    customer_id: values.customer_id || null
   };
 };
 
 // New function to register an appointment
 export const registerAppointment = async (appointmentData: ReturnType<typeof createBookingData>, supabase: any) => {
   try {
-    // Remove user validation since it's no longer required
-    
     // Create the appointment
     const { data, error } = await supabase
       .from("scheduling")
@@ -73,9 +72,9 @@ export const registerAppointment = async (appointmentData: ReturnType<typeof cre
         end_time: appointmentData.end_time,
         status: appointmentData.status,
         client_id: null,
-        // Remove user_id field
         description: appointmentData.description,
-        location: appointmentData.location
+        location: appointmentData.location,
+        customer_id: appointmentData.customer_id
       }])
       .select();
     
@@ -84,6 +83,10 @@ export const registerAppointment = async (appointmentData: ReturnType<typeof cre
         throw new Error("O horário de término deve ser posterior ao horário de início");
       } else if (error.message.includes('conflito com outro agendamento')) {
         throw new Error("Este horário já está reservado. Por favor, escolha outro horário");
+      } else if (error.message.includes('validate_customer_id')) {
+        throw new Error("ID do cliente inválido. Deve ser numérico");
+      } else if (error.message.includes('validate_status')) {
+        throw new Error("Status inválido. Deve ser confirmed, cancelled ou pending");
       } else {
         throw error;
       }
