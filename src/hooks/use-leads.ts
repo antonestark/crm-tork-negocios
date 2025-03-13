@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Lead } from '@/types/admin';
@@ -18,6 +19,7 @@ export const useLeads = () => {
   const fetchLeads = async () => {
     try {
       setLoading(true);
+      console.log("Fetching leads...");
       
       const { data, error } = await supabase
         .from('leads')
@@ -27,27 +29,52 @@ export const useLeads = () => {
         `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log("Leads data from API:", data);
       
       // Process the data to match our Lead interface
       const processedLeads = data.map((lead: any) => {
         // Split the name field from the user if it exists
         let assignedUser = null;
         if (lead.assignedUser) {
-          const nameParts = (lead.assignedUser.name || '').split(' ');
-          assignedUser = {
-            ...lead.assignedUser,
-            first_name: nameParts[0] || '',
-            last_name: nameParts.slice(1).join(' ') || '',
-            profile_image_url: null,
-            role: 'user',
-            phone: null,
-            active: true,
-            status: 'active',
-            last_login: null,
-            settings: {},
-            metadata: {},
-          };
+          try {
+            const nameParts = (lead.assignedUser.name || '').split(' ');
+            assignedUser = {
+              ...lead.assignedUser,
+              first_name: nameParts[0] || '',
+              last_name: nameParts.slice(1).join(' ') || '',
+              profile_image_url: null,
+              role: 'user',
+              phone: null,
+              active: true,
+              status: 'active',
+              last_login: null,
+              settings: {},
+              metadata: {},
+            };
+          } catch (err) {
+            console.error('Error processing assignedUser:', err);
+            // Provide a fallback if assignedUser cannot be processed
+            assignedUser = {
+              id: lead.assigned_to,
+              email: null,
+              name: 'Unknown User',
+              first_name: 'Unknown',
+              last_name: 'User',
+              profile_image_url: null,
+              role: 'user',
+              phone: null,
+              active: true,
+              status: 'active',
+              last_login: null,
+              settings: {},
+              metadata: {},
+            };
+          }
         }
 
         return {
@@ -56,10 +83,12 @@ export const useLeads = () => {
         };
       });
       
+      console.log("Processed leads:", processedLeads);
       setLeads(processedLeads);
     } catch (err) {
       console.error('Error fetching leads:', err);
       setError(err as Error);
+      toast.error('Erro ao carregar leads');
     } finally {
       setLoading(false);
     }

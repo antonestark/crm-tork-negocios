@@ -201,6 +201,66 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          active: boolean | null
+          bot_message: string | null
+          conversation_id: string | null
+          created_at: string | null
+          id: number
+          message_type: string | null
+          phone: string | null
+          user_message: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          bot_message?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: number
+          message_type?: string | null
+          phone?: string | null
+          user_message?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          bot_message?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: number
+          message_type?: string | null
+          phone?: string | null
+          user_message?: string | null
+        }
+        Relationships: []
+      }
+      chats: {
+        Row: {
+          app: string | null
+          conversation_id: string | null
+          created_at: string | null
+          id: number
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          app?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: number
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          app?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: number
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       cliente: {
         Row: {
           created_at: string | null
@@ -282,6 +342,27 @@ export type Database = {
           phone?: string | null
           status?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      dados_cliente: {
+        Row: {
+          created_at: string | null
+          id: number
+          sessionid: string | null
+          telefone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          sessionid?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          sessionid?: string | null
+          telefone?: string | null
         }
         Relationships: []
       }
@@ -443,6 +524,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          sessionid: string | null
           source: string | null
           status: string
           updated_at: string
@@ -456,6 +538,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          sessionid?: string | null
           source?: string | null
           status?: string
           updated_at?: string
@@ -469,6 +552,7 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          sessionid?: string | null
           source?: string | null
           status?: string
           updated_at?: string

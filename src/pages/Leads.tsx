@@ -4,11 +4,13 @@ import { Header } from '@/components/layout/Header';
 import { useLeads } from '@/hooks/use-leads';
 import { LeadsKanban } from '@/components/leads/LeadsKanban';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const LeadsPage = () => {
   const { 
     leads, 
     loading, 
+    error,
     fetchLeads,
     addLead,
     updateLead,
@@ -21,24 +23,39 @@ const LeadsPage = () => {
 
   useEffect(() => {
     fetchUsers();
+    // Log the number of leads for debugging
+    console.log("Initial leads count:", leads.length);
   }, []);
 
   const fetchUsers = async () => {
     try {
       setLoadingUsers(true);
+      console.log("Fetching users...");
+      
       const { data, error } = await supabase
         .from('users')
         .select('id, name')
         .order('name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+      }
       
+      console.log("Users data:", data);
       setUsers(data || []);
     } catch (err) {
       console.error('Error fetching users:', err);
+      toast.error('Erro ao carregar usuários');
     } finally {
       setLoadingUsers(false);
     }
+  };
+
+  const handleRefresh = () => {
+    console.log("Refreshing leads data...");
+    fetchLeads();
+    fetchUsers();
   };
 
   return (
@@ -50,6 +67,13 @@ const LeadsPage = () => {
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-sm h-[calc(100vh-200px)]">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-4">
+              <p className="font-medium">Erro ao carregar leads</p>
+              <p className="text-sm mt-1">{error.message}</p>
+            </div>
+          )}
+          
           <LeadsKanban 
             leads={leads}
             users={users}
@@ -58,7 +82,7 @@ const LeadsPage = () => {
             onUpdateLead={updateLead}
             onUpdateLeadStatus={updateLeadStatus}
             onDeleteLead={deleteLead}
-            onRefresh={fetchLeads}
+            onRefresh={handleRefresh}
           />
         </div>
       </main>

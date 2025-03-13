@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LeadColumn } from './LeadColumn';
 import { LeadFormDialog } from './LeadFormDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Lead } from '@/types/admin';
-import { Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw, PlusCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface LeadsKanbanProps {
   leads: Lead[];
@@ -32,6 +33,10 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
   const [formOpen, setFormOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
+  useEffect(() => {
+    console.log("Leads in Kanban:", leads);
+  }, [leads]);
+
   // Filter leads by search term
   const filteredLeads = leads.filter(lead => 
     lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,6 +49,10 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
   const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualificado');
   const neutralLeads = filteredLeads.filter(lead => lead.status === 'neutro');
   const unqualifiedLeads = filteredLeads.filter(lead => lead.status === 'não qualificado');
+
+  console.log("Qualified leads:", qualifiedLeads.length);
+  console.log("Neutral leads:", neutralLeads.length);
+  console.log("Unqualified leads:", unqualifiedLeads.length);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -58,7 +67,10 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
   };
 
   const handleAddLead = async (data: Partial<Lead>) => {
-    await onAddLead(data);
+    const result = await onAddLead(data);
+    if (result) {
+      toast.success('Lead adicionado com sucesso');
+    }
   };
 
   const handleEditLead = (lead: Lead) => {
@@ -95,44 +107,72 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             Atualizar
           </Button>
           
-          {/* "Novo Lead" button has been removed as requested */}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => {
+              setSelectedLead(null);
+              setFormOpen(true);
+            }}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Novo Lead
+          </Button>
         </div>
       </div>
       
-      <div className="grid grid-cols-3 gap-4 h-[calc(100%-48px)]">
-        <LeadColumn
-          title="Qualificado"
-          count={qualifiedLeads.length}
-          status="qualificado"
-          leads={qualifiedLeads}
-          onEditLead={handleEditLead}
-          onDeleteLead={onDeleteLead}
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, 'qualificado')}
-        />
-        
-        <LeadColumn
-          title="Neutro"
-          count={neutralLeads.length}
-          status="neutro"
-          leads={neutralLeads}
-          onEditLead={handleEditLead}
-          onDeleteLead={onDeleteLead}
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, 'neutro')}
-        />
-        
-        <LeadColumn
-          title="Não Qualificado"
-          count={unqualifiedLeads.length}
-          status="não qualificado"
-          leads={unqualifiedLeads}
-          onEditLead={handleEditLead}
-          onDeleteLead={onDeleteLead}
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, 'não qualificado')}
-        />
-      </div>
+      {leads.length === 0 && !loading ? (
+        <div className="flex flex-col items-center justify-center h-[calc(100%-48px)] bg-gray-50 rounded-lg border border-gray-200 p-8">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-medium">Nenhum lead encontrado</h3>
+            <p className="text-muted-foreground mt-1">Adicione novos leads para começar a gerenciar seus contatos</p>
+          </div>
+          <Button 
+            onClick={() => {
+              setSelectedLead(null);
+              setFormOpen(true);
+            }}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Adicionar Lead
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-4 h-[calc(100%-48px)]">
+          <LeadColumn
+            title="Qualificado"
+            count={qualifiedLeads.length}
+            status="qualificado"
+            leads={qualifiedLeads}
+            onEditLead={handleEditLead}
+            onDeleteLead={onDeleteLead}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'qualificado')}
+          />
+          
+          <LeadColumn
+            title="Neutro"
+            count={neutralLeads.length}
+            status="neutro"
+            leads={neutralLeads}
+            onEditLead={handleEditLead}
+            onDeleteLead={onDeleteLead}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'neutro')}
+          />
+          
+          <LeadColumn
+            title="Não Qualificado"
+            count={unqualifiedLeads.length}
+            status="não qualificado"
+            leads={unqualifiedLeads}
+            onEditLead={handleEditLead}
+            onDeleteLead={onDeleteLead}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'não qualificado')}
+          />
+        </div>
+      )}
       
       <LeadFormDialog
         open={formOpen}
