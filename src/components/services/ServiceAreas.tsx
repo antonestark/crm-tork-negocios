@@ -1,16 +1,19 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { ArrowRight, Users } from "lucide-react";
+import { ServiceArea } from "@/hooks/use-service-areas-data";
 
 interface ServiceAreasProps {
-  areas: any[];
+  areas: ServiceArea[];
   loading: boolean;
+  error?: Error | null;
 }
 
-export const ServiceAreas = ({ areas, loading }: ServiceAreasProps) => {
+export const ServiceAreas = ({ areas, loading, error }: ServiceAreasProps) => {
   if (loading) {
     return (
       <div className="grid gap-4 md:grid-cols-2">
@@ -18,6 +21,17 @@ export const ServiceAreas = ({ areas, loading }: ServiceAreasProps) => {
           <Skeleton key={index} className="h-[200px] w-full" />
         ))}
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-red-200">
+        <CardContent className="flex flex-col items-center justify-center h-[200px]">
+          <p className="text-red-500">Erro ao carregar áreas de serviço</p>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
+        </CardContent>
+      </Card>
     );
   }
 

@@ -2,11 +2,9 @@
 import { Header } from "@/components/layout/Header";
 import { ServiceAreas } from "@/components/services/ServiceAreas";
 import { ServicesNav } from "@/components/services/ServicesNav";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
@@ -17,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useServiceAreasData } from "@/hooks/use-service-areas-data";
 
 const areaFormSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -25,12 +24,20 @@ const areaFormSchema = z.object({
   status: z.string().default("active")
 });
 
+type AreaFormValues = z.infer<typeof areaFormSchema>;
+
 const AreasPage = () => {
-  const [areas, setAreas] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const form = useForm<z.infer<typeof areaFormSchema>>({
+  const { 
+    areas, 
+    loading, 
+    error, 
+    createServiceArea 
+  } = useServiceAreasData();
+  
+  const form = useForm<AreaFormValues>({
     resolver: zodResolver(areaFormSchema),
     defaultValues: {
       name: "",
@@ -40,104 +47,24 @@ const AreasPage = () => {
     }
   });
 
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (open) {
-      form.reset({
-        name: "",
-        description: "",
-        type: "common",
-        status: "active"
+  const onSubmit = async (values: AreaFormValues) => {
+    try {
+      setIsSubmitting(true);
+      await createServiceArea({
+        name: values.name,
+        description: values.description,
+        type: values.type,
+        status: values.status,
       });
-    }
-  }, [open, form]);
-
-  useEffect(() => {
-    fetchAreas();
-    
-    // Set up realtime subscription
-    const subscription = supabase
-      .channel('area_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'service_areas' 
-      }, () => {
-        fetchAreas();
-      })
-      .subscribe();
       
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchAreas = async () => {
-    setLoading(true);
-    try {
-      // Fix the query to use proper column names
-      const { data, error } = await supabase
-        .from("service_areas")
-        .select(`
-          *,
-          users:responsible_id(name)
-        `)
-        .order("name", { ascending: true });
-      
-      if (error) {
-        toast.error("Erro ao carregar áreas");
-        throw error;
-      }
-      
-      setAreas(data || []);
-    } catch (error) {
-      console.error("Erro ao buscar áreas:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const onSubmit = async (values: z.infer<typeof areaFormSchema>) => {
-    try {
-      // Make sure values.name is defined (it should be due to the schema)
-      if (!values.name) {
-        toast.error("Nome da área é obrigatório");
-        return;
-      }
-      
-      // Ensure type is defined
-      if (!values.type) {
-        values.type = "common"; // Default value
-      }
-      
-      // Ensure status is defined
-      if (!values.status) {
-        values.status = "active"; // Default value
-      }
-      
-      console.log("Submitting area:", values);
-      
-      const { error } = await supabase
-        .from("service_areas")
-        .insert({
-          name: values.name,
-          description: values.description || null,
-          type: values.type,
-          status: values.status
-        });
-        
-      if (error) {
-        console.error("Error creating area:", error);
-        toast.error("Falha ao criar área");
-        throw error;
-      }
-      
-      toast.success("Área criada com sucesso");
       form.reset();
       setOpen(false);
-      fetchAreas(); // Refresh the areas list after successful creation
-    } catch (error) {
-      console.error("Erro ao criar área:", error);
+      toast.success("Área criada com sucesso");
+    } catch (err) {
+      console.error("Erro ao criar área:", err);
+      toast.error("Falha ao criar área");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -182,7 +109,11 @@ const AreasPage = () => {
                       <FormItem>
                         <FormLabel>Descrição</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Descrição (opcional)" {...field} value={field.value || ''} />
+                          <Textarea 
+                            placeholder="Descrição (opcional)" 
+                            {...field} 
+                            value={field.value || ''} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -214,46 +145,38 @@ const AreasPage = () => {
                     )}
                   />
                   
-                  <Button type="submit" className="w-full">Criar Área</Button>
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || 'active'}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="inactive">Inativo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? 'Criando...' : 'Criar Área'}
+                  </Button>
                 </form>
               </Form>
             </DialogContent>
           </Dialog>
         </div>
 
-        {loading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5].map((_, i) => (
-              <Skeleton key={i} className="h-[120px] rounded-xl" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {areas.map((area) => (
-              <Card key={area.id} className="p-4 hover:bg-slate-50 cursor-pointer">
-                <div className="flex flex-col h-full">
-                  <h3 className="text-lg font-medium">{area.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-1 flex-grow">
-                    {area.description || "Sem descrição"}
-                  </p>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-xs px-2 py-1 rounded-full bg-slate-100">
-                      {area.type === 'common' ? 'Áreas Comuns' : 
-                       area.type === 'bathroom' ? 'Banheiros' : 
-                       area.type === 'private' ? 'Salas Privativas' : 
-                       area.type === 'external' ? 'Áreas Externas' : 
-                       area.type === 'ac' ? 'Ar Condicionado' : 
-                       area.type}
-                    </span>
-                    <span className={`h-2 w-2 rounded-full ${
-                      area.status === 'active' ? 'bg-green-500' : 'bg-red-500'
-                    }`} />
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
+        <ServiceAreas areas={areas} loading={loading} error={error} />
       </main>
     </div>
   );
