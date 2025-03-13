@@ -49,9 +49,11 @@ export const addDemandToDB = async (demandData: DemandCreate): Promise<boolean> 
     
     if (error) {
       console.error("Supabase error adding demand:", error);
+      toast.error("Erro ao criar demanda: " + error.message);
       throw error;
     }
     
+    toast.success("Demanda criada com sucesso");
     return true;
   } catch (error) {
     console.error("Error in addDemandToDB:", error);
@@ -100,7 +102,16 @@ const formatDueDate = (dueDate: string | Date | null | undefined): string | null
       return dueDate.toISOString();
     }
     
-    // If it's already a string, return it
+    // If it's already a string, ensure it's in ISO format
+    if (typeof dueDate === 'string') {
+      // Try to parse the string as a date
+      const parsedDate = new Date(dueDate);
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate.toISOString();
+      }
+    }
+    
+    // Return as is if we can't parse it
     return dueDate as string;
   } catch (error) {
     console.error("Error formatting due date:", error);

@@ -69,12 +69,13 @@ const MaintenancePage = () => {
   const fetchMaintenances = async () => {
     setLoading(true);
     try {
+      // Fix the query to use proper column names for the users table
       const { data, error } = await supabase
         .from("maintenance_records")
         .select(`
           *,
           service_areas(name),
-          users:assigned_to(first_name, last_name)
+          users:assigned_to(name)
         `)
         .order("scheduled_date", { ascending: true });
       
@@ -163,8 +164,10 @@ const MaintenancePage = () => {
       toast.success("Manutenção agendada com sucesso");
       form.reset();
       setOpen(false);
+      fetchMaintenances(); // Refresh after successful creation
     } catch (error) {
       console.error("Erro ao criar manutenção:", error);
+      toast.error("Erro ao criar manutenção. Verifique os dados e tente novamente.");
     }
   };
 
@@ -360,8 +363,8 @@ const MaintenancePage = () => {
                             'Não agendada'}
                         </TableCell>
                         <TableCell>
-                          {maintenance.users?.first_name ? 
-                            `${maintenance.users.first_name} ${maintenance.users.last_name}` : 
+                          {maintenance.users?.name ? 
+                            `${maintenance.users.name}` : 
                             'Não atribuído'}
                         </TableCell>
                         <TableCell>{getStatusBadge(maintenance.status)}</TableCell>

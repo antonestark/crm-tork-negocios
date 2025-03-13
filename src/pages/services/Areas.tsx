@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/layout/Header";
 import { ServiceAreas } from "@/components/services/ServiceAreas";
 import { ServicesNav } from "@/components/services/ServicesNav";
@@ -74,11 +75,12 @@ const AreasPage = () => {
   const fetchAreas = async () => {
     setLoading(true);
     try {
+      // Fix the query to use proper column names
       const { data, error } = await supabase
         .from("service_areas")
         .select(`
           *,
-          users:responsible_id (first_name, last_name)
+          users:responsible_id(name)
         `)
         .order("name", { ascending: true });
       
@@ -133,6 +135,7 @@ const AreasPage = () => {
       toast.success("Área criada com sucesso");
       form.reset();
       setOpen(false);
+      fetchAreas(); // Refresh the areas list after successful creation
     } catch (error) {
       console.error("Erro ao criar área:", error);
     }

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { isValid, parse, format } from 'date-fns';
 import { BookingEvent } from '@/types/scheduling';
 import { toast } from 'sonner';
@@ -76,6 +76,9 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>Novo Agendamento</DialogTitle>
+          <DialogDescription>
+            Preencha os dados para criar um novo agendamento
+          </DialogDescription>
         </DialogHeader>
         
         <AgendamentoFormFields 
