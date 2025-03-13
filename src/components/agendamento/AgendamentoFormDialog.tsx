@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,18 +9,37 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
-import { format } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 import { BookingEvent } from '@/hooks/use-scheduling-data';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+
+// Regex para validação de formato de hora (HH:MM)
+const TIME_REGEX = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'O nome deve ter pelo menos 2 caracteres' }),
   phone: z.string().min(8, { message: 'Telefone inválido' }),
   email: z.string().email({ message: 'Email inválido' }),
   date: z.date({ required_error: 'Selecione uma data' }),
-  start_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: 'Formato de hora inválido (HH:MM)' }),
-  end_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: 'Formato de hora inválido (HH:MM)' }),
+  start_time: z.string().regex(TIME_REGEX, { message: 'Formato de hora inválido (HH:MM)' }),
+  end_time: z.string().regex(TIME_REGEX, { message: 'Formato de hora inválido (HH:MM)' }),
   observations: z.string().optional(),
+})
+.refine(data => {
+  // Validate start_time is before end_time
+  if (!TIME_REGEX.test(data.start_time) || !TIME_REGEX.test(data.end_time)) {
+    return true; // Skip this validation if format is invalid (will be caught by regex validation)
+  }
+  
+  const dateStr = format(data.date, 'yyyy-MM-dd');
+  const startDateTime = parse(`${dateStr} ${data.start_time}`, 'yyyy-MM-dd HH:mm', new Date());
+  const endDateTime = parse(`${dateStr} ${data.end_time}`, 'yyyy-MM-dd HH:mm', new Date());
+  
+  return isValid(startDateTime) && isValid(endDateTime) && startDateTime < endDateTime;
+}, {
+  message: "O horário de início deve ser anterior ao horário de término",
+  path: ["end_time"]
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -38,6 +57,8 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
   onSubmit,
   selectedDate
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,10 +81,16 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
 
   const handleSubmit = async (values: FormValues) => {
     try {
-      // Parse date and times to create ISO strings
+      setIsSubmitting(true);
+      
+      // Validate the date and time formats
       const dateStr = format(values.date, 'yyyy-MM-dd');
-      const startDateTime = new Date(`${dateStr}T${values.start_time}:00`);
-      const endDateTime = new Date(`${dateStr}T${values.end_time}:00`);
+      const startDateTime = parse(`${dateStr} ${values.start_time}`, 'yyyy-MM-dd HH:mm', new Date());
+      const endDateTime = parse(`${dateStr} ${values.end_time}`, 'yyyy-MM-dd HH:mm', new Date());
+      
+      if (!isValid(startDateTime) || !isValid(endDateTime)) {
+        throw new Error('Data ou hora inválida');
+      }
       
       // Create booking data object to submit
       const bookingData = {
@@ -82,14 +109,28 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
         onOpenChange(false);
         toast.success("Agendamento criado com sucesso");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating booking:', error);
-      toast.error("Erro ao criar agendamento. Tente novamente.");
+      
+      // Check for specific database constraint errors
+      if (error.message?.includes('conflito com outro agendamento')) {
+        toast.error("Este horário já está reservado. Por favor, escolha outro horário.");
+      } else if (error.message?.includes('check_end_after_start')) {
+        toast.error("O horário de término deve ser posterior ao horário de início.");
+      } else {
+        toast.error(error.message || "Erro ao criar agendamento. Tente novamente.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      if (!isSubmitting) {
+        onOpenChange(newOpen);
+      }
+    }}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>Novo Agendamento</DialogTitle>
@@ -208,7 +249,16 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
             />
             
             <DialogFooter>
-              <Button type="submit">Agendar</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Agendando...
+                  </>
+                ) : (
+                  'Agendar'
+                )}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

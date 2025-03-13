@@ -47,6 +47,7 @@ export const useSchedulingData = (selectedDate?: Date) => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Get date range based on selectedDate or default to today
       const filterDate = selectedDate || new Date();
@@ -127,6 +128,23 @@ export const useSchedulingData = (selectedDate?: Date) => {
 
   const createBooking = async (bookingData: Omit<BookingEvent, 'id' | 'date'>) => {
     try {
+      // Validate that all required fields are present
+      if (!bookingData.title || !bookingData.start_time || !bookingData.end_time || !bookingData.status) {
+        throw new Error("Todos os campos obrigatórios devem ser preenchidos");
+      }
+      
+      // Parse and validate times
+      const startTime = new Date(bookingData.start_time);
+      const endTime = new Date(bookingData.end_time);
+      
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        throw new Error("Data ou hora inválida");
+      }
+      
+      if (startTime >= endTime) {
+        throw new Error("O horário de término deve ser posterior ao horário de início");
+      }
+      
       const { data, error } = await supabase
         .from("scheduling")
         .insert([{
@@ -138,21 +156,32 @@ export const useSchedulingData = (selectedDate?: Date) => {
         }])
         .select();
       
-      if (error) throw error;
+      if (error) {
+        // Check for known constraint violations
+        if (error.message.includes('check_end_after_start')) {
+          throw new Error("O horário de término deve ser posterior ao horário de início");
+        } else if (error.message.includes('conflito com outro agendamento')) {
+          throw new Error("Este horário já está reservado. Por favor, escolha outro horário");
+        } else {
+          throw error;
+        }
+      }
       
-      toast.success("Agendamento criado com sucesso");
       fetchBookings();
       fetchCalendarData();
       return data[0];
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error creating booking:", err);
-      toast.error("Falha ao criar agendamento");
       throw err;
     }
   };
 
   const updateBookingStatus = async (id: string, status: string) => {
     try {
+      if (!id || !status) {
+        throw new Error("ID e status são obrigatórios");
+      }
+      
       const { error } = await supabase
         .from("scheduling")
         .update({ status })
