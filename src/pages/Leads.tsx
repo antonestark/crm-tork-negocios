@@ -5,6 +5,8 @@ import { useLeads } from '@/hooks/use-leads';
 import { LeadsKanban } from '@/components/leads/LeadsKanban';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 const LeadsPage = () => {
   const { 
@@ -20,6 +22,7 @@ const LeadsPage = () => {
   
   const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [usersError, setUsersError] = useState<Error | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -30,6 +33,7 @@ const LeadsPage = () => {
   const fetchUsers = async () => {
     try {
       setLoadingUsers(true);
+      setUsersError(null);
       console.log("Fetching users...");
       
       const { data, error } = await supabase
@@ -39,6 +43,7 @@ const LeadsPage = () => {
       
       if (error) {
         console.error('Error fetching users:', error);
+        setUsersError(error);
         throw error;
       }
       
@@ -46,6 +51,7 @@ const LeadsPage = () => {
       setUsers(data || []);
     } catch (err) {
       console.error('Error fetching users:', err);
+      setUsersError(err as Error);
       toast.error('Erro ao carregar usuários');
     } finally {
       setLoadingUsers(false);
@@ -68,10 +74,39 @@ const LeadsPage = () => {
         
         <div className="bg-white p-6 rounded-lg shadow-sm h-[calc(100vh-200px)]">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-4">
-              <p className="font-medium">Erro ao carregar leads</p>
-              <p className="text-sm mt-1">{error.message}</p>
-            </div>
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Erro ao carregar leads</AlertTitle>
+              <AlertDescription>
+                {error.message}
+                <div className="mt-2">
+                  <button 
+                    onClick={handleRefresh}
+                    className="text-sm underline hover:text-primary"
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {usersError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Erro ao carregar usuários</AlertTitle>
+              <AlertDescription>
+                {usersError.message}
+                <div className="mt-2">
+                  <button 
+                    onClick={fetchUsers}
+                    className="text-sm underline hover:text-primary"
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              </AlertDescription>
+            </Alert>
           )}
           
           <LeadsKanban 

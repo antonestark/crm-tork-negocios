@@ -19,6 +19,7 @@ export const useLeads = () => {
   const fetchLeads = async () => {
     try {
       setLoading(true);
+      setError(null);
       console.log("Fetching leads...");
       
       const { data, error } = await supabase
@@ -37,16 +38,21 @@ export const useLeads = () => {
       console.log("Leads data from API:", data);
       
       // Process the data to match our Lead interface
-      const processedLeads = data.map((lead: any) => {
-        // Split the name field from the user if it exists
+      const processedLeads = data?.map((lead: any) => {
+        // Normalize lead status to ensure consistent case
+        const normalizedStatus = normalizeStatus(lead.status);
+        
+        // Process assigned user data if available
         let assignedUser = null;
         if (lead.assignedUser) {
           try {
-            const nameParts = (lead.assignedUser.name || '').split(' ');
             assignedUser = {
-              ...lead.assignedUser,
-              first_name: nameParts[0] || '',
-              last_name: nameParts.slice(1).join(' ') || '',
+              id: lead.assignedUser.id || lead.assigned_to,
+              email: lead.assignedUser.email || null,
+              name: lead.assignedUser.name || 'Unknown User',
+              first_name: lead.assignedUser.name ? lead.assignedUser.name.split(' ')[0] : 'Unknown',
+              last_name: lead.assignedUser.name ? 
+                lead.assignedUser.name.split(' ').slice(1).join(' ') : 'User',
               profile_image_url: null,
               role: 'user',
               phone: null,
@@ -58,30 +64,16 @@ export const useLeads = () => {
             };
           } catch (err) {
             console.error('Error processing assignedUser:', err);
-            // Provide a fallback if assignedUser cannot be processed
-            assignedUser = {
-              id: lead.assigned_to,
-              email: null,
-              name: 'Unknown User',
-              first_name: 'Unknown',
-              last_name: 'User',
-              profile_image_url: null,
-              role: 'user',
-              phone: null,
-              active: true,
-              status: 'active',
-              last_login: null,
-              settings: {},
-              metadata: {},
-            };
+            assignedUser = createDefaultUser(lead.assigned_to);
           }
         }
 
         return {
           ...lead,
+          status: normalizedStatus,
           assignedUser
         };
-      });
+      }) || [];
       
       console.log("Processed leads:", processedLeads);
       setLeads(processedLeads);
@@ -94,18 +86,60 @@ export const useLeads = () => {
     }
   };
 
+  // Helper function to normalize status values
+  const normalizeStatus = (status: string): string => {
+    if (!status) return 'neutro';
+    
+    status = status.toLowerCase();
+    
+    if (status.includes('qualificado') && status.includes('não')) {
+      return 'não qualificado';
+    } else if (status.includes('qualificado')) {
+      return 'qualificado';
+    } else {
+      return 'neutro';
+    }
+  };
+
+  // Helper function to create a default user object when data is missing
+  const createDefaultUser = (userId: string | null) => {
+    return {
+      id: userId || '',
+      email: null,
+      name: 'Unknown User',
+      first_name: 'Unknown',
+      last_name: 'User',
+      profile_image_url: null,
+      role: 'user',
+      phone: null,
+      active: true,
+      status: 'active',
+      last_login: null,
+      settings: {},
+      metadata: {},
+    };
+  };
+
   const addLead = async (lead: NewLead) => {
     try {
+      // Normalize status before saving
+      const normalizedLead = {
+        ...lead,
+        status: normalizeStatus(lead.status || 'neutro')
+      };
+      
       const { data, error } = await supabase
         .from('leads')
-        .insert([lead])
+        .insert([normalizedLead])
         .select();
       
       if (error) throw error;
       
       await logLeadActivity(data[0].id, 'created', { leadName: lead.name });
       
-      setLeads(prev => [data[0], ...prev]);
+      // Fetch all leads to ensure consistency
+      await fetchLeads();
+      
       toast.success('Lead adicionado com sucesso');
       return data[0];
     } catch (err) {
@@ -122,18 +156,22 @@ export const useLeads = () => {
     }
 
     try {
+      // Normalize status before saving
+      const normalizedLead = lead.status 
+        ? { ...lead, status: normalizeStatus(lead.status) } 
+        : lead;
+      
       const { error } = await supabase
         .from('leads')
-        .update(lead)
+        .update(normalizedLead)
         .eq('id', lead.id);
       
       if (error) throw error;
 
-      await logLeadActivity(lead.id, 'updated', { changes: lead });
+      await logLeadActivity(lead.id, 'updated', { changes: normalizedLead });
       
-      setLeads(prev => 
-        prev.map(l => l.id === lead.id ? { ...l, ...lead } : l)
-      );
+      // Fetch all leads to ensure consistency
+      await fetchLeads();
       
       toast.success('Lead atualizado com sucesso');
       return true;
@@ -146,18 +184,19 @@ export const useLeads = () => {
 
   const updateLeadStatus = async (id: string, status: string) => {
     try {
+      const normalizedStatus = normalizeStatus(status);
+      
       const { error } = await supabase
         .from('leads')
-        .update({ status })
+        .update({ status: normalizedStatus })
         .eq('id', id);
       
       if (error) throw error;
 
-      await logLeadActivity(id, 'status_changed', { status });
+      await logLeadActivity(id, 'status_changed', { status: normalizedStatus });
       
-      setLeads(prev => 
-        prev.map(l => l.id === id ? { ...l, status } : l)
-      );
+      // Fetch all leads to ensure consistency
+      await fetchLeads();
       
       toast.success('Status do lead atualizado');
       return true;
@@ -177,6 +216,7 @@ export const useLeads = () => {
       
       if (error) throw error;
       
+      // Update local state
       setLeads(prev => prev.filter(l => l.id !== id));
       toast.success('Lead removido com sucesso');
       return true;
@@ -197,7 +237,10 @@ export const useLeads = () => {
           details
         }]);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error logging activity:', error);
+        return false;
+      }
       
       return true;
     } catch (err) {
