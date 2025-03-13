@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { isValid, parse, format } from 'date-fns';
-import { BookingEvent } from '@/hooks/use-scheduling-data';
+import { BookingEvent } from '@/types/scheduling';
 import { toast } from 'sonner';
 import { AgendamentoFormFields } from './AgendamentoFormFields';
 import { AgendamentoFormValues, createBookingData } from './schema';
