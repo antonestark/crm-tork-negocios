@@ -13,6 +13,10 @@ export type BookingEvent = {
   end_time: string;
   status: string;
   date: string;
+  user_id?: number | null;
+  user_name?: string | null;
+  description?: string | null;
+  location?: string | null;
 };
 
 export const useSchedulingData = (selectedDate?: Date) => {
@@ -62,7 +66,10 @@ export const useSchedulingData = (selectedDate?: Date) => {
           start_time,
           end_time,
           status,
-          client_id
+          client_id,
+          user_id,
+          description,
+          location
         `)
         .gte("start_time", dayStart.toISOString())
         .lt("start_time", dayEnd.toISOString())
@@ -78,6 +85,9 @@ export const useSchedulingData = (selectedDate?: Date) => {
         end_time: booking.end_time,
         status: booking.status,
         client_id: booking.client_id,
+        user_id: booking.user_id,
+        description: booking.description,
+        location: booking.location,
         client: booking.client_id ? { company_name: '' } : null,
         date: format(new Date(booking.start_time), 'yyyy-MM-dd')
       }));
@@ -152,7 +162,10 @@ export const useSchedulingData = (selectedDate?: Date) => {
           start_time: bookingData.start_time,
           end_time: bookingData.end_time,
           status: bookingData.status,
-          client_id: bookingData.client_id
+          client_id: bookingData.client_id,
+          user_id: bookingData.user_id,
+          description: bookingData.description,
+          location: bookingData.location
         }])
         .select();
       
