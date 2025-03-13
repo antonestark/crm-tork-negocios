@@ -905,32 +905,41 @@ export type Database = {
         Row: {
           client_id: string | null
           created_at: string | null
+          description: string | null
           end_time: string
           id: string
+          location: string | null
           start_time: string
           status: string
           title: string
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           client_id?: string | null
           created_at?: string | null
+          description?: string | null
           end_time: string
           id?: string
+          location?: string | null
           start_time: string
           status?: string
           title: string
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           client_id?: string | null
           created_at?: string | null
+          description?: string | null
           end_time?: string
           id?: string
+          location?: string | null
           start_time?: string
           status?: string
           title?: string
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -938,6 +947,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduling_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
