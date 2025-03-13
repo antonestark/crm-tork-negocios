@@ -10,7 +10,8 @@ import {
 } from '@/services/scheduling-service';
 import { useSchedulingRealtime } from './use-scheduling-realtime';
 
-export { BookingEvent } from '@/types/scheduling';
+// Re-export the type using 'export type' syntax
+export type { BookingEvent } from '@/types/scheduling';
 
 export const useSchedulingData = (selectedDate?: Date) => {
   const [bookings, setBookings] = useState<BookingEvent[]>([]);
