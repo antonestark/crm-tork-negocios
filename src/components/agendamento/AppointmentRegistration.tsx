@@ -103,7 +103,7 @@ export const AppointmentRegistration: React.FC<AppointmentRegistrationProps> = (
                 name="customer_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>ID do Cliente</FormLabel>
+                    <FormLabel>ID do Cliente (opcional)</FormLabel>
                     <FormControl>
                       <Input placeholder="ID do cliente (numérico)" {...field} />
                     </FormControl>

@@ -55,6 +55,10 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
         toast.error("O horário de término deve ser posterior ao horário de início.");
       } else if (error.message?.includes('validate_customer_id')) {
         toast.error("ID do cliente inválido. Deve ser numérico.");
+      } else if (error.message?.includes('Já existe um agendamento confirmado para este email')) {
+        toast.error("Já existe um agendamento confirmado para este email na mesma data.");
+      } else if (error.message?.includes('Já existe um agendamento confirmado para este telefone')) {
+        toast.error("Já existe um agendamento confirmado para este telefone na mesma data.");
       } else {
         toast.error(error.message || "Erro ao criar agendamento. Tente novamente.");
       }

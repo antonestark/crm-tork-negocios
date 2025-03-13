@@ -4,6 +4,8 @@ import { format, isValid, parse } from 'date-fns';
 
 // Regex para validação de formato de hora (HH:MM)
 export const TIME_REGEX = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
+// Regex para validação de formato de telefone brasileiro
+export const PHONE_REGEX = /^(\d{10,11}|\(\d{2}\)\s?\d{4,5}-?\d{4})$/;
 
 // User schema - now optional
 export const userSchema = z.object({
@@ -13,13 +15,13 @@ export const userSchema = z.object({
 
 export const agendamentoFormSchema = z.object({
   name: z.string().min(2, { message: 'O nome deve ter pelo menos 2 caracteres' }),
-  phone: z.string().min(8, { message: 'Telefone inválido' }),
+  phone: z.string().regex(PHONE_REGEX, { message: 'Telefone inválido. Use o formato (00) 00000-0000 ou 00000000000' }),
   email: z.string().email({ message: 'Email inválido' }),
   date: z.date({ required_error: 'Selecione uma data' }),
   start_time: z.string().regex(TIME_REGEX, { message: 'Formato de hora inválido (HH:MM)' }),
   end_time: z.string().regex(TIME_REGEX, { message: 'Formato de hora inválido (HH:MM)' }),
   observations: z.string().optional(),
-  // User is now optional
+  // User is optional
   user: userSchema.optional().default({}),
   description: z.string().min(5, { message: 'Descrição deve ter pelo menos 5 caracteres' }),
   location: z.string().optional(),
@@ -56,11 +58,13 @@ export const createBookingData = (values: AgendamentoFormValues) => {
     client: { company_name: values.name },
     description: values.description,
     location: values.location || null,
-    customer_id: values.customer_id || null
+    customer_id: values.customer_id || null,
+    email: values.email,
+    phone: values.phone
   };
 };
 
-// New function to register an appointment
+// Function to register an appointment
 export const registerAppointment = async (appointmentData: ReturnType<typeof createBookingData>, supabase: any) => {
   try {
     // Create the appointment
@@ -74,7 +78,9 @@ export const registerAppointment = async (appointmentData: ReturnType<typeof cre
         client_id: null,
         description: appointmentData.description,
         location: appointmentData.location,
-        customer_id: appointmentData.customer_id
+        customer_id: appointmentData.customer_id,
+        email: appointmentData.email,
+        phone: appointmentData.phone
       }])
       .select();
     
@@ -87,6 +93,10 @@ export const registerAppointment = async (appointmentData: ReturnType<typeof cre
         throw new Error("ID do cliente inválido. Deve ser numérico");
       } else if (error.message.includes('validate_status')) {
         throw new Error("Status inválido. Deve ser confirmed, cancelled ou pending");
+      } else if (error.message.includes('Já existe um agendamento confirmado para este email')) {
+        throw new Error("Já existe um agendamento confirmado para este email na mesma data");
+      } else if (error.message.includes('Já existe um agendamento confirmado para este telefone')) {
+        throw new Error("Já existe um agendamento confirmado para este telefone na mesma data");
       } else {
         throw error;
       }

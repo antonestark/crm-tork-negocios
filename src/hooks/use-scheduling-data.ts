@@ -18,6 +18,8 @@ export type BookingEvent = {
   description?: string | null;
   location?: string | null;
   customer_id?: string | null;
+  email?: string | null;
+  phone?: string | null;
 };
 
 export const useSchedulingData = (selectedDate?: Date) => {
@@ -71,7 +73,9 @@ export const useSchedulingData = (selectedDate?: Date) => {
           user_id,
           description,
           location,
-          customer_id
+          customer_id,
+          email,
+          phone
         `)
         .gte("start_time", dayStart.toISOString())
         .lt("start_time", dayEnd.toISOString())
@@ -91,6 +95,8 @@ export const useSchedulingData = (selectedDate?: Date) => {
         description: booking.description,
         location: booking.location,
         customer_id: booking.customer_id,
+        email: booking.email,
+        phone: booking.phone,
         client: booking.client_id ? { company_name: '' } : null,
         date: format(new Date(booking.start_time), 'yyyy-MM-dd')
       }));
@@ -146,6 +152,11 @@ export const useSchedulingData = (selectedDate?: Date) => {
         throw new Error("Todos os campos obrigatórios devem ser preenchidos");
       }
       
+      // Validate that either email or phone is provided
+      if (!bookingData.email && !bookingData.phone) {
+        throw new Error("Email ou telefone deve ser informado");
+      }
+      
       // Parse and validate times
       const startTime = new Date(bookingData.start_time);
       const endTime = new Date(bookingData.end_time);
@@ -168,7 +179,9 @@ export const useSchedulingData = (selectedDate?: Date) => {
         user_id: bookingData.user_id,
         description: bookingData.description,
         location: bookingData.location,
-        customer_id: bookingData.customer_id
+        customer_id: bookingData.customer_id,
+        email: bookingData.email,
+        phone: bookingData.phone
       };
       
       const { data, error } = await supabase
@@ -184,6 +197,10 @@ export const useSchedulingData = (selectedDate?: Date) => {
           throw new Error("Este horário já está reservado. Por favor, escolha outro horário");
         } else if (error.message.includes('validate_customer_id')) {
           throw new Error("ID do cliente inválido. Deve ser numérico");
+        } else if (error.message.includes('Já existe um agendamento confirmado para este email')) {
+          throw new Error("Já existe um agendamento confirmado para este email na mesma data");
+        } else if (error.message.includes('Já existe um agendamento confirmado para este telefone')) {
+          throw new Error("Já existe um agendamento confirmado para este telefone na mesma data");
         } else {
           throw error;
         }

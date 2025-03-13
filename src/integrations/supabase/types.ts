@@ -907,9 +907,11 @@ export type Database = {
           created_at: string | null
           customer_id: string | null
           description: string | null
+          email: string | null
           end_time: string
           id: string
           location: string | null
+          phone: string | null
           start_time: string
           status: string
           title: string
@@ -921,9 +923,11 @@ export type Database = {
           created_at?: string | null
           customer_id?: string | null
           description?: string | null
+          email?: string | null
           end_time: string
           id?: string
           location?: string | null
+          phone?: string | null
           start_time: string
           status?: string
           title: string
@@ -935,9 +939,11 @@ export type Database = {
           created_at?: string | null
           customer_id?: string | null
           description?: string | null
+          email?: string | null
           end_time?: string
           id?: string
           location?: string | null
+          phone?: string | null
           start_time?: string
           status?: string
           title?: string
