@@ -7,7 +7,7 @@ export const TIME_REGEX = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
 
 // User schema
 export const userSchema = z.object({
-  id: z.number(),
+  id: z.string(), // Changed from number to string to match Supabase
   name: z.string().min(2, { message: 'Nome de usuário inválido' })
 });
 

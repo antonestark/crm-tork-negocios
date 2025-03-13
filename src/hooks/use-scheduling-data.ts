@@ -13,7 +13,7 @@ export type BookingEvent = {
   end_time: string;
   status: string;
   date: string;
-  user_id?: number | null;
+  user_id?: string | null; // Changed from number to string to match Supabase type
   user_name?: string | null;
   description?: string | null;
   location?: string | null;
@@ -155,18 +155,19 @@ export const useSchedulingData = (selectedDate?: Date) => {
         throw new Error("O horário de término deve ser posterior ao horário de início");
       }
       
+      // Fix: Insert a single object instead of an array
       const { data, error } = await supabase
         .from("scheduling")
-        .insert([{
+        .insert({
           title: bookingData.title,
           start_time: bookingData.start_time,
           end_time: bookingData.end_time,
           status: bookingData.status,
           client_id: bookingData.client_id,
-          user_id: bookingData.user_id,
+          user_id: bookingData.user_id, // Now correctly typed as string | null
           description: bookingData.description,
           location: bookingData.location
-        }])
+        })
         .select();
       
       if (error) {

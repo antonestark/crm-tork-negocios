@@ -42,7 +42,7 @@ export const AppointmentRegistration: React.FC<AppointmentRegistrationProps> = (
       start_time: '09:00',
       end_time: '10:00',
       observations: '',
-      user: { id: 0, name: '' },
+      user: { id: '', name: '' }, // Changed from number to string
       description: '',
       location: ''
     }
@@ -137,10 +137,10 @@ export const AppointmentRegistration: React.FC<AppointmentRegistrationProps> = (
                     <FormControl>
                       <Input 
                         placeholder="ID do usuário" 
-                        type="number" 
+                        type="text" // Changed from number to text
                         {...field}
                         onChange={e => {
-                          form.setValue('user.id', parseInt(e.target.value) || 0);
+                          form.setValue('user.id', e.target.value);
                         }}
                       />
                     </FormControl>
