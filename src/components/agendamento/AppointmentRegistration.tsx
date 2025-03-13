@@ -15,7 +15,7 @@ import {
   FormLabel, 
   FormMessage 
 } from '@/components/ui/form';
-import { userSchema, agendamentoFormSchema, AgendamentoFormValues, createBookingData, registerAppointment } from './schema';
+import { agendamentoFormSchema, AgendamentoFormValues, createBookingData, registerAppointment } from './schema';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -42,7 +42,7 @@ export const AppointmentRegistration: React.FC<AppointmentRegistrationProps> = (
       start_time: '09:00',
       end_time: '10:00',
       observations: '',
-      user: { id: '', name: '' }, // Changed from number to string
+      // Remove user field default values
       description: '',
       location: ''
     }
@@ -127,42 +127,7 @@ export const AppointmentRegistration: React.FC<AppointmentRegistrationProps> = (
               )}
             />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="user.id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ID do Usuário*</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="ID do usuário" 
-                        type="text" // Changed from number to text
-                        {...field}
-                        onChange={e => {
-                          form.setValue('user.id', e.target.value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="user.name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do Usuário*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do usuário" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {/* Removed user ID and name fields */}
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField

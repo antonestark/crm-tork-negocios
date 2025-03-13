@@ -5,10 +5,10 @@ import { format, isValid, parse } from 'date-fns';
 // Regex para validação de formato de hora (HH:MM)
 export const TIME_REGEX = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
 
-// User schema
+// User schema - now optional
 export const userSchema = z.object({
-  id: z.string(), // Changed from number to string to match Supabase
-  name: z.string().min(2, { message: 'Nome de usuário inválido' })
+  id: z.string().optional(),
+  name: z.string().min(2, { message: 'Nome de usuário inválido' }).optional()
 });
 
 export const agendamentoFormSchema = z.object({
@@ -19,8 +19,8 @@ export const agendamentoFormSchema = z.object({
   start_time: z.string().regex(TIME_REGEX, { message: 'Formato de hora inválido (HH:MM)' }),
   end_time: z.string().regex(TIME_REGEX, { message: 'Formato de hora inválido (HH:MM)' }),
   observations: z.string().optional(),
-  // New fields
-  user: userSchema,
+  // User is now optional
+  user: userSchema.optional().default({}),
   description: z.string().min(5, { message: 'Descrição deve ter pelo menos 5 caracteres' }),
   location: z.string().optional()
 })
@@ -53,8 +53,7 @@ export const createBookingData = (values: AgendamentoFormValues) => {
     end_time: endDateTime.toISOString(),
     status: 'confirmed',
     client: { company_name: values.name },
-    user_id: values.user.id,
-    user_name: values.user.name,
+    // Remove user_id and user_name fields
     description: values.description,
     location: values.location || null
   };
@@ -63,16 +62,7 @@ export const createBookingData = (values: AgendamentoFormValues) => {
 // New function to register an appointment
 export const registerAppointment = async (appointmentData: ReturnType<typeof createBookingData>, supabase: any) => {
   try {
-    // Validate user exists
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("id, name")
-      .eq("id", appointmentData.user_id)
-      .single();
-    
-    if (userError || !userData) {
-      throw new Error('Usuário não encontrado. Verifique o ID do usuário.');
-    }
+    // Remove user validation since it's no longer required
     
     // Create the appointment
     const { data, error } = await supabase
@@ -83,7 +73,7 @@ export const registerAppointment = async (appointmentData: ReturnType<typeof cre
         end_time: appointmentData.end_time,
         status: appointmentData.status,
         client_id: null,
-        user_id: appointmentData.user_id,
+        // Remove user_id field
         description: appointmentData.description,
         location: appointmentData.location
       }])

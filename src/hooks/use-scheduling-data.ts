@@ -13,7 +13,7 @@ export type BookingEvent = {
   end_time: string;
   status: string;
   date: string;
-  user_id?: string | null; // Changed from number to string to match Supabase type
+  user_id?: string | null; // Keep as optional
   user_name?: string | null;
   description?: string | null;
   location?: string | null;
@@ -155,19 +155,25 @@ export const useSchedulingData = (selectedDate?: Date) => {
         throw new Error("O horário de término deve ser posterior ao horário de início");
       }
       
-      // Fix: Insert a single object instead of an array
+      // Create the booking object without user_id if it's not provided
+      const bookingObject: any = {
+        title: bookingData.title,
+        start_time: bookingData.start_time,
+        end_time: bookingData.end_time,
+        status: bookingData.status,
+        client_id: bookingData.client_id,
+        description: bookingData.description,
+        location: bookingData.location
+      };
+      
+      // Only add user_id if it exists
+      if (bookingData.user_id) {
+        bookingObject.user_id = bookingData.user_id;
+      }
+      
       const { data, error } = await supabase
         .from("scheduling")
-        .insert({
-          title: bookingData.title,
-          start_time: bookingData.start_time,
-          end_time: bookingData.end_time,
-          status: bookingData.status,
-          client_id: bookingData.client_id,
-          user_id: bookingData.user_id, // Now correctly typed as string | null
-          description: bookingData.description,
-          location: bookingData.location
-        })
+        .insert(bookingObject)
         .select();
       
       if (error) {
