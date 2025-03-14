@@ -1,59 +1,117 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Clients from "./pages/Clients";
-import NotFound from "./pages/NotFound";
-import Agendamento from "./pages/Agendamento";
-import ServicesIndex from "./pages/services/Index";
-import AreasPage from "./pages/services/Areas";
-import ChecklistPage from "./pages/services/Checklist";
-import MaintenancePage from "./pages/services/Maintenance";
-import DemandsPage from "./pages/services/Demands";
-import ReportsPage from "./pages/services/Reports";
-import AdminIndex from "./pages/admin/Index";
-import UsersPage from "./pages/admin/Users";
-import DepartmentsPage from "./pages/admin/Departments";
-import PermissionsPage from "./pages/admin/Permissions";
-import AuditPage from "./pages/admin/Audit";
-import SettingsPage from "./pages/admin/Settings";
-import AdminReportsPage from "./pages/admin/Reports";
-import LeadsPage from "./pages/Leads";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Index from './pages/Index';
+import Clients from './pages/Clients';
+import Leads from './pages/Leads';
+import Agendamento from './pages/Agendamento';
+import NotFound from './pages/NotFound';
+import AdminIndex from './pages/admin/Index';
+import AdminUsers from './pages/admin/Users';
+import AdminDepartments from './pages/admin/Departments';
+import AdminPermissions from './pages/admin/Permissions';
+import AdminAudit from './pages/admin/Audit';
+import AdminReports from './pages/admin/Reports';
+import AdminSettings from './pages/admin/Settings';
+import ServicesIndex from './pages/services/Index';
+import ServicesAreas from './pages/services/Areas';
+import ServicesChecklist from './pages/services/Checklist';
+import ServicesDemands from './pages/services/Demands';
+import ServicesMaintenance from './pages/services/Maintenance';
+import ServicesReports from './pages/services/Reports';
+import { Toaster } from 'sonner';
+import './App.css';
+import { RequireAuth } from './components/auth/RequireAuth';
+import { RequirePermission } from './components/auth/RequirePermission';
 
-const queryClient = new QueryClient();
+function App() {
+  return (
+    <Router>
+      <Toaster richColors />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/clients" element={<Clients />} />
+        <Route path="/leads" element={<Leads />} />
+        <Route path="/agendamento" element={<Agendamento />} />
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/agendamento" element={<Agendamento />} />
-          <Route path="/leads" element={<LeadsPage />} />
-          <Route path="/services" element={<ServicesIndex />} />
-          <Route path="/services/areas" element={<AreasPage />} />
-          <Route path="/services/checklist" element={<ChecklistPage />} />
-          <Route path="/services/maintenance" element={<MaintenancePage />} />
-          <Route path="/services/demands" element={<DemandsPage />} />
-          <Route path="/services/reports" element={<ReportsPage />} />
-          <Route path="/admin" element={<AdminIndex />} />
-          <Route path="/admin/users" element={<UsersPage />} />
-          <Route path="/admin/departments" element={<DepartmentsPage />} />
-          <Route path="/admin/permissions" element={<PermissionsPage />} />
-          <Route path="/admin/audit" element={<AuditPage />} />
-          <Route path="/admin/settings" element={<SettingsPage />} />
-          <Route path="/admin/reports" element={<AdminReportsPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        {/* Admin Routes - Protected with Authentication and Permissions */}
+        <Route path="/admin" element={
+          <RequireAuth>
+            <AdminIndex />
+          </RequireAuth>
+        } />
+        <Route path="/admin/users" element={
+          <RequireAuth>
+            <RequirePermission permissionCode="admin:users:view">
+              <AdminUsers />
+            </RequirePermission>
+          </RequireAuth>
+        } />
+        <Route path="/admin/departments" element={
+          <RequireAuth>
+            <RequirePermission permissionCode="admin:departments:view">
+              <AdminDepartments />
+            </RequirePermission>
+          </RequireAuth>
+        } />
+        <Route path="/admin/permissions" element={
+          <RequireAuth>
+            <RequirePermission permissionCode="admin:permissions:view">
+              <AdminPermissions />
+            </RequirePermission>
+          </RequireAuth>
+        } />
+        <Route path="/admin/audit" element={
+          <RequireAuth>
+            <AdminAudit />
+          </RequireAuth>
+        } />
+        <Route path="/admin/reports" element={
+          <RequireAuth>
+            <AdminReports />
+          </RequireAuth>
+        } />
+        <Route path="/admin/settings" element={
+          <RequireAuth>
+            <AdminSettings />
+          </RequireAuth>
+        } />
+
+        {/* Services Routes - Protected with Authentication */}
+        <Route path="/services" element={
+          <RequireAuth>
+            <ServicesIndex />
+          </RequireAuth>
+        } />
+        <Route path="/services/areas" element={
+          <RequireAuth>
+            <ServicesAreas />
+          </RequireAuth>
+        } />
+        <Route path="/services/checklist" element={
+          <RequireAuth>
+            <ServicesChecklist />
+          </RequireAuth>
+        } />
+        <Route path="/services/demands" element={
+          <RequireAuth>
+            <ServicesDemands />
+          </RequireAuth>
+        } />
+        <Route path="/services/maintenance" element={
+          <RequireAuth>
+            <ServicesMaintenance />
+          </RequireAuth>
+        } />
+        <Route path="/services/reports" element={
+          <RequireAuth>
+            <ServicesReports />
+          </RequireAuth>
+        } />
+
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
+  );
+}
 
 export default App;

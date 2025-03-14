@@ -490,6 +490,42 @@ export type Database = {
           },
         ]
       }
+      department_permissions: {
+        Row: {
+          created_at: string | null
+          department_id: number | null
+          id: string
+          permission_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department_id?: number | null
+          id?: string
+          permission_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department_id?: number | null
+          id?: string
+          permission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_permissions_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "department_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string | null
@@ -1587,6 +1623,12 @@ export type Database = {
           "": unknown[]
         }
         Returns: number
+      }
+      user_has_permission: {
+        Args: {
+          permission_code: string
+        }
+        Returns: boolean
       }
       vector_avg: {
         Args: {

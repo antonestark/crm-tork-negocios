@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Users, Building, ChevronRight, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, Users, Building, ChevronRight, Edit, Trash2, Lock } from 'lucide-react';
 import { Department, User } from '@/types/admin';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -11,7 +11,8 @@ import { useDepartments } from '@/hooks/use-departments';
 import { useUsers } from '@/hooks/use-users';
 import DepartmentFormDialog from './DepartmentFormDialog';
 import DepartmentMembersDialog from './DepartmentMembersDialog';
-import { toast } from '@/components/ui/use-toast';
+import { DepartmentPermissionsDialog } from './DepartmentPermissionsDialog';
+import { toast } from 'sonner';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +37,7 @@ export function EnhancedDepartmentsView() {
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
+  const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [departmentToDelete, setDepartmentToDelete] = useState<Department | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -152,6 +154,12 @@ export function EnhancedDepartmentsView() {
       });
     }
   };
+
+  // Handle permissions
+  const handleManagePermissions = (department: Department) => {
+    setSelectedDepartment(department);
+    setIsPermissionsOpen(true);
+  };
   
   return (
     <div className="flex h-[calc(100vh-120px)]">
@@ -232,6 +240,13 @@ export function EnhancedDepartmentsView() {
                   onClick={() => handleViewMembers(selectedDepartment)}
                 >
                   <Users className="h-4 w-4 mr-1" /> Membros
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleManagePermissions(selectedDepartment)}
+                >
+                  <Lock className="h-4 w-4 mr-1" /> Permissões
                 </Button>
                 <Button
                   variant="outline"
@@ -347,6 +362,13 @@ export function EnhancedDepartmentsView() {
       <DepartmentMembersDialog
         open={isMembersOpen}
         onOpenChange={setIsMembersOpen}
+        department={selectedDepartment}
+      />
+      
+      {/* Department Permissions Dialog */}
+      <DepartmentPermissionsDialog
+        open={isPermissionsOpen}
+        onOpenChange={setIsPermissionsOpen}
         department={selectedDepartment}
       />
       
