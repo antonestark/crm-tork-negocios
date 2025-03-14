@@ -1,24 +1,24 @@
 
 import React, { ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuthState } from '@/hooks/use-auth-state';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from './AuthProvider';
 
 interface RequireAuthProps {
   children: ReactNode;
 }
 
 export function RequireAuth({ children }: RequireAuthProps) {
-  const { isAuthenticated, isLoading } = useAuthState();
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !user) {
       // Redirect to login page with return path
       navigate('/login', { state: { from: location.pathname } });
     }
-  }, [isAuthenticated, isLoading, navigate, location]);
+  }, [user, isLoading, navigate, location]);
 
   if (isLoading) {
     return (
@@ -31,7 +31,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return null; // Will be redirected by the useEffect
   }
 
