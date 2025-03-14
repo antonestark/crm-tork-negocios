@@ -2,7 +2,8 @@
 import React from 'react';
 import { AdminNav } from '@/components/admin/AdminNav';
 import { Separator } from '@/components/ui/separator';
-import { DepartmentsView } from '@/components/admin/departments/DepartmentsView';
+import { EnhancedDepartmentsView } from '@/components/admin/departments/EnhancedDepartmentsView';
+import { PermissionGuard } from '@/components/admin/permissions/PermissionGuard';
 
 export default function DepartmentsPage() {
   return (
@@ -19,7 +20,9 @@ export default function DepartmentsPage() {
       <div className="flex h-full">
         <AdminNav />
         <div className="w-full p-4">
-          <DepartmentsView />
+          <PermissionGuard permissionCode="admin:departments:view">
+            <EnhancedDepartmentsView />
+          </PermissionGuard>
         </div>
       </div>
     </div>

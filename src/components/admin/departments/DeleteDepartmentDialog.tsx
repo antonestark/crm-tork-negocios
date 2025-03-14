@@ -1,48 +1,47 @@
 
 import React from 'react';
-import { ConfirmDialog } from '@/components/admin/shared/ConfirmDialog';
-import { toast } from '@/components/ui/use-toast';
-import { Department } from '@/types/admin';
+import {
+  AlertDialog as AlertDialogBase,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
-interface DeleteDepartmentDialogProps {
+interface AlertDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  department: Department | null;
-  onDelete: () => void;
-  hasDependentEntities: boolean;
+  title: string;
+  description: string;
+  onConfirm: () => void;
 }
 
-export function DeleteDepartmentDialog({
+export function AlertDialog({
   open,
   onOpenChange,
-  department,
-  onDelete,
-  hasDependentEntities
-}: DeleteDepartmentDialogProps) {
-  const handleConfirm = () => {
-    if (!department) return;
-    
-    onDelete();
-    toast({
-      title: "Departamento excluído",
-      description: `O departamento ${department.name} foi excluído com sucesso.`,
-    });
-  };
-
-  const description = hasDependentEntities
-    ? `O departamento ${department?.name} possui usuários ou subdepartamentos vinculados. A exclusão irá remover todas as associações.`
-    : `Tem certeza que deseja excluir o departamento ${department?.name}? Esta ação não pode ser desfeita.`;
-
+  title,
+  description,
+  onConfirm
+}: AlertDialogProps) {
   return (
-    <ConfirmDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Excluir Departamento"
-      description={description}
-      onConfirm={handleConfirm}
-      confirmText="Excluir"
-      cancelText="Cancelar"
-      variant="destructive"
-    />
+    <AlertDialogBase open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {description}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground">
+            Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialogBase>
   );
 }
