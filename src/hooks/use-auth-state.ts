@@ -65,7 +65,8 @@ export const useAuthState = () => {
           userId: session?.user?.id || null,
           sessionExpired: false,
         });
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      } else if (event === 'SIGNED_OUT') {
+        // Removed USER_DELETED as it's not in the valid event types
         setAuthState({
           isAuthenticated: false,
           isLoading: false,
