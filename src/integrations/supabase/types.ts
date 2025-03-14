@@ -201,6 +201,66 @@ export type Database = {
         }
         Relationships: []
       }
+      CAMPANHA_FACEBOOK_ADS: {
+        Row: {
+          alcance: number | null
+          campanha: string | null
+          cliques: number | null
+          cpc: number | null
+          cpm: number | null
+          data: string | null
+          data_de_registro: string | null
+          dispositivo: string | null
+          frequencia: number | null
+          gasto: number | null
+          genero: string | null
+          id: number
+          idade: string | null
+          impressoes: number | null
+          pais: string | null
+          plataforma: string | null
+          regiao: string | null
+        }
+        Insert: {
+          alcance?: number | null
+          campanha?: string | null
+          cliques?: number | null
+          cpc?: number | null
+          cpm?: number | null
+          data?: string | null
+          data_de_registro?: string | null
+          dispositivo?: string | null
+          frequencia?: number | null
+          gasto?: number | null
+          genero?: string | null
+          id?: number
+          idade?: string | null
+          impressoes?: number | null
+          pais?: string | null
+          plataforma?: string | null
+          regiao?: string | null
+        }
+        Update: {
+          alcance?: number | null
+          campanha?: string | null
+          cliques?: number | null
+          cpc?: number | null
+          cpm?: number | null
+          data?: string | null
+          data_de_registro?: string | null
+          dispositivo?: string | null
+          frequencia?: number | null
+          gasto?: number | null
+          genero?: string | null
+          id?: number
+          idade?: string | null
+          impressoes?: number | null
+          pais?: string | null
+          plataforma?: string | null
+          regiao?: string | null
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           active: boolean | null
@@ -1204,6 +1264,33 @@ export type Database = {
           telefonecliente?: string
           updated_at?: string | null
           usuarioid?: string | null
+        }
+        Relationships: []
+      }
+      traqueamento_do_whatsapp: {
+        Row: {
+          atendentes: string | null
+          campanhas: string | null
+          canal: string | null
+          data_registro: string | null
+          id: number
+          quantidades_leads_atendidos: number | null
+        }
+        Insert: {
+          atendentes?: string | null
+          campanhas?: string | null
+          canal?: string | null
+          data_registro?: string | null
+          id?: number
+          quantidades_leads_atendidos?: number | null
+        }
+        Update: {
+          atendentes?: string | null
+          campanhas?: string | null
+          canal?: string | null
+          data_registro?: string | null
+          id?: number
+          quantidades_leads_atendidos?: number | null
         }
         Relationships: []
       }

@@ -90,6 +90,7 @@ export const useServiceAreasData = () => {
 
   const createServiceArea = async (areaData: Omit<ServiceArea, 'id' | 'task_count' | 'pending_tasks' | 'delayed_tasks'>) => {
     try {
+      // Ensure we're using the authenticated client
       const { data, error } = await supabase
         .from("service_areas")
         .insert([{
@@ -101,14 +102,23 @@ export const useServiceAreasData = () => {
         }])
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error details:", error);
+        if (error.code === '42501') {
+          throw new Error("Permissão negada. Sua sessão pode ter expirado.");
+        }
+        throw error;
+      }
       
-      toast.success("Área de serviço criada com sucesso");
-      fetchServiceAreas();
+      await fetchServiceAreas(); // Refresh the list after creating
       return data[0];
     } catch (err) {
       console.error("Error creating service area:", err);
-      toast.error("Falha ao criar área de serviço");
+      if (err instanceof Error) {
+        toast.error(`Falha ao criar área de serviço: ${err.message}`);
+      } else {
+        toast.error("Falha ao criar área de serviço");
+      }
       throw err;
     }
   };
@@ -126,7 +136,14 @@ export const useServiceAreasData = () => {
         })
         .eq("id", id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error details:", error);
+        if (error.code === '42501') {
+          toast.error("Permissão negada. Sua sessão pode ter expirado.");
+          return false;
+        }
+        throw error;
+      }
       
       toast.success("Área de serviço atualizada com sucesso");
       fetchServiceAreas();

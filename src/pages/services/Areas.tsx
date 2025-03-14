@@ -24,7 +24,16 @@ const AreasPage = () => {
       toast.success("Área criada com sucesso");
     } catch (err) {
       console.error("Erro ao criar área:", err);
-      toast.error("Falha ao criar área");
+      
+      // Check if the error is related to authentication
+      if (err instanceof Error && 
+         (err.message.includes("auth") || 
+          err.message.includes("permission") || 
+          err.message.includes("session"))) {
+        toast.error("Erro de autenticação. Por favor, verifique se você está logado.");
+      } else {
+        toast.error("Falha ao criar área");
+      }
     } finally {
       setIsSubmitting(false);
     }
