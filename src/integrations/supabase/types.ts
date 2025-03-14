@@ -1492,6 +1492,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_session_valid: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       ivfflat_bit_support: {
         Args: {
           "": unknown

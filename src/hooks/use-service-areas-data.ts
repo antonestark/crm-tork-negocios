@@ -1,7 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuthState } from './use-auth-state';
 
 export type ServiceArea = {
   id: string;
@@ -19,30 +20,28 @@ export const useServiceAreasData = () => {
   const [areas, setAreas] = useState<ServiceArea[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { isAuthenticated, sessionExpired, refreshSession } = useAuthState();
 
-  useEffect(() => {
-    fetchServiceAreas();
-    
-    // Set up a realtime subscription for area updates
-    const subscription = supabase
-      .channel('service_areas_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'service_areas' 
-      }, () => {
-        fetchServiceAreas();
-      })
-      .subscribe();
-      
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchServiceAreas = async () => {
+  const fetchServiceAreas = useCallback(async () => {
     try {
+      if (!isAuthenticated) {
+        console.warn("Not authenticated, skipping fetch");
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+      setError(null);
+      
+      // Check session validity before making the request
+      if (sessionExpired) {
+        const refreshed = await refreshSession();
+        if (!refreshed) {
+          throw new Error("Sua sessão expirou. Por favor, faça login novamente.");
+        }
+      }
+      
+      console.log("Fetching service areas...");
       
       // Fetch service areas with task counts
       const { data, error } = await supabase
@@ -56,7 +55,17 @@ export const useServiceAreasData = () => {
         `)
         .order("name", { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        
+        if (error.code === '42501' || error.message.includes("permission") || error.message.includes("JWTClaimsSetVerificationException")) {
+          throw new Error("Permissão negada. Sua sessão pode ter expirado.");
+        }
+        
+        throw error;
+      }
+      
+      console.log("Received data:", data);
       
       // Process the data to include task counts
       const processedAreas: ServiceArea[] = data.map(area => {
@@ -82,14 +91,58 @@ export const useServiceAreasData = () => {
     } catch (err) {
       console.error("Error fetching service areas:", err);
       setError(err as Error);
-      toast.error("Erro ao carregar áreas de serviço");
+      
+      // Handle specific error messages
+      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido";
+      
+      if (errorMessage.includes("session")) {
+        toast.error("Sua sessão expirou. Por favor, faça login novamente.");
+      } else if (errorMessage.includes("permission") || errorMessage.includes("denied")) {
+        toast.error("Você não tem permissão para acessar estas informações.");
+      } else {
+        toast.error(`Erro ao carregar áreas de serviço: ${errorMessage}`);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, sessionExpired, refreshSession]);
+
+  useEffect(() => {
+    fetchServiceAreas();
+    
+    // Set up a realtime subscription for area updates
+    const subscription = supabase
+      .channel('service_areas_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'service_areas' 
+      }, () => {
+        fetchServiceAreas();
+      })
+      .subscribe();
+      
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchServiceAreas]);
 
   const createServiceArea = async (areaData: Omit<ServiceArea, 'id' | 'task_count' | 'pending_tasks' | 'delayed_tasks'>) => {
     try {
+      if (!isAuthenticated) {
+        throw new Error("Você precisa estar autenticado para criar uma área.");
+      }
+
+      // Check session validity before making the request
+      if (sessionExpired) {
+        const refreshed = await refreshSession();
+        if (!refreshed) {
+          throw new Error("Sua sessão expirou. Por favor, faça login novamente.");
+        }
+      }
+      
+      console.log("Creating service area:", areaData);
+      
       // Ensure we're using the authenticated client
       const { data, error } = await supabase
         .from("service_areas")
@@ -103,28 +156,55 @@ export const useServiceAreasData = () => {
         .select();
       
       if (error) {
-        console.error("Error details:", error);
+        console.error("Error creating area:", error);
+        
         if (error.code === '42501') {
-          throw new Error("Permissão negada. Sua sessão pode ter expirado.");
+          throw new Error("Permissão negada. Verifique sua autenticação.");
+        } else if (error.code === 'PGRST301') {
+          throw new Error("Sua sessão expirou. Por favor, faça login novamente.");
+        } else if (error.message.includes("JWTClaimsSetVerificationException")) {
+          throw new Error("Token inválido. Por favor, faça login novamente.");
         }
+        
         throw error;
       }
       
+      console.log("Area created successfully:", data);
       await fetchServiceAreas(); // Refresh the list after creating
       return data[0];
     } catch (err) {
-      console.error("Error creating service area:", err);
+      console.error("Error in createServiceArea:", err);
+      
       if (err instanceof Error) {
-        toast.error(`Falha ao criar área de serviço: ${err.message}`);
+        // Check if it's an authentication error
+        if (err.message.includes("auth") || 
+            err.message.includes("permission") || 
+            err.message.includes("session") ||
+            err.message.includes("token") ||
+            err.message.includes("JWT")) {
+          throw new Error("Erro de autenticação. Por favor, verifique se você está logado.");
+        }
+        throw err;
       } else {
-        toast.error("Falha ao criar área de serviço");
+        throw new Error("Falha ao criar área de serviço");
       }
-      throw err;
     }
   };
 
   const updateServiceArea = async (id: string, areaData: Partial<ServiceArea>) => {
     try {
+      if (!isAuthenticated) {
+        throw new Error("Você precisa estar autenticado para atualizar uma área.");
+      }
+
+      // Check session validity before making the request
+      if (sessionExpired) {
+        const refreshed = await refreshSession();
+        if (!refreshed) {
+          throw new Error("Sua sessão expirou. Por favor, faça login novamente.");
+        }
+      }
+
       const { error } = await supabase
         .from("service_areas")
         .update({
@@ -150,7 +230,12 @@ export const useServiceAreasData = () => {
       return true;
     } catch (err) {
       console.error("Error updating service area:", err);
-      toast.error("Falha ao atualizar área de serviço");
+      
+      if (err instanceof Error) {
+        toast.error(`Falha ao atualizar área: ${err.message}`);
+      } else {
+        toast.error("Falha ao atualizar área de serviço");
+      }
       return false;
     }
   };
@@ -161,6 +246,7 @@ export const useServiceAreasData = () => {
     error,
     fetchServiceAreas,
     createServiceArea,
-    updateServiceArea
+    updateServiceArea,
+    isAuthenticated
   };
 };

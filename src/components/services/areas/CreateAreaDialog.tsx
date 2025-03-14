@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CreateAreaForm } from "./CreateAreaForm";
 import { ServiceArea } from "@/hooks/use-service-areas-data";
@@ -9,21 +10,49 @@ import { toast } from "sonner";
 interface CreateAreaDialogProps {
   onCreateArea: (data: Omit<ServiceArea, 'id' | 'task_count' | 'pending_tasks' | 'delayed_tasks'>) => Promise<void>;
   isSubmitting: boolean;
+  isAuthenticated: boolean;
 }
 
-export const CreateAreaDialog = ({ onCreateArea, isSubmitting }: CreateAreaDialogProps) => {
+export const CreateAreaDialog = ({ onCreateArea, isSubmitting, isAuthenticated }: CreateAreaDialogProps) => {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen && !isAuthenticated) {
+      toast.error("Você precisa estar autenticado para criar uma área");
+      return;
+    }
+    
+    setOpen(newOpen);
+    if (!newOpen) {
+      setError(null); // Clear error when dialog is closed
+    }
+  };
+  
   const handleSubmit = async (values: Omit<ServiceArea, 'id' | 'task_count' | 'pending_tasks' | 'delayed_tasks'>) => {
     try {
+      if (!isAuthenticated) {
+        setError("Você precisa estar autenticado para criar uma área.");
+        return;
+      }
+      
       setError(null);
+      console.log("Submitting form with values:", values);
       await onCreateArea(values);
       setOpen(false);
     } catch (err) {
       console.error("Error in dialog submit:", err);
+      
       if (err instanceof Error) {
-        setError(err.message);
+        if (err.message.includes("auth") || 
+            err.message.includes("permission") || 
+            err.message.includes("session") ||
+            err.message.includes("token") ||
+            err.message.includes("JWT")) {
+          setError("Erro de autenticação. Por favor, faça login novamente.");
+        } else {
+          setError(err.message);
+        }
       } else {
         setError("Erro ao criar área");
       }
@@ -32,16 +61,20 @@ export const CreateAreaDialog = ({ onCreateArea, isSubmitting }: CreateAreaDialo
   };
   
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      setOpen(newOpen);
-      if (!newOpen) {
-        setError(null); // Clear error when dialog is closed
-      }
-    }}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Área
+        <Button disabled={!isAuthenticated}>
+          {isAuthenticated ? (
+            <>
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Área
+            </>
+          ) : (
+            <>
+              <Lock className="mr-2 h-4 w-4" />
+              Login Necessário
+            </>
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent>
