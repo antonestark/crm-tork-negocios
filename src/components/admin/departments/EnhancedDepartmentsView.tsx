@@ -5,8 +5,8 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DepartmentList } from './DepartmentList';
 import { DepartmentDetails } from './DepartmentDetails';
-import { DepartmentFormDialog } from './DepartmentFormDialog';
-import { DepartmentMembersDialog } from './DepartmentMembersDialog';
+import DepartmentFormDialog from './DepartmentFormDialog'; // Changed from named import to default import
+import DepartmentMembersDialog from './DepartmentMembersDialog'; // Changed from named import to default import
 import { DepartmentPermissionsDialog } from './DepartmentPermissionsDialog';
 import { Department } from '@/types/admin';
 import { useDepartments } from '@/hooks/use-departments';
