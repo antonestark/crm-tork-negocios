@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -83,8 +84,7 @@ export function EnhancedDepartmentsView() {
     
     const departmentMembers = getDepartmentMembers(departmentToDelete.id);
     if (departmentMembers.length > 0) {
-      toast({
-        title: "Não é possível excluir",
+      toast("Não é possível excluir", {
         description: "Este departamento possui membros associados. Remova os membros primeiro.",
         variant: "destructive"
       });
@@ -94,16 +94,14 @@ export function EnhancedDepartmentsView() {
     
     const success = await deleteDepartment(departmentToDelete.id);
     if (success) {
-      toast({
-        title: "Departamento excluído",
+      toast("Departamento excluído", {
         description: "O departamento foi excluído com sucesso."
       });
       if (selectedDepartment?.id === departmentToDelete.id) {
         setSelectedDepartment(null);
       }
     } else {
-      toast({
-        title: "Erro",
+      toast("Erro", {
         description: "Não foi possível excluir o departamento.",
         variant: "destructive"
       });
@@ -129,8 +127,7 @@ export function EnhancedDepartmentsView() {
       });
       
       if (success) {
-        toast({
-          title: "Departamento atualizado",
+        toast("Departamento atualizado", {
           description: "As alterações foram salvas com sucesso."
         });
       }
@@ -139,16 +136,14 @@ export function EnhancedDepartmentsView() {
       success = await addDepartment(data as Department);
       
       if (success) {
-        toast({
-          title: "Departamento criado",
+        toast("Departamento criado", {
           description: "O novo departamento foi criado com sucesso."
         });
       }
     }
     
     if (!success) {
-      toast({
-        title: "Erro",
+      toast("Erro", {
         description: "Ocorreu um erro ao salvar o departamento.",
         variant: "destructive"
       });
