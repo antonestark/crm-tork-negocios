@@ -17,17 +17,18 @@ export const useAuthState = () => {
     try {
       const { data, error } = await supabase.auth.refreshSession();
       if (error) {
-        console.error("Error refreshing session:", error);
+        console.error("Erro ao atualizar sessão:", error);
         toast.error("Sua sessão expirou. Por favor, faça login novamente.");
         return false;
       }
       
       if (data.session) {
+        console.log("Sessão atualizada com sucesso");
         return true;
       }
       return false;
     } catch (err) {
-      console.error("Session refresh failed:", err);
+      console.error("Falha na atualização da sessão:", err);
       return false;
     }
   };

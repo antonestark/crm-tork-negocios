@@ -1,12 +1,26 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { LoginForm } from '@/components/auth/LoginForm';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuthState } from '@/hooks/use-auth-state';
 import { Loader2 } from 'lucide-react';
 
 export default function Login() {
-  const { isAuthenticated, isLoading } = useAuthState();
+  const { isAuthenticated, isLoading, sessionExpired } = useAuthState();
+  const location = useLocation();
+  const from = location.state?.from || '/';
+
+  // Verifica se há um erro de login na URL (redirecionamento de sessão expirada)
+  const searchParams = new URLSearchParams(location.search);
+  const loginError = searchParams.get('error');
+  const errorDescription = searchParams.get('error_description');
+
+  useEffect(() => {
+    // Exibir mensagem de erro se existir
+    if (loginError && errorDescription) {
+      console.error("Erro de login:", errorDescription);
+    }
+  }, [loginError, errorDescription]);
 
   if (isLoading) {
     return (
@@ -19,8 +33,8 @@ export default function Login() {
     );
   }
 
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+  if (isAuthenticated && !sessionExpired) {
+    return <Navigate to={from} replace />;
   }
 
   return (

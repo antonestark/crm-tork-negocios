@@ -3,6 +3,8 @@ import React, { ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
+import { useAuthState } from '@/hooks/use-auth-state';
+import { toast } from 'sonner';
 
 interface RequireAuthProps {
   children: ReactNode;
@@ -10,15 +12,28 @@ interface RequireAuthProps {
 
 export function RequireAuth({ children }: RequireAuthProps) {
   const { user, isLoading } = useAuth();
+  const { sessionExpired, refreshSession } = useAuthState();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      // Redirect to login page with return path
-      navigate('/login', { state: { from: location.pathname } });
+    if (!isLoading) {
+      if (!user) {
+        // Redirect to login page with return path
+        navigate('/login', { state: { from: location.pathname } });
+      } else if (sessionExpired) {
+        // Tentar renovar a sessão
+        const tryRefresh = async () => {
+          const success = await refreshSession();
+          if (!success) {
+            toast.error("Sessão expirada. Por favor, faça login novamente.");
+            navigate('/login', { state: { from: location.pathname } });
+          }
+        };
+        tryRefresh();
+      }
     }
-  }, [user, isLoading, navigate, location]);
+  }, [user, isLoading, sessionExpired, navigate, location, refreshSession]);
 
   if (isLoading) {
     return (

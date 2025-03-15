@@ -1267,6 +1267,24 @@ export type Database = {
           },
         ]
       }
+      tork_chat_histories: {
+        Row: {
+          id: number
+          message: Json
+          session_id: string
+        }
+        Insert: {
+          id?: number
+          message: Json
+          session_id: string
+        }
+        Update: {
+          id?: number
+          message?: Json
+          session_id?: string
+        }
+        Relationships: []
+      }
       tork_gestao: {
         Row: {
           created_at: string | null
