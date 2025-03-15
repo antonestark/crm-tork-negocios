@@ -55,12 +55,39 @@ export async function getAllDatabaseTables(): Promise<TableInfo[]> {
     // Get counts for each table (where we can)
     const tableInfoPromises = knownTables.map(async (tableName) => {
       try {
-        // Try to count rows in this table
-        const { count, error } = await supabase
-          .from(tableName)
-          .select('*', { count: 'exact', head: true });
+        let rowCount = 0;
         
-        const rowCount = error ? 0 : (count || 0);
+        // Use a type-safe approach for counting rows
+        // We need to handle this in a type-safe way without dynamic table names
+        if (tableName === 'users') {
+          const { count, error } = await supabase.from('users').select('*', { count: 'exact', head: true });
+          rowCount = error ? 0 : (count || 0);
+        } else if (tableName === 'clients') {
+          const { count, error } = await supabase.from('clients').select('*', { count: 'exact', head: true });
+          rowCount = error ? 0 : (count || 0);
+        } else if (tableName === 'departments') {
+          const { count, error } = await supabase.from('departments').select('*', { count: 'exact', head: true });
+          rowCount = error ? 0 : (count || 0);
+        } else if (tableName === 'permissions') {
+          const { count, error } = await supabase.from('permissions').select('*', { count: 'exact', head: true });
+          rowCount = error ? 0 : (count || 0);
+        } else if (tableName === 'activity_logs') {
+          const { count, error } = await supabase.from('activity_logs').select('*', { count: 'exact', head: true });
+          rowCount = error ? 0 : (count || 0);
+        } else if (tableName === 'scheduling') {
+          const { count, error } = await supabase.from('scheduling').select('*', { count: 'exact', head: true });
+          rowCount = error ? 0 : (count || 0);
+        } else if (tableName === 'demands') {
+          const { count, error } = await supabase.from('demands').select('*', { count: 'exact', head: true });
+          rowCount = error ? 0 : (count || 0);
+        } else if (tableName === 'leads') {
+          const { count, error } = await supabase.from('leads').select('*', { count: 'exact', head: true });
+          rowCount = error ? 0 : (count || 0);
+        } else {
+          // For other tables, we'll assume they're valid but we can't count them
+          // This is a limitation since we'd need a server-side function to get all table rows
+          rowCount = -1; // -1 indicates unknown row count
+        }
         
         const isProtected = PROTECTED_TABLES.includes(tableName);
         const isSystem = SYSTEM_TABLES.includes(tableName) || tableName.startsWith('pg_');
@@ -91,7 +118,7 @@ export async function getAllDatabaseTables(): Promise<TableInfo[]> {
           schema: 'public',
           references: [],
           isReferenced: false,
-          rowCount,
+          rowCount: rowCount === -1 ? 0 : rowCount,
           lastAccessed: null,
           riskLevel,
           recommendation
@@ -240,7 +267,7 @@ export async function scanCodeForTableUsage(tables: TableInfo[]): Promise<TableI
     if (isLikelyUsed && table.riskLevel !== 'safe') {
       return {
         ...table,
-        riskLevel: 'low',
+        riskLevel: 'low' as const,
         recommendation: 'Provável uso no código, verificar antes de remover'
       };
     }
