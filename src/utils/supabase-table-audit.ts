@@ -107,7 +107,7 @@ export async function getAllDatabaseTables(): Promise<TableInfo[]> {
           isReferenced: false,
           rowCount: 0,
           lastAccessed: null,
-          riskLevel: 'low',
+          riskLevel: 'low' as const,
           recommendation: 'Erro ao analisar tabela, verificar manualmente'
         };
       }
