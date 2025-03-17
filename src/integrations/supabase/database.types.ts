@@ -1,4 +1,5 @@
 
+
 // This file augments the Database interface from the original types.ts file
 // without modifying the read-only file directly
 
@@ -6,13 +7,13 @@ export interface Services {
   Row: {
     id: string;
     title: string;
-    description?: string | null;
-    status?: string | null;
-    area_id?: string | null;
-    created_at?: string | null;
-    updated_at?: string | null;
-    assigned_to?: string | null;
-    due_date?: string | null;
+    description: string;   // Changed from optional to required
+    status: string;        // Changed from optional to required
+    area_id: string;       // Changed from optional to required
+    created_at: string;    // Changed from optional to required
+    updated_at: string;    // Changed from optional to required
+    assigned_to: string;   // Changed from optional to required
+    due_date: string;      // Changed from optional to required
   };
   Insert: {
     id?: string;
@@ -51,15 +52,15 @@ export interface ServiceReports {
   Row: {
     id: string;
     report_date: string;
-    area_id: string;  // Changed from optional to required to match the expected type
+    area_id: string;
     average_completion_time: number;
-    created_by: string;  // Changed from optional to required
-    created_at: string;  // Changed from optional to required
-    updated_at: string;  // Changed from optional to required
-    completed_tasks: number;  // Changed from optional to required
-    pending_tasks: number;  // Changed from optional to required
-    delayed_tasks: number;  // Changed from optional to required
-    completion_rate: number;  // Changed from optional to required
+    created_by: string;
+    created_at: string;
+    updated_at: string;
+    completed_tasks: number;
+    pending_tasks: number;
+    delayed_tasks: number;
+    completion_rate: number;
   };
   Insert: {
     id?: string;
@@ -178,3 +179,4 @@ declare global {
 
 // Export the Database type from types.ts as DatabaseTypes to avoid name conflicts
 export type { Database } from './types';
+
