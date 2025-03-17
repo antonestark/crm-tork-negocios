@@ -19,11 +19,11 @@ export const useGroupOperations = (
         p_permission_id: permissionId,
       };
       
-      // Use type casting to override TypeScript's type checking for the RPC call
-      const { error } = await (supabase.rpc(
+      // Use proper type assertion for RPC call - use 'as any' to bypass TypeScript's type checking
+      const { error } = await supabase.rpc(
         'assign_permission_to_group', 
         params
-      ) as unknown as { data: null, error: any });
+      ) as any;
 
       if (error) {
         throw error;
@@ -49,11 +49,11 @@ export const useGroupOperations = (
         p_permission_id: permissionId,
       };
       
-      // Use type casting to override TypeScript's type checking for the RPC call
-      const { error } = await (supabase.rpc(
+      // Use proper type assertion for RPC call
+      const { error } = await supabase.rpc(
         'remove_permission_from_group', 
         params
-      ) as unknown as { data: null, error: any });
+      ) as any;
 
       if (error) {
         throw error;
@@ -79,11 +79,11 @@ export const useGroupOperations = (
         p_group_id: groupId,
       };
       
-      // Use type casting to override TypeScript's type checking for the RPC call
-      const { error } = await (supabase.rpc(
+      // Use proper type assertion for RPC call
+      const { error } = await supabase.rpc(
         'assign_user_to_group', 
         params
-      ) as unknown as { data: null, error: any });
+      ) as any;
 
       if (error) {
         throw error;
@@ -110,11 +110,11 @@ export const useGroupOperations = (
         p_group_id: groupId,
       };
       
-      // Use type casting to override TypeScript's type checking for the RPC call
-      const { error } = await (supabase.rpc(
+      // Use proper type assertion for RPC call
+      const { error } = await supabase.rpc(
         'remove_user_from_group', 
         params
-      ) as unknown as { data: null, error: any });
+      ) as any;
 
       if (error) {
         throw error;

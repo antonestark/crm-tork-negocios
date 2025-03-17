@@ -38,21 +38,21 @@ export const useServiceReports = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch reports with area information
-      const { data, error: reportsError } = await (supabase
+      // Fetch reports with area information - use "as any" to bypass TypeScript's strict checking
+      const { data, error: reportsError } = await supabase
         .from('service_reports')
         .select(`
           *,
           service_areas (name)
         `)
         .order('report_date', { ascending: false })
-        .limit(10) as unknown as { data: any[], error: any });
+        .limit(10) as any;
 
       if (reportsError) throw reportsError;
 
       // Fetch aggregated metrics
-      const { data: metricsData, error: metricsError } = await (supabase
-        .rpc('get_service_metrics') as unknown as { data: any, error: any });
+      const { data: metricsData, error: metricsError } = await supabase
+        .rpc('get_service_metrics') as any;
 
       if (metricsError) throw metricsError;
 

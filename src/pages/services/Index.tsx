@@ -54,12 +54,9 @@ const ServicesPage = () => {
     try {
       setStatsLoading(true);
       
-      // Use proper type assertion for RPC calls
-      const { data, error } = await (supabase
-        .rpc('get_service_statistics') as unknown as {
-          data: ServiceStatisticsResult | null, 
-          error: any
-        });
+      // Use "as any" type assertion for RPC calls to bypass TypeScript's strict checking
+      const { data, error } = await supabase
+        .rpc('get_service_statistics') as any;
       
       if (error) throw error;
       
