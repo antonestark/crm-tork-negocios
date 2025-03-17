@@ -3,130 +3,78 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Export the ServiceArea type so it can be used in other files
 export interface ServiceArea {
   id: string;
   name: string;
-  description: string | null;
-  responsible_id?: string | null;
-  status: string | null;
-  type: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-  task_count: number;
-  pending_tasks: number;
-  delayed_tasks: number;
+  description?: string;
+  manager_id?: string;
+  status: 'active' | 'inactive';
+  services_count: number;
+  pending_services: number;
+  created_at: string;
 }
 
-// Add a type for the RPC result to fix TypeScript errors
-interface CountServicesByAreaResult {
-  area_id: string;
-  count: number;
+interface ServiceAreasResult {
+  areas: ServiceArea[];
+  loading: boolean;
+  error: Error | null;
+  refresh: () => Promise<void>;
 }
 
-export const useServiceAreasData = () => {
+export const useServiceAreasData = (): ServiceAreasResult => {
   const [areas, setAreas] = useState<ServiceArea[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
-      // Check authentication
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-      
-      if (sessionError) {
-        console.warn("Auth session error:", sessionError);
-      }
-      
+      setLoading(true);
+      setError(null);
+
       // Fetch service areas
       const { data: areasData, error: areasError } = await supabase
-        .from("service_areas")
-        .select(`*`)
-        .eq("status", "active")
-        .order("name", { ascending: true });
-      
-      if (areasError) {
-        console.error("Error fetching areas:", areasError);
-        toast.error("Erro ao carregar áreas de serviço");
-        throw areasError;
+        .from('service_areas')
+        .select('*')
+        .order('name');
+
+      if (areasError) throw areasError;
+
+      // Get service counts for each area
+      const { data: countData, error: countError } = await supabase
+        .rpc('count_services_by_area') as { data: any[], error: any };
+
+      if (countError) {
+        console.error('Error counting services:', countError);
+        throw countError;
       }
-      
-      // Use a direct function call to count services by area with proper type assertion
-      const { data: servicesCountData, error: servicesCountError } = await supabase
-        .rpc('count_services_by_area') as {
-          data: CountServicesByAreaResult[] | null, 
-          error: any 
-        };
-      
-      if (servicesCountError) {
-        console.error("Error counting services:", servicesCountError);
-      }
-      
-      // Process data to create ServiceArea objects
-      const serviceCountArray = Array.isArray(servicesCountData) ? servicesCountData : [];
-      const processedAreas: ServiceArea[] = (areasData || []).map(area => {
-        const areaCount = serviceCountArray.find(s => s.area_id === area.id);
-        
+
+      // Map counts to areas
+      const areasWithCounts = areasData.map((area: any) => {
+        const countInfo = countData?.find(
+          (item: any) => item.area_id === area.id
+        ) || { total: 0, pending: 0 };
+
         return {
-          id: area.id,
-          name: area.name,
-          description: area.description || null,
-          responsible_id: area.responsible_id,
-          type: area.type || "standard",
-          status: area.status || "active",
-          created_at: area.created_at,
-          updated_at: area.updated_at,
-          task_count: areaCount ? Number(areaCount.count) : 0,
-          pending_tasks: 0,  // Will be updated with real data
-          delayed_tasks: 0   // Will be updated with real data
+          ...area,
+          services_count: countInfo.total || 0,
+          pending_services: countInfo.pending || 0,
         };
       });
-      
-      setAreas(processedAreas);
-    } catch (error) {
-      console.error("Error fetching service areas data:", error);
-      setError(error as Error);
+
+      setAreas(areasWithCounts);
+    } catch (err) {
+      console.error('Error fetching service areas:', err);
+      setError(err as Error);
+      toast.error('Erro ao carregar áreas de serviço');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const createServiceArea = async (areaData: Omit<ServiceArea, 'id' | 'task_count' | 'pending_tasks' | 'delayed_tasks'>) => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error("Authentication required to create service area");
-      }
-      
-      const { data, error } = await supabase
-        .from("service_areas")
-        .insert({
-          name: areaData.name,
-          description: areaData.description,
-          type: areaData.type,
-          status: areaData.status
-        })
-        .select()
-        .single();
-        
-      if (error) throw error;
-      
-      // Refresh data after creating new area
-      fetchData();
-      return data;
-    } catch (error) {
-      console.error("Error creating service area:", error);
-      throw error;
     }
   };
 
   useEffect(() => {
     fetchData();
     
+    // Set up a subscription for real-time updates
     const subscription = supabase
       .channel('service_areas_changes')
       .on('postgres_changes', { 
@@ -143,5 +91,5 @@ export const useServiceAreasData = () => {
     };
   }, []);
 
-  return { areas, loading, error, refreshData: fetchData, createServiceArea, isAuthenticated };
+  return { areas, loading, error, refresh: fetchData };
 };
