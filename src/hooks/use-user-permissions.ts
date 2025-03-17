@@ -92,7 +92,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('assign_permission_to_group', {
         p_group_id: groupId,
         p_permission_id: permissionId,
-      } as RpcFunctionParams);
+      } as unknown as RpcFunctionParams);
 
       if (error) {
         throw error;
@@ -114,7 +114,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('remove_permission_from_group', {
         p_group_id: groupId,
         p_permission_id: permissionId,
-      } as RpcFunctionParams);
+      } as unknown as RpcFunctionParams);
 
       if (error) {
         throw error;
@@ -136,7 +136,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('assign_user_to_group', {
         p_user_id: userId,
         p_group_id: groupId,
-      } as RpcFunctionParams);
+      } as unknown as RpcFunctionParams);
 
       if (error) {
         throw error;
@@ -159,7 +159,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('remove_user_from_group', {
         p_user_id: userId,
         p_group_id: groupId,
-      } as RpcFunctionParams);
+      } as unknown as RpcFunctionParams);
 
       if (error) {
         throw error;

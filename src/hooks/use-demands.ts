@@ -28,16 +28,16 @@ export const useDemands = () => {
         // Handle assigned_user safely with proper null checking
         let assignedUserName = '';
         if (d.assigned_user !== null && d.assigned_user !== undefined) {
-          if (typeof d.assigned_user === 'object') {
-            assignedUserName = d.assigned_user?.name || '';
+          if (typeof d.assigned_user === 'object' && d.assigned_user !== null) {
+            assignedUserName = d.assigned_user.name || '';
           }
         }
         
         // Handle requester safely with proper null checking
         let requesterName = '';
         if (d.requester !== null && d.requester !== undefined) {
-          if (typeof d.requester === 'object') {
-            requesterName = d.requester?.name || '';
+          if (typeof d.requester === 'object' && d.requester !== null) {
+            requesterName = d.requester.name || '';
           }
         }
         

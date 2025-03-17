@@ -73,7 +73,7 @@ export const useServiceReports = () => {
       
       // Use proper type assertion for RPC calls
       const { data: statsData, error: statsError } = await supabase
-        .rpc('get_service_statistics') as { data: ServiceStatisticsResult[] | null, error: any };
+        .rpc('get_service_statistics') as unknown as { data: ServiceStatisticsResult[] | null, error: any };
       
       if (statsError) throw statsError;
       
