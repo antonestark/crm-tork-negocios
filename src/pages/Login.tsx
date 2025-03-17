@@ -32,36 +32,57 @@ export default function Login() {
       setIsSubmitting(true);
       setLoginError('');
 
-      console.log('Login attempt with:', email);
+      console.log('Tentativa de login com:', email);
 
-      // Attempt to sign in with provided credentials
+      // Verificar se o usuário existe antes de tentar fazer login
+      const { data: userExists, error: userCheckError } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', email)
+        .single();
+
+      if (userCheckError && userCheckError.code !== 'PGRST116') {
+        console.warn('Erro ao verificar usuário:', userCheckError);
+        // Continuar com o login mesmo se houver erro na verificação
+      }
+
+      // Tentativa de login com as credenciais fornecidas
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (authError) {
-        console.error('Authentication error:', authError);
+        console.error('Erro de autenticação:', authError);
         
-        // Handle specific errors
+        // Tratamento de erros específicos
         if (authError.message?.includes('Invalid login')) {
           throw new Error('E-mail ou senha inválidos. Verifique suas credenciais.');
         }
 
         if (authError.message?.includes('database error')) {
-          throw new Error('Erro no banco de dados. Por favor, contate o suporte técnico.');
+          console.error('Detalhes do erro de banco de dados:', authError);
+          // Verificar se a tabela clients existe
+          const { error: tablesError } = await supabase
+            .rpc('get_all_tables');
+          
+          if (tablesError) {
+            console.error('Erro ao verificar tabelas:', tablesError);
+          }
+          
+          throw new Error('Ocorreu um erro no banco de dados. Entre em contato com o suporte técnico.');
         }
 
-        // Handle any other errors
+        // Tratamento de qualquer outro erro
         throw authError;
       }
 
-      // Success path
-      console.log('Login successful for:', email);
+      // Caminho de sucesso
+      console.log('Login realizado com sucesso para:', email);
       toast.success('Login realizado com sucesso');
       
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('Erro de login:', err);
       setLoginError(err.message || 'Ocorreu um erro ao fazer login. Tente novamente.');
       throw err;
     } finally {

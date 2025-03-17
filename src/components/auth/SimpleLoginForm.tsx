@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,6 +27,12 @@ interface SimpleLoginFormProps {
 
 export function SimpleLoginForm({ onLogin, error, isLoading = false }: SimpleLoginFormProps) {
   const [formError, setFormError] = useState<string | null>(error || null);
+
+  useEffect(() => {
+    if (error) {
+      setFormError(error);
+    }
+  }, [error]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -83,9 +89,9 @@ export function SimpleLoginForm({ onLogin, error, isLoading = false }: SimpleLog
         )}
       </div>
 
-      {(formError || error) && (
+      {formError && (
         <div className="p-3 bg-red-100 border border-red-300 rounded text-red-600 text-sm">
-          {formError || error}
+          {formError}
         </div>
       )}
 
