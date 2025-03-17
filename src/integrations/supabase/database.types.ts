@@ -90,7 +90,7 @@ export interface UserPermissionGroups {
 }
 
 // Import but don't export directly to avoid duplicate identifier
-import { Database as OriginalDatabase } from './types';
+import type { Database as OriginalDatabase } from './types';
 
 // Extend the Database interface using declaration merging
 declare module './types' {

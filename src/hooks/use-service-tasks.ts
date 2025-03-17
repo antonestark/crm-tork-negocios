@@ -47,7 +47,8 @@ export const useServiceTasks = () => {
       if (servicesError) throw servicesError;
       
       // Handle empty data case safely
-      if (!servicesData || !Array.isArray(servicesData) || servicesData.length === 0) {
+      const servicesArray = servicesData && Array.isArray(servicesData) ? servicesData : [];
+      if (servicesArray.length === 0) {
         setTasks([]);
         return;
       }
@@ -60,10 +61,10 @@ export const useServiceTasks = () => {
       if (areasError) throw areasError;
       
       // Process the data to match our ServiceTask interface with safe type handling
-      const processedTasks: ServiceTask[] = Array.isArray(servicesData) ? servicesData.map((item: any) => {
+      const areasArray = areasData && Array.isArray(areasData) ? areasData : [];
+      const processedTasks: ServiceTask[] = servicesArray.map((item: any) => {
         // Find the area name
-        const area = areasData && Array.isArray(areasData) ? 
-          areasData.find(a => a.id === item?.area_id) : null;
+        const area = areasArray.find(a => a.id === item?.area_id);
         
         // Map database status to our component status with defaults
         let taskStatus: "completed" | "ongoing" | "delayed" = "ongoing";
@@ -87,7 +88,7 @@ export const useServiceTasks = () => {
           status: taskStatus,
           time: formattedTime
         };
-      }) : [];
+      });
       
       setTasks(processedTasks);
     } catch (err) {

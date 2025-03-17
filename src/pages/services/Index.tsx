@@ -71,10 +71,9 @@ const ServicesIndex = () => {
       }
       
       // Process data to include task counts
+      const servicesCountArray = servicesCountData && Array.isArray(servicesCountData) ? servicesCountData : [];
       const processedAreas: LocalServiceArea[] = (areasData || []).map(area => {
-        const areaServiceCount = servicesCountData && Array.isArray(servicesCountData) 
-          ? servicesCountData.find((item: any) => item?.area_id === area.id)?.count || 0
-          : 0;
+        const areaServiceCount = servicesCountArray.find((item: any) => item?.area_id === area.id)?.count || 0;
         
         return {
           id: area.id,

@@ -45,7 +45,8 @@ export const useServiceReports = () => {
       if (statsError) throw statsError;
       
       // Safely handle potentially null serviceStats
-      const serviceStatsObj = serviceStats && Array.isArray(serviceStats) && serviceStats.length > 0 ? serviceStats[0] : {
+      const serviceStatsArr = serviceStats && Array.isArray(serviceStats) ? serviceStats : [];
+      const serviceStatsObj = serviceStatsArr.length > 0 ? serviceStatsArr[0] : {
         completed: 0,
         pending: 0,
         delayed: 0,
@@ -66,10 +67,11 @@ export const useServiceReports = () => {
       if (areasError) throw areasError;
       
       // Process the reports with safe type handling
-      const processedReports: ServiceReport[] = Array.isArray(reportsData) ? reportsData.map((report: any) => {
+      const reportsArr = reportsData && Array.isArray(reportsData) ? reportsData : [];
+      const processedReports: ServiceReport[] = reportsArr.map((report: any) => {
         // Look up area name from areas data
-        const area = areasData && Array.isArray(areasData) ?
-          areasData.find(a => a.id === report?.area_id) : null;
+        const areasArr = areasData && Array.isArray(areasData) ? areasData : [];
+        const area = areasArr.find(a => a.id === report?.area_id);
         
         const stringId = typeof report?.id === 'number' ? String(report.id) : report?.id || '';
         
@@ -85,7 +87,7 @@ export const useServiceReports = () => {
           created_by: report?.created_by || undefined,
           created_at: report?.created_at || new Date().toISOString()
         };
-      }) : [];
+      });
       
       setReports(processedReports);
       setMetrics({

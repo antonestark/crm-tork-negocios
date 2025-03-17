@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Demand, DemandCreate } from '@/types/demands';
@@ -30,9 +29,8 @@ export const useDemands = () => {
         if (d.assigned_user && 
             typeof d.assigned_user === 'object' && 
             !('error' in d.assigned_user) && 
-            d.assigned_user !== null && 
-            'name' in d.assigned_user) {
-          assignedUserName = d.assigned_user.name || '';
+            d.assigned_user !== null) {
+          assignedUserName = d.assigned_user?.name ?? '';
         }
         
         // Handle requester safely with null checks
@@ -40,9 +38,8 @@ export const useDemands = () => {
         if (d.requester && 
             typeof d.requester === 'object' && 
             !('error' in d.requester) && 
-            d.requester !== null &&
-            'name' in d.requester) {
-          requesterName = d.requester.name || '';
+            d.requester !== null) {
+          requesterName = d.requester?.name ?? '';
         }
         
         return {

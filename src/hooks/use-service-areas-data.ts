@@ -72,7 +72,7 @@ export const useServiceAreasData = () => {
       const processedAreas: ServiceArea[] = (areasData || []).map(area => {
         // Get service stats for this area
         const areaStats = serviceStatsByArea && Array.isArray(serviceStatsByArea) 
-          ? serviceStatsByArea.find((s: any) => s.area_id === area.id) 
+          ? serviceStatsByArea.find((s: any) => s?.area_id === area.id) 
           : null;
         
         return {
