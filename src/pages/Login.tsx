@@ -34,7 +34,7 @@ export default function Login() {
 
       console.log('Tentativa de login com:', email);
 
-      // Primeiro, tente fazer o login diretamente
+      // Tentativa de login diretamente com Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -67,6 +67,25 @@ export default function Login() {
 
         // Tratamento de qualquer outro erro
         throw authError;
+      }
+
+      // Verificar se o cliente existe, caso contrário criar um registro para ele
+      // Isso garante que a tabela clients tenha registros alinhados com auth.users
+      const { data: clientData, error: clientError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('auth_id', authData.user?.id)
+        .maybeSingle();
+
+      if (!clientData && authData.user) {
+        // Se o cliente não existir, criar um novo com dados básicos
+        await supabase.from('clients').insert({
+          name: authData.user.user_metadata.name || authData.user.email,
+          email: authData.user.email,
+          auth_id: authData.user.id,
+          status: 'active'
+        });
+        console.log('Cliente criado na tabela clients para:', authData.user.email);
       }
 
       // Caminho de sucesso
