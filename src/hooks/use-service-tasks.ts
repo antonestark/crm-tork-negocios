@@ -23,9 +23,9 @@ export const useServiceTasks = () => {
       setLoading(true);
       setError(null);
 
-      // To fix TypeScript errors, cast the entire expression to any
+      // Use type assertion to bypass TypeScript errors
       const { data, error: apiError } = await (supabase
-        .rpc('get_recent_services') as any);
+        .rpc('get_recent_services') as unknown as Promise<{ data: any[], error: any }>);
 
       if (apiError) {
         throw apiError;

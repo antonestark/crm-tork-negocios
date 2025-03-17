@@ -19,11 +19,11 @@ export const useGroupOperations = (
         p_permission_id: permissionId,
       };
       
-      // To fix TypeScript errors, we need to cast the entire expression
+      // Use type assertion to bypass TypeScript errors
       const { error } = await (supabase.rpc(
         'assign_permission_to_group', 
         params
-      ) as any);
+      ) as unknown as Promise<{ data: any, error: any }>);
 
       if (error) {
         throw error;
@@ -49,11 +49,11 @@ export const useGroupOperations = (
         p_permission_id: permissionId,
       };
       
-      // To fix TypeScript errors, we need to cast the entire expression
+      // Use type assertion to bypass TypeScript errors
       const { error } = await (supabase.rpc(
         'remove_permission_from_group', 
         params
-      ) as any);
+      ) as unknown as Promise<{ data: any, error: any }>);
 
       if (error) {
         throw error;
@@ -79,11 +79,11 @@ export const useGroupOperations = (
         p_group_id: groupId,
       };
       
-      // To fix TypeScript errors, we need to cast the entire expression
+      // Use type assertion to bypass TypeScript errors
       const { error } = await (supabase.rpc(
         'assign_user_to_group', 
         params
-      ) as any);
+      ) as unknown as Promise<{ data: any, error: any }>);
 
       if (error) {
         throw error;
@@ -110,11 +110,11 @@ export const useGroupOperations = (
         p_group_id: groupId,
       };
       
-      // To fix TypeScript errors, we need to cast the entire expression
+      // Use type assertion to bypass TypeScript errors
       const { error } = await (supabase.rpc(
         'remove_user_from_group', 
         params
-      ) as any);
+      ) as unknown as Promise<{ data: any, error: any }>);
 
       if (error) {
         throw error;

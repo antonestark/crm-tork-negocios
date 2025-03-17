@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useServiceAreasData } from '@/hooks/use-service-areas-data';
@@ -48,13 +49,13 @@ const ServicesPage = () => {
     };
   }, []);
 
-  // To fix TypeScript errors, cast the entire expression to any
+  // Use type assertion to bypass TypeScript errors
   const fetchServiceStats = async () => {
     try {
       setStatsLoading(true);
       
       const { data, error } = await (supabase
-        .rpc('get_service_statistics') as any);
+        .rpc('get_service_statistics') as unknown as Promise<{ data: ServiceStatisticsResult, error: any }>);
       
       if (error) throw error;
       
