@@ -31,7 +31,7 @@ export const useDemands = () => {
           if (typeof d.assigned_user === 'object' && 
               d.assigned_user !== null &&
               !('error' in d.assigned_user)) {
-            assignedUserName = d.assigned_user.name ?? '';
+            assignedUserName = d.assigned_user?.name ?? '';
           }
         }
         
@@ -41,7 +41,7 @@ export const useDemands = () => {
           if (typeof d.requester === 'object' && 
               d.requester !== null &&
               !('error' in d.requester)) {
-            requesterName = d.requester.name ?? '';
+            requesterName = d.requester?.name ?? '';
           }
         }
         
