@@ -63,27 +63,27 @@ export const useServiceTasks = () => {
       const processedTasks: ServiceTask[] = Array.isArray(servicesData) ? servicesData.map((item: any) => {
         // Find the area name
         const area = areasData && Array.isArray(areasData) ? 
-          areasData.find(a => a.id === item.area_id) : null;
+          areasData.find(a => a.id === item?.area_id) : null;
         
         // Map database status to our component status with defaults
         let taskStatus: "completed" | "ongoing" | "delayed" = "ongoing";
-        if (item.status === 'completed') taskStatus = "completed";
-        if (item.status === 'delayed') taskStatus = "delayed";
+        if (item?.status === 'completed') taskStatus = "completed";
+        if (item?.status === 'delayed') taskStatus = "delayed";
         
         // Format the time with a fallback
-        const updatedAt = new Date(item.updated_at || new Date());
+        const updatedAt = new Date(item?.updated_at || new Date());
         const formattedTime = updatedAt.toLocaleTimeString('pt-BR', { 
           hour: '2-digit', 
           minute: '2-digit' 
         });
         
         // Ensure string ID
-        const stringId = typeof item.id === 'number' ? String(item.id) : item.id;
+        const stringId = typeof item?.id === 'number' ? String(item.id) : item?.id || '';
         
         return {
           id: stringId,
           area: area?.name || 'Área não especificada',
-          task: item.title || 'Tarefa sem título',
+          task: item?.title || 'Tarefa sem título',
           status: taskStatus,
           time: formattedTime
         };

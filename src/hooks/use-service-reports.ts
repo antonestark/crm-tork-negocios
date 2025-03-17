@@ -45,7 +45,7 @@ export const useServiceReports = () => {
       if (statsError) throw statsError;
       
       // Safely handle potentially null serviceStats
-      const serviceStatsObj = serviceStats && serviceStats.length > 0 ? serviceStats[0] : {
+      const serviceStatsObj = serviceStats && Array.isArray(serviceStats) && serviceStats.length > 0 ? serviceStats[0] : {
         completed: 0,
         pending: 0,
         delayed: 0,
@@ -69,21 +69,21 @@ export const useServiceReports = () => {
       const processedReports: ServiceReport[] = Array.isArray(reportsData) ? reportsData.map((report: any) => {
         // Look up area name from areas data
         const area = areasData && Array.isArray(areasData) ?
-          areasData.find(a => a.id === report.area_id) : null;
+          areasData.find(a => a.id === report?.area_id) : null;
         
-        const stringId = typeof report.id === 'number' ? String(report.id) : report.id;
+        const stringId = typeof report?.id === 'number' ? String(report.id) : report?.id || '';
         
         return {
           id: stringId,
-          report_date: report.report_date || new Date().toISOString(),
-          area_id: report.area_id || undefined,
+          report_date: report?.report_date || new Date().toISOString(),
+          area_id: report?.area_id || undefined,
           area_name: area?.name || 'Unknown Area',
           completed_tasks: serviceStatsObj.completed || 0,
           pending_tasks: serviceStatsObj.pending || 0,
           delayed_tasks: serviceStatsObj.delayed || 0,
-          average_completion_time: report.average_completion_time || 0,
-          created_by: report.created_by || undefined,
-          created_at: report.created_at || new Date().toISOString()
+          average_completion_time: report?.average_completion_time || 0,
+          created_by: report?.created_by || undefined,
+          created_at: report?.created_at || new Date().toISOString()
         };
       }) : [];
       

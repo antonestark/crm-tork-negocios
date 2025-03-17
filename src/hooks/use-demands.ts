@@ -27,13 +27,21 @@ export const useDemands = () => {
         
         // Handle assigned_user safely with null checks
         let assignedUserName = '';
-        if (d.assigned_user && typeof d.assigned_user === 'object' && !('error' in d.assigned_user) && d.assigned_user !== null) {
+        if (d.assigned_user && 
+            typeof d.assigned_user === 'object' && 
+            !('error' in d.assigned_user) && 
+            d.assigned_user !== null && 
+            'name' in d.assigned_user) {
           assignedUserName = d.assigned_user.name || '';
         }
         
         // Handle requester safely with null checks
         let requesterName = '';
-        if (d.requester && typeof d.requester === 'object' && !('error' in d.requester) && d.requester !== null) {
+        if (d.requester && 
+            typeof d.requester === 'object' && 
+            !('error' in d.requester) && 
+            d.requester !== null &&
+            'name' in d.requester) {
           requesterName = d.requester.name || '';
         }
         

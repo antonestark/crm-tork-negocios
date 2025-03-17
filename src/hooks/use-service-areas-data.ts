@@ -69,7 +69,7 @@ export const useServiceAreasData = () => {
       }
       
       // Process the data to include task counts
-      const processedAreas: ServiceArea[] = areasData.map(area => {
+      const processedAreas: ServiceArea[] = (areasData || []).map(area => {
         // Get service stats for this area
         const areaStats = serviceStatsByArea && Array.isArray(serviceStatsByArea) 
           ? serviceStatsByArea.find((s: any) => s.area_id === area.id) 

@@ -19,6 +19,8 @@ interface LocalServiceArea {
   type?: string;
   status?: string;
   task_count: number;
+  pending_tasks: number;
+  delayed_tasks: number;
 }
 
 const ServicesIndex = () => {
@@ -69,9 +71,9 @@ const ServicesIndex = () => {
       }
       
       // Process data to include task counts
-      const processedAreas: LocalServiceArea[] = areasData.map(area => {
-        const areaServiceCount = Array.isArray(servicesCountData) 
-          ? servicesCountData.find((item: any) => item.area_id === area.id)?.count || 0
+      const processedAreas: LocalServiceArea[] = (areasData || []).map(area => {
+        const areaServiceCount = servicesCountData && Array.isArray(servicesCountData) 
+          ? servicesCountData.find((item: any) => item?.area_id === area.id)?.count || 0
           : 0;
         
         return {
@@ -80,7 +82,9 @@ const ServicesIndex = () => {
           description: area.description,
           type: area.type,
           status: area.status,
-          task_count: Number(areaServiceCount)
+          task_count: Number(areaServiceCount),
+          pending_tasks: 0,  // Add missing properties to match ServiceArea type
+          delayed_tasks: 0   // Add missing properties to match ServiceArea type
         };
       });
       
@@ -103,7 +107,7 @@ const ServicesIndex = () => {
           <ServicesMetrics />
         </div>
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-6">
-          <ServiceAreas areas={areas as ServiceArea[]} loading={loading} />
+          <ServiceAreas areas={areas as unknown as ServiceArea[]} loading={loading} />
           <TaskPanel />
         </div>
       </main>

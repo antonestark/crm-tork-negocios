@@ -37,7 +37,7 @@ export const useUserPermissions = (user: User, open: boolean) => {
       if (groupsError) throw groupsError;
       
       // Fetch permissions for each group using a separate query
-      const groupPermissionsPromises = groupsData.map(async (group) => {
+      const groupPermissionsPromises = (groupsData || []).map(async (group) => {
         const { data, error } = await supabase
           .rpc('get_group_permissions', { group_id: group.id });
         
@@ -66,7 +66,7 @@ export const useUserPermissions = (user: User, open: boolean) => {
       // Process permissions data with safe handling of potentially null values
       const userPermissionIds = userPermissionsData?.map(up => up.permission_id) || [];
       const userGroupIds = userGroupsData && Array.isArray(userGroupsData) 
-        ? userGroupsData.map((ug: any) => ug.group_id) 
+        ? userGroupsData.map((ug: any) => ug?.group_id).filter(Boolean)
         : [];
       
       // Mark permissions and groups as selected based on what the user has
@@ -83,7 +83,7 @@ export const useUserPermissions = (user: User, open: boolean) => {
         
         // Get the actual permission objects for this group's permissions
         const groupPermissions = groupPermissionsResult?.permissions
-          .map(permId => permissionsData.find(p => p.id === permId))
+          .map(permId => permissionsData?.find(p => p.id === permId))
           .filter(Boolean) || [];
         
         // Create the group with processed permissions
