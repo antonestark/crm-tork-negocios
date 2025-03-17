@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type ServiceReport = {
+// Define a single, exported ServiceReport type
+export interface ServiceReport {
   id: string;
   report_date: string;
   area_id?: string;
@@ -14,7 +15,7 @@ export type ServiceReport = {
   average_completion_time: number;
   created_by?: string;
   created_at: string;
-};
+}
 
 export type ServiceMetrics = {
   completed: number;
@@ -23,7 +24,7 @@ export type ServiceMetrics = {
   averageTime: number;
 };
 
-// Define interface for RPC results
+// Define separate interfaces for RPC results
 interface ServiceStatistics {
   completed: number;
   pending: number;
@@ -31,7 +32,7 @@ interface ServiceStatistics {
   avg_completion_time: number;
 }
 
-interface ServiceReport {
+interface ServiceReportRaw {
   id: string;
   report_date: string;
   area_id?: string;
@@ -55,7 +56,7 @@ export const useServiceReports = () => {
     try {
       setLoading(true);
       
-      // Use a direct SQL query or RPC function to get the service counts
+      // Use a direct SQL query or RPC function to get the service counts with type assertions
       const { data: serviceStats, error: statsError } = await supabase
         .rpc('get_service_statistics') as { data: ServiceStatistics[] | null, error: any };
       
@@ -70,9 +71,9 @@ export const useServiceReports = () => {
         avg_completion_time: 0
       };
       
-      // Fetch service reports using a direct SQL query or RPC function
+      // Fetch service reports using a direct SQL query or RPC function with type assertions
       const { data: reportsData, error: reportsError } = await supabase
-        .rpc('get_service_reports') as { data: ServiceReport[] | null, error: any };
+        .rpc('get_service_reports') as { data: ServiceReportRaw[] | null, error: any };
       
       if (reportsError) throw reportsError;
       

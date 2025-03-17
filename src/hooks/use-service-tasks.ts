@@ -49,7 +49,7 @@ export const useServiceTasks = () => {
     try {
       setLoading(true);
       
-      // Use a direct SQL query to fetch the latest services without type issues
+      // Use a direct SQL query to fetch the latest services with type assertion
       const { data: servicesData, error: servicesError } = await supabase
         .rpc('get_recent_services') as { data: RecentServicesResult[] | null, error: any };
       

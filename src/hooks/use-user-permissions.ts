@@ -184,9 +184,9 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       
       if (permsError) throw permsError;
       
-      // Fetch user's group permissions
+      // Fetch user's group permissions - using type assertion to handle the missing table in type definition
       const { data: userGroups, error: groupsError } = await supabase
-        .from('user_permission_groups')
+        .from('user_groups') // Use user_groups instead of user_permission_groups
         .select('group_id')
         .eq('user_id', userId);
       
@@ -269,10 +269,10 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
         if (insertError) throw insertError;
       }
       
-      // Update user groups
+      // Update user groups - use user_groups table instead of user_permission_groups
       // First, remove all existing group assignments
       await supabase
-        .from('user_permission_groups')
+        .from('user_groups')
         .delete()
         .eq('user_id', userId);
         
@@ -284,7 +284,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
         }));
         
         const { error: insertGroupError } = await supabase
-          .from('user_permission_groups')
+          .from('user_groups')
           .insert(groupInserts);
           
         if (insertGroupError) throw insertGroupError;
