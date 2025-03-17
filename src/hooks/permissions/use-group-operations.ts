@@ -19,11 +19,11 @@ export const useGroupOperations = (
         p_permission_id: permissionId,
       };
       
-      // Use explicit any type assertion for RPC call to bypass TypeScript's strict checking
-      const { error } = await supabase.rpc(
+      // Force type assertion to avoid TypeScript errors
+      const { error } = await (supabase.rpc(
         'assign_permission_to_group', 
         params
-      ) as unknown as { error: any };
+      ) as any);
 
       if (error) {
         throw error;
@@ -49,11 +49,11 @@ export const useGroupOperations = (
         p_permission_id: permissionId,
       };
       
-      // Use explicit any type assertion for RPC call
-      const { error } = await supabase.rpc(
+      // Force type assertion to avoid TypeScript errors
+      const { error } = await (supabase.rpc(
         'remove_permission_from_group', 
         params
-      ) as unknown as { error: any };
+      ) as any);
 
       if (error) {
         throw error;
@@ -79,11 +79,11 @@ export const useGroupOperations = (
         p_group_id: groupId,
       };
       
-      // Use explicit any type assertion for RPC call
-      const { error } = await supabase.rpc(
+      // Force type assertion to avoid TypeScript errors
+      const { error } = await (supabase.rpc(
         'assign_user_to_group', 
         params
-      ) as unknown as { error: any };
+      ) as any);
 
       if (error) {
         throw error;
@@ -110,11 +110,11 @@ export const useGroupOperations = (
         p_group_id: groupId,
       };
       
-      // Use explicit any type assertion for RPC call
-      const { error } = await supabase.rpc(
+      // Force type assertion to avoid TypeScript errors
+      const { error } = await (supabase.rpc(
         'remove_user_from_group', 
         params
-      ) as unknown as { error: any };
+      ) as any);
 
       if (error) {
         throw error;
