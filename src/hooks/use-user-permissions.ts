@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -89,10 +88,15 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
   const assignPermissionToGroup = async (groupId: string, permissionId: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.rpc('assign_permission_to_group', {
+      const params: RpcFunctionParams = {
         p_group_id: groupId,
         p_permission_id: permissionId,
-      } as unknown as RpcFunctionParams);
+      };
+      
+      const { error } = await supabase.rpc(
+        'assign_permission_to_group', 
+        params
+      );
 
       if (error) {
         throw error;
@@ -111,10 +115,15 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
   const removePermissionFromGroup = async (groupId: string, permissionId: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.rpc('remove_permission_from_group', {
+      const params: RpcFunctionParams = {
         p_group_id: groupId,
         p_permission_id: permissionId,
-      } as unknown as RpcFunctionParams);
+      };
+      
+      const { error } = await supabase.rpc(
+        'remove_permission_from_group', 
+        params
+      );
 
       if (error) {
         throw error;
@@ -133,10 +142,15 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
   const assignUserToGroup = async (userId: string, groupId: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.rpc('assign_user_to_group', {
+      const params: RpcFunctionParams = {
         p_user_id: userId,
         p_group_id: groupId,
-      } as unknown as RpcFunctionParams);
+      };
+      
+      const { error } = await supabase.rpc(
+        'assign_user_to_group', 
+        params
+      );
 
       if (error) {
         throw error;
@@ -156,10 +170,15 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
   const removeUserFromGroup = async (userId: string, groupId: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.rpc('remove_user_from_group', {
+      const params: RpcFunctionParams = {
         p_user_id: userId,
         p_group_id: groupId,
-      } as unknown as RpcFunctionParams);
+      };
+      
+      const { error } = await supabase.rpc(
+        'remove_user_from_group', 
+        params
+      );
 
       if (error) {
         throw error;

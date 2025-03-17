@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 // Create and export the ServiceReport interface
 export interface ServiceReport {
-  id?: string;  // Add missing field for AreaMetrics.tsx
+  id: string;  // Added for AreaMetrics.tsx
   area_name: string;
   area_id: string;
   completed_tasks: number;
@@ -13,7 +13,7 @@ export interface ServiceReport {
   delayed_tasks: number;
   total_tasks: number;
   completion_rate: number;
-  report_date?: string; // Add missing field for AreaMetrics.tsx
+  report_date: string; // Added for AreaMetrics.tsx
 }
 
 // Interface for RPC result
@@ -73,7 +73,10 @@ export const useServiceReports = () => {
       
       // Use proper type assertion for RPC calls
       const { data: statsData, error: statsError } = await supabase
-        .rpc('get_service_statistics') as unknown as { data: ServiceStatisticsResult[] | null, error: any };
+        .rpc('get_service_statistics') as {
+          data: ServiceStatisticsResult[] | null, 
+          error: any
+        };
       
       if (statsError) throw statsError;
       

@@ -29,7 +29,8 @@ export const useDemands = () => {
         let assignedUserName = '';
         if (d.assigned_user !== null && d.assigned_user !== undefined) {
           if (typeof d.assigned_user === 'object' && d.assigned_user !== null) {
-            assignedUserName = d.assigned_user.name || '';
+            // Use optional chaining with nullish coalescing to handle possible null
+            assignedUserName = d.assigned_user?.name ?? '';
           }
         }
         
@@ -37,7 +38,8 @@ export const useDemands = () => {
         let requesterName = '';
         if (d.requester !== null && d.requester !== undefined) {
           if (typeof d.requester === 'object' && d.requester !== null) {
-            requesterName = d.requester.name || '';
+            // Use optional chaining with nullish coalescing to handle possible null
+            requesterName = d.requester?.name ?? '';
           }
         }
         
