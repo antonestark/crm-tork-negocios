@@ -25,15 +25,15 @@ export const useDemands = () => {
         // Safely extract nested properties with fallbacks
         const areaName = typeof d.area === 'object' && d.area ? d.area.name || '' : '';
         
-        // Handle potential SelectQueryError for assigned_user
+        // Handle assigned_user safely with null checks
         let assignedUserName = '';
-        if (d.assigned_user && typeof d.assigned_user === 'object' && !('error' in d.assigned_user)) {
+        if (d.assigned_user && typeof d.assigned_user === 'object' && !('error' in d.assigned_user) && d.assigned_user !== null) {
           assignedUserName = d.assigned_user.name || '';
         }
         
-        // Handle potential SelectQueryError for requester
+        // Handle requester safely with null checks
         let requesterName = '';
-        if (d.requester && typeof d.requester === 'object' && !('error' in d.requester)) {
+        if (d.requester && typeof d.requester === 'object' && !('error' in d.requester) && d.requester !== null) {
           requesterName = d.requester.name || '';
         }
         

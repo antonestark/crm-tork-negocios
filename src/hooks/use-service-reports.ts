@@ -44,7 +44,8 @@ export const useServiceReports = () => {
       
       if (statsError) throw statsError;
       
-      const serviceStatsObj = serviceStats?.[0] || {
+      // Safely handle potentially null serviceStats
+      const serviceStatsObj = serviceStats && serviceStats.length > 0 ? serviceStats[0] : {
         completed: 0,
         pending: 0,
         delayed: 0,
@@ -64,30 +65,33 @@ export const useServiceReports = () => {
         
       if (areasError) throw areasError;
       
-      // Process the reports
-      const processedReports: ServiceReport[] = (reportsData || []).map((report: any) => {
+      // Process the reports with safe type handling
+      const processedReports: ServiceReport[] = Array.isArray(reportsData) ? reportsData.map((report: any) => {
         // Look up area name from areas data
-        const area = areasData?.find(a => a.id === report.area_id);
+        const area = areasData && Array.isArray(areasData) ?
+          areasData.find(a => a.id === report.area_id) : null;
+        
+        const stringId = typeof report.id === 'number' ? String(report.id) : report.id;
         
         return {
-          id: report.id,
-          report_date: report.report_date,
-          area_id: report.area_id,
-          area_name: area?.name,
-          completed_tasks: serviceStatsObj.completed,
-          pending_tasks: serviceStatsObj.pending,
-          delayed_tasks: serviceStatsObj.delayed,
+          id: stringId,
+          report_date: report.report_date || new Date().toISOString(),
+          area_id: report.area_id || undefined,
+          area_name: area?.name || 'Unknown Area',
+          completed_tasks: serviceStatsObj.completed || 0,
+          pending_tasks: serviceStatsObj.pending || 0,
+          delayed_tasks: serviceStatsObj.delayed || 0,
           average_completion_time: report.average_completion_time || 0,
-          created_by: report.created_by,
+          created_by: report.created_by || undefined,
           created_at: report.created_at || new Date().toISOString()
         };
-      });
+      }) : [];
       
       setReports(processedReports);
       setMetrics({
-        completed: serviceStatsObj.completed,
-        pending: serviceStatsObj.pending,
-        delayed: serviceStatsObj.delayed,
+        completed: serviceStatsObj.completed || 0,
+        pending: serviceStatsObj.pending || 0,
+        delayed: serviceStatsObj.delayed || 0,
         averageTime: serviceStatsObj.avg_completion_time || 0
       });
     } catch (err) {

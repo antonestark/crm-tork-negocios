@@ -89,38 +89,44 @@ export interface UserPermissionGroups {
   };
 }
 
-// Use interface merging to extend the Database interface properly
+// Extend the Database interface from the original types.ts file
 import { Database as OriginalDatabase } from './types';
 
-export interface Database extends OriginalDatabase {
-  public: {
-    Tables: {
-      activity_logs: OriginalDatabase['public']['Tables']['activity_logs'];
-      checklist_completions: OriginalDatabase['public']['Tables']['checklist_completions'];
-      checklist_items: OriginalDatabase['public']['Tables']['checklist_items'];
-      clients: OriginalDatabase['public']['Tables']['clients'];
-      demands: OriginalDatabase['public']['Tables']['demands'];
-      department_permissions: OriginalDatabase['public']['Tables']['department_permissions'];
-      departments: OriginalDatabase['public']['Tables']['departments'];
-      lead_activities: OriginalDatabase['public']['Tables']['lead_activities'];
-      leads: OriginalDatabase['public']['Tables']['leads'];
-      maintenance_records: OriginalDatabase['public']['Tables']['maintenance_records'];
-      permission_groups: OriginalDatabase['public']['Tables']['permission_groups'];
-      permissions: OriginalDatabase['public']['Tables']['permissions'];
-      scheduling: OriginalDatabase['public']['Tables']['scheduling'];
-      service_areas: OriginalDatabase['public']['Tables']['service_areas'];
-      user_groups: OriginalDatabase['public']['Tables']['user_groups'];
-      user_permissions: OriginalDatabase['public']['Tables']['user_permissions'];
-      users: OriginalDatabase['public']['Tables']['users'];
-      
-      // Add missing tables that are causing the type errors
-      services: Services;
-      service_reports: ServiceReports;
-      user_permission_groups: UserPermissionGroups;
+// Use declaration merging instead of creating a new interface
+declare module './types' {
+  interface Database extends OriginalDatabase {
+    public: {
+      Tables: {
+        activity_logs: OriginalDatabase['public']['Tables']['activity_logs'];
+        checklist_completions: OriginalDatabase['public']['Tables']['checklist_completions'];
+        checklist_items: OriginalDatabase['public']['Tables']['checklist_items'];
+        clients: OriginalDatabase['public']['Tables']['clients'];
+        demands: OriginalDatabase['public']['Tables']['demands'];
+        department_permissions: OriginalDatabase['public']['Tables']['department_permissions'];
+        departments: OriginalDatabase['public']['Tables']['departments'];
+        lead_activities: OriginalDatabase['public']['Tables']['lead_activities'];
+        leads: OriginalDatabase['public']['Tables']['leads'];
+        maintenance_records: OriginalDatabase['public']['Tables']['maintenance_records'];
+        permission_groups: OriginalDatabase['public']['Tables']['permission_groups'];
+        permissions: OriginalDatabase['public']['Tables']['permissions'];
+        scheduling: OriginalDatabase['public']['Tables']['scheduling'];
+        service_areas: OriginalDatabase['public']['Tables']['service_areas'];
+        user_groups: OriginalDatabase['public']['Tables']['user_groups'];
+        user_permissions: OriginalDatabase['public']['Tables']['user_permissions'];
+        users: OriginalDatabase['public']['Tables']['users'];
+        
+        // Add missing tables that are causing the type errors
+        services: Services;
+        service_reports: ServiceReports;
+        user_permission_groups: UserPermissionGroups;
+      };
+      Views: OriginalDatabase['public']['Views'];
+      Functions: OriginalDatabase['public']['Functions'];
+      Enums: OriginalDatabase['public']['Enums'];
+      CompositeTypes: OriginalDatabase['public']['CompositeTypes'];
     };
-    Views: OriginalDatabase['public']['Views'];
-    Functions: OriginalDatabase['public']['Functions'];
-    Enums: OriginalDatabase['public']['Enums'];
-    CompositeTypes: OriginalDatabase['public']['CompositeTypes'];
-  };
+  }
 }
+
+// Re-export types from the original file to make them available
+export { Database } from './types';

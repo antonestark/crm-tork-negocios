@@ -46,7 +46,8 @@ export const useServiceTasks = () => {
       
       if (servicesError) throw servicesError;
       
-      if (!servicesData || servicesData.length === 0) {
+      // Handle empty data case safely
+      if (!servicesData || !Array.isArray(servicesData) || servicesData.length === 0) {
         setTasks([]);
         return;
       }
@@ -58,31 +59,35 @@ export const useServiceTasks = () => {
       
       if (areasError) throw areasError;
       
-      // Process the data to match our ServiceTask interface
-      const processedTasks: ServiceTask[] = servicesData.map((item: any) => {
+      // Process the data to match our ServiceTask interface with safe type handling
+      const processedTasks: ServiceTask[] = Array.isArray(servicesData) ? servicesData.map((item: any) => {
         // Find the area name
-        const area = areasData?.find(a => a.id === item.area_id);
+        const area = areasData && Array.isArray(areasData) ? 
+          areasData.find(a => a.id === item.area_id) : null;
         
-        // Map database status to our component status
+        // Map database status to our component status with defaults
         let taskStatus: "completed" | "ongoing" | "delayed" = "ongoing";
         if (item.status === 'completed') taskStatus = "completed";
         if (item.status === 'delayed') taskStatus = "delayed";
         
-        // Format the time
+        // Format the time with a fallback
         const updatedAt = new Date(item.updated_at || new Date());
         const formattedTime = updatedAt.toLocaleTimeString('pt-BR', { 
           hour: '2-digit', 
           minute: '2-digit' 
         });
         
+        // Ensure string ID
+        const stringId = typeof item.id === 'number' ? String(item.id) : item.id;
+        
         return {
-          id: item.id,
+          id: stringId,
           area: area?.name || 'Área não especificada',
-          task: item.title,
+          task: item.title || 'Tarefa sem título',
           status: taskStatus,
           time: formattedTime
         };
-      });
+      }) : [];
       
       setTasks(processedTasks);
     } catch (err) {

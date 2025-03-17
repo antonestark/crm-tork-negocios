@@ -80,7 +80,7 @@ export default function Login() {
       if (!clientData && authData.user) {
         // Se o cliente não existir, criar um novo com dados básicos
         await supabase.from('clients').insert({
-          name: authData.user.user_metadata.name || authData.user.email,
+          company_name: authData.user.user_metadata.name || authData.user.email,
           email: authData.user.email,
           auth_id: authData.user.id,
           status: 'active'

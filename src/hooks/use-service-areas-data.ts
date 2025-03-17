@@ -59,7 +59,7 @@ export const useServiceAreasData = () => {
         throw areasError;
       }
 
-      // Use a direct RPC function to get service stats without type issues
+      // Use RPC for getting service stats to avoid typings issues
       const { data: serviceStatsByArea, error: statsError } = await supabase
         .rpc('get_service_stats_by_area');
       
@@ -71,7 +71,7 @@ export const useServiceAreasData = () => {
       // Process the data to include task counts
       const processedAreas: ServiceArea[] = areasData.map(area => {
         // Get service stats for this area
-        const areaStats = serviceStatsByArea 
+        const areaStats = serviceStatsByArea && Array.isArray(serviceStatsByArea) 
           ? serviceStatsByArea.find((s: any) => s.area_id === area.id) 
           : null;
         

@@ -43,7 +43,7 @@ export const useUserPermissions = (user: User, open: boolean) => {
         
         return {
           group_id: group.id,
-          permissions: error ? [] : data || []
+          permissions: error || !data ? [] : data || []
         };
       });
       
@@ -57,15 +57,17 @@ export const useUserPermissions = (user: User, open: boolean) => {
       
       if (userPermissionsError) throw userPermissionsError;
       
-      // Fetch user's permission groups using a direct query instead of trying to join
+      // Fetch user's permission groups using a custom RPC function
       const { data: userGroupsData, error: userGroupsError } = await supabase
         .rpc('get_user_permission_groups', { user_id: user.id });
       
       if (userGroupsError) throw userGroupsError;
       
-      // Process permissions data
+      // Process permissions data with safe handling of potentially null values
       const userPermissionIds = userPermissionsData?.map(up => up.permission_id) || [];
-      const userGroupIds = userGroupsData?.map((ug: any) => ug.group_id) || [];
+      const userGroupIds = userGroupsData && Array.isArray(userGroupsData) 
+        ? userGroupsData.map((ug: any) => ug.group_id) 
+        : [];
       
       // Mark permissions and groups as selected based on what the user has
       const processedPermissions = permissionAdapter(permissionsData || []).map(p => ({
