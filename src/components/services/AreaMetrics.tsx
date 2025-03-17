@@ -47,18 +47,18 @@ export const AreaMetrics = () => {
       </TableHeader>
       <TableBody>
         {reports.map((report) => {
-          const total = report.completed_tasks + report.pending_tasks + report.delayed_tasks;
-          const efficiency = total > 0 
-            ? Math.round((report.completed_tasks / total) * 100) 
-            : 0;
+          const efficiency = Math.round(report.completion_rate);
+          const reportDate = report.report_date 
+            ? new Date(report.report_date) 
+            : new Date();
             
           return (
-            <TableRow key={report.id}>
+            <TableRow key={report.area_id}>
               <TableCell className="font-medium">
                 {report.area_name || "N/A"}
               </TableCell>
               <TableCell>
-                {format(new Date(report.report_date), "dd/MM/yyyy")}
+                {format(reportDate, "dd/MM/yyyy")}
               </TableCell>
               <TableCell>{report.completed_tasks}</TableCell>
               <TableCell>{report.pending_tasks}</TableCell>

@@ -1,11 +1,11 @@
 
-// Add type exports if not already present
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 // Create and export the ServiceReport interface
 export interface ServiceReport {
+  id?: string;  // Add missing field for AreaMetrics.tsx
   area_name: string;
   area_id: string;
   completed_tasks: number;
@@ -13,6 +13,7 @@ export interface ServiceReport {
   delayed_tasks: number;
   total_tasks: number;
   completion_rate: number;
+  report_date?: string; // Add missing field for AreaMetrics.tsx
 }
 
 // Interface for RPC result
@@ -28,6 +29,23 @@ export const useServiceReports = () => {
   const [reports, setReports] = useState<ServiceReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  // Add metrics calculation using useMemo
+  const metrics = useMemo(() => {
+    const completed = reports.reduce((sum, report) => sum + report.completed_tasks, 0);
+    const pending = reports.reduce((sum, report) => sum + report.pending_tasks, 0);
+    const delayed = reports.reduce((sum, report) => sum + report.delayed_tasks, 0);
+    
+    // Calculate average time (placeholder - using 30 minutes as default)
+    const averageTime = 30;
+    
+    return {
+      completed,
+      pending,
+      delayed,
+      averageTime
+    };
+  }, [reports]);
 
   useEffect(() => {
     fetchReports();
@@ -68,13 +86,15 @@ export const useServiceReports = () => {
           const completionRate = totalTasks > 0 ? ((stat.completed_tasks || 0) / totalTasks * 100) : 0;
           
           processedReports.push({
+            id: stat.area_id, // Use area_id as id for now
             area_name: stat.area_name || '',
             area_id: stat.area_id || '',
             completed_tasks: stat.completed_tasks || 0,
             pending_tasks: stat.pending_tasks || 0,
             delayed_tasks: stat.delayed_tasks || 0,
             total_tasks: totalTasks,
-            completion_rate: completionRate
+            completion_rate: completionRate,
+            report_date: new Date().toISOString() // Add current date as report_date
           });
         }
       }
@@ -93,6 +113,7 @@ export const useServiceReports = () => {
     reports,
     loading,
     error,
-    fetchReports
+    fetchReports,
+    metrics // Export the metrics for ServicesMetrics component
   };
 };

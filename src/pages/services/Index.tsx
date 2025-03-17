@@ -70,7 +70,7 @@ const ServicesIndex = () => {
       
       // Use a direct function call to count services by area with proper type assertion
       const { data: servicesCountData, error: servicesCountError } = await supabase
-        .rpc('count_services_by_area') as { data: CountServicesByAreaResult[] | null, error: any };
+        .rpc('count_services_by_area', {}) as { data: CountServicesByAreaResult[] | null, error: any };
       
       if (servicesCountError) {
         console.error("Error counting services:", servicesCountError);

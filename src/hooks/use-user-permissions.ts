@@ -7,7 +7,7 @@ import { permissionAdapter, permissionGroupAdapter, userAdapter } from '@/integr
 
 // Define interface for RPC results to address type errors
 interface RpcFunctionParams {
-  p_group_id: string;
+  p_group_id?: string;
   p_permission_id?: string;
   p_user_id?: string;
 }

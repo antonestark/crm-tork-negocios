@@ -56,7 +56,7 @@ export const useServiceAreasData = () => {
       
       // Use a direct function call to count services by area with type assertion to fix TypeScript errors
       const { data: servicesCountData, error: servicesCountError } = await supabase
-        .rpc('count_services_by_area') as { data: CountServicesByAreaResult[] | null, error: any };
+        .rpc('count_services_by_area', {}) as { data: CountServicesByAreaResult[] | null, error: any };
       
       if (servicesCountError) {
         console.error("Error counting services:", servicesCountError);
