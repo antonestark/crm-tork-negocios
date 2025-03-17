@@ -42,12 +42,12 @@ export const useServiceTasks = () => {
       
       // Use a direct SQL query to fetch the latest services without type issues
       const { data: servicesData, error: servicesError } = await supabase
-        .rpc('get_recent_services');
+        .rpc('get_recent_services') as { data: any; error: any };
       
       if (servicesError) throw servicesError;
       
       // Handle empty data case safely
-      const servicesArray = servicesData && Array.isArray(servicesData) ? servicesData : [];
+      const servicesArray = Array.isArray(servicesData) ? servicesData : [];
       if (servicesArray.length === 0) {
         setTasks([]);
         return;

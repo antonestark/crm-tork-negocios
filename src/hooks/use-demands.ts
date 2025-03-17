@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Demand, DemandCreate } from '@/types/demands';
@@ -24,22 +25,24 @@ export const useDemands = () => {
         // Safely extract nested properties with fallbacks
         const areaName = typeof d.area === 'object' && d.area ? d.area.name || '' : '';
         
-        // Handle assigned_user safely with null checks
+        // Handle assigned_user safely with comprehensive null checks
         let assignedUserName = '';
-        if (d.assigned_user && 
-            typeof d.assigned_user === 'object' && 
-            !('error' in d.assigned_user) && 
-            d.assigned_user !== null) {
-          assignedUserName = d.assigned_user?.name ?? '';
+        if (d.assigned_user) {
+          if (typeof d.assigned_user === 'object' && 
+              d.assigned_user !== null &&
+              !('error' in d.assigned_user)) {
+            assignedUserName = d.assigned_user.name ?? '';
+          }
         }
         
-        // Handle requester safely with null checks
+        // Handle requester safely with comprehensive null checks
         let requesterName = '';
-        if (d.requester && 
-            typeof d.requester === 'object' && 
-            !('error' in d.requester) && 
-            d.requester !== null) {
-          requesterName = d.requester?.name ?? '';
+        if (d.requester) {
+          if (typeof d.requester === 'object' && 
+              d.requester !== null &&
+              !('error' in d.requester)) {
+            requesterName = d.requester.name ?? '';
+          }
         }
         
         return {

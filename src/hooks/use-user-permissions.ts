@@ -40,7 +40,7 @@ export const useUserPermissions = (user: User, open: boolean) => {
       const groupsArray = groupsData || [];
       const groupPermissionsPromises = groupsArray.map(async (group) => {
         const { data, error } = await supabase
-          .rpc('get_group_permissions', { group_id: group.id });
+          .rpc('get_group_permissions', { group_id: group.id }) as { data: any; error: any };
         
         return {
           group_id: group.id,
@@ -60,7 +60,7 @@ export const useUserPermissions = (user: User, open: boolean) => {
       
       // Fetch user's permission groups using a custom RPC function
       const { data: userGroupsData, error: userGroupsError } = await supabase
-        .rpc('get_user_permission_groups', { user_id: user.id });
+        .rpc('get_user_permission_groups', { user_id: user.id }) as { data: any; error: any };
       
       if (userGroupsError) throw userGroupsError;
       
@@ -68,8 +68,10 @@ export const useUserPermissions = (user: User, open: boolean) => {
       const userPermissionsArray = userPermissionsData || [];
       const userPermissionIds = userPermissionsArray.map(up => up.permission_id) || [];
       
-      const userGroupsArray = userGroupsData && Array.isArray(userGroupsData) ? userGroupsData : [];
-      const userGroupIds = userGroupsArray.map((ug: any) => ug?.group_id).filter(Boolean);
+      const userGroupsArray = Array.isArray(userGroupsData) ? userGroupsData : [];
+      const userGroupIds = userGroupsArray
+        .map((ug: any) => ug?.group_id)
+        .filter(Boolean);
       
       // Mark permissions and groups as selected based on what the user has
       const permissionsArray = permissionsData || [];

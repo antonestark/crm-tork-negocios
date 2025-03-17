@@ -40,12 +40,12 @@ export const useServiceReports = () => {
       
       // Use a direct SQL query or RPC function to get the service counts
       const { data: serviceStats, error: statsError } = await supabase
-        .rpc('get_service_statistics');
+        .rpc('get_service_statistics') as { data: any; error: any };
       
       if (statsError) throw statsError;
       
       // Safely handle potentially null serviceStats
-      const serviceStatsArr = serviceStats && Array.isArray(serviceStats) ? serviceStats : [];
+      const serviceStatsArr = Array.isArray(serviceStats) ? serviceStats : [];
       const serviceStatsObj = serviceStatsArr.length > 0 ? serviceStatsArr[0] : {
         completed: 0,
         pending: 0,
@@ -55,7 +55,7 @@ export const useServiceReports = () => {
       
       // Fetch service reports using a direct SQL query or RPC function
       const { data: reportsData, error: reportsError } = await supabase
-        .rpc('get_service_reports');
+        .rpc('get_service_reports') as { data: any; error: any };
       
       if (reportsError) throw reportsError;
       
@@ -67,7 +67,7 @@ export const useServiceReports = () => {
       if (areasError) throw areasError;
       
       // Process the reports with safe type handling
-      const reportsArr = reportsData && Array.isArray(reportsData) ? reportsData : [];
+      const reportsArr = Array.isArray(reportsData) ? reportsData : [];
       const processedReports: ServiceReport[] = reportsArr.map((report: any) => {
         // Look up area name from areas data
         const areasArr = areasData && Array.isArray(areasData) ? areasData : [];

@@ -64,14 +64,14 @@ const ServicesIndex = () => {
       
       // Use a direct function call to count services by area to avoid type issues
       const { data: servicesCountData, error: servicesCountError } = await supabase
-        .rpc('count_services_by_area');
+        .rpc('count_services_by_area') as { data: any; error: any };
       
       if (servicesCountError) {
         console.error("Error counting services:", servicesCountError);
       }
       
       // Process data to include task counts
-      const servicesCountArray = servicesCountData && Array.isArray(servicesCountData) ? servicesCountData : [];
+      const servicesCountArray = Array.isArray(servicesCountData) ? servicesCountData : [];
       const processedAreas: LocalServiceArea[] = (areasData || []).map(area => {
         const areaServiceCount = servicesCountArray.find((item: any) => item?.area_id === area.id)?.count || 0;
         

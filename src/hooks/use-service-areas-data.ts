@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -61,7 +60,7 @@ export const useServiceAreasData = () => {
 
       // Use RPC for getting service stats to avoid typings issues
       const { data: serviceStatsByArea, error: statsError } = await supabase
-        .rpc('get_service_stats_by_area');
+        .rpc('get_service_stats_by_area') as { data: any; error: any };
       
       if (statsError) {
         console.error("Error fetching service stats:", statsError);
@@ -69,11 +68,10 @@ export const useServiceAreasData = () => {
       }
       
       // Process the data to include task counts
+      const serviceStatsArray = Array.isArray(serviceStatsByArea) ? serviceStatsByArea : [];
       const processedAreas: ServiceArea[] = (areasData || []).map(area => {
         // Get service stats for this area
-        const areaStats = serviceStatsByArea && Array.isArray(serviceStatsByArea) 
-          ? serviceStatsByArea.find((s: any) => s?.area_id === area.id) 
-          : null;
+        const areaStats = serviceStatsArray.find((s: any) => s?.area_id === area.id) || null;
         
         return {
           id: area.id,
