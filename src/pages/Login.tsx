@@ -39,9 +39,9 @@ export default function Login() {
         .from('users')
         .select('email')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
-      if (userCheckError && userCheckError.code !== 'PGRST116') {
+      if (userCheckError) {
         console.warn('Erro ao verificar usuário:', userCheckError);
         // Continuar com o login mesmo se houver erro na verificação
       }
@@ -62,14 +62,8 @@ export default function Login() {
 
         if (authError.message?.includes('database error')) {
           console.error('Detalhes do erro de banco de dados:', authError);
-          // Verificar se a tabela clients existe
-          const { error: tablesError } = await supabase
-            .rpc('get_all_tables');
           
-          if (tablesError) {
-            console.error('Erro ao verificar tabelas:', tablesError);
-          }
-          
+          // Não usamos mais a chamada RPC que estava causando o erro
           throw new Error('Ocorreu um erro no banco de dados. Entre em contato com o suporte técnico.');
         }
 
