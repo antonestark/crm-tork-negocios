@@ -25,19 +25,19 @@ export const useDemands = () => {
         // Safely extract nested properties with fallbacks
         const areaName = d.area && typeof d.area === 'object' ? d.area.name || '' : '';
         
-        // Handle assigned_user safely - ensure it exists before accessing properties
+        // Handle assigned_user safely with proper null checking
         let assignedUserName = '';
-        if (d.assigned_user) {
-          if (typeof d.assigned_user === 'object' && d.assigned_user !== null) {
-            assignedUserName = d.assigned_user.name || '';
+        if (d.assigned_user !== null && d.assigned_user !== undefined) {
+          if (typeof d.assigned_user === 'object') {
+            assignedUserName = d.assigned_user?.name || '';
           }
         }
         
-        // Handle requester safely - ensure it exists before accessing properties
+        // Handle requester safely with proper null checking
         let requesterName = '';
-        if (d.requester) {
-          if (typeof d.requester === 'object' && d.requester !== null) {
-            requesterName = d.requester.name || '';
+        if (d.requester !== null && d.requester !== undefined) {
+          if (typeof d.requester === 'object') {
+            requesterName = d.requester?.name || '';
           }
         }
         

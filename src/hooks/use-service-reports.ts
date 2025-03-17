@@ -58,7 +58,7 @@ export const useServiceReports = () => {
       
       // Use a direct SQL query or RPC function to get the service counts with type assertions
       const { data: serviceStats, error: statsError } = await supabase
-        .rpc('get_service_statistics') as { data: ServiceStatistics[] | null, error: any };
+        .rpc('get_service_statistics') as unknown as { data: ServiceStatistics[] | null, error: any };
       
       if (statsError) throw statsError;
       
@@ -73,7 +73,7 @@ export const useServiceReports = () => {
       
       // Fetch service reports using a direct SQL query or RPC function with type assertions
       const { data: reportsData, error: reportsError } = await supabase
-        .rpc('get_service_reports') as { data: ServiceReportRaw[] | null, error: any };
+        .rpc('get_service_reports') as unknown as { data: ServiceReportRaw[] | null, error: any };
       
       if (reportsError) throw reportsError;
       
