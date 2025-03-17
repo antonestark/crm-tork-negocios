@@ -39,9 +39,8 @@ export const useServiceReports = () => {
       setLoading(true);
       
       // Use a direct SQL query or RPC function to get the service counts
-      // Use any to resolve type error
       const { data: serviceStats, error: statsError } = await supabase
-        .rpc('get_service_statistics') as { data: any[], error: any };
+        .rpc('get_service_statistics') as { data: any, error: any };
       
       if (statsError) throw statsError;
       
@@ -55,9 +54,8 @@ export const useServiceReports = () => {
       };
       
       // Fetch service reports using a direct SQL query or RPC function
-      // Use any to resolve type error
       const { data: reportsData, error: reportsError } = await supabase
-        .rpc('get_service_reports') as { data: any[], error: any };
+        .rpc('get_service_reports') as { data: any, error: any };
       
       if (reportsError) throw reportsError;
       

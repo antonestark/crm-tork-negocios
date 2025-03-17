@@ -130,5 +130,5 @@ declare global {
   }
 }
 
-// Export type but rename to avoid conflict with the imported type
+// Export the Database type from types.ts as DatabaseTypes to avoid name conflicts
 export type { Database } from './types';

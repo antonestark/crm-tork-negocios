@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Demand, DemandCreate } from '@/types/demands';
@@ -27,33 +26,29 @@ export const useDemands = () => {
         
         // Handle assigned_user safely with comprehensive null checks
         let assignedUserName = '';
-        if (d.assigned_user) {
-          if (typeof d.assigned_user === 'object' && 
-              d.assigned_user !== null &&
-              !('error' in d.assigned_user)) {
-            // Add extra null check for the name property
-            assignedUserName = d.assigned_user && 
-              'name' in d.assigned_user && 
-              d.assigned_user.name !== null && 
-              typeof d.assigned_user.name === 'string'
-                ? d.assigned_user.name 
-                : '';
+        if (d.assigned_user !== null && d.assigned_user !== undefined) {
+          if (typeof d.assigned_user === 'object') {
+            // Check if name property exists and is a string
+            if ('name' in d.assigned_user && 
+                d.assigned_user.name !== null && 
+                d.assigned_user.name !== undefined &&
+                typeof d.assigned_user.name === 'string') {
+              assignedUserName = d.assigned_user.name;
+            }
           }
         }
         
         // Handle requester safely with comprehensive null checks
         let requesterName = '';
-        if (d.requester) {
-          if (typeof d.requester === 'object' && 
-              d.requester !== null &&
-              !('error' in d.requester)) {
-            // Add extra null check for the name property  
-            requesterName = d.requester && 
-              'name' in d.requester && 
-              d.requester.name !== null && 
-              typeof d.requester.name === 'string'
-                ? d.requester.name
-                : '';
+        if (d.requester !== null && d.requester !== undefined) {
+          if (typeof d.requester === 'object') {
+            // Check if name property exists and is a string
+            if ('name' in d.requester && 
+                d.requester.name !== null && 
+                d.requester.name !== undefined &&
+                typeof d.requester.name === 'string') {
+              requesterName = d.requester.name;
+            }
           }
         }
         
