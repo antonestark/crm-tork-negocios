@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Demand, DemandCreate } from '@/types/demands';
@@ -28,8 +27,7 @@ export const useDemands = () => {
         // Handle assigned_user safely with proper null checking
         let assignedUserName = '';
         if (d.assigned_user !== null && d.assigned_user !== undefined) {
-          if (typeof d.assigned_user === 'object' && d.assigned_user !== null) {
-            // Use optional chaining with nullish coalescing to handle possible null
+          if (typeof d.assigned_user === 'object') {
             assignedUserName = d.assigned_user?.name ?? '';
           }
         }
@@ -37,8 +35,7 @@ export const useDemands = () => {
         // Handle requester safely with proper null checking
         let requesterName = '';
         if (d.requester !== null && d.requester !== undefined) {
-          if (typeof d.requester === 'object' && d.requester !== null) {
-            // Use optional chaining with nullish coalescing to handle possible null
+          if (typeof d.requester === 'object') {
             requesterName = d.requester?.name ?? '';
           }
         }

@@ -21,8 +21,8 @@ export const useGroupOperations = (
       
       const { error } = await supabase.rpc(
         'assign_permission_to_group', 
-        params as any
-      );
+        params
+      ) as { data: any, error: any };
 
       if (error) {
         throw error;
@@ -50,8 +50,8 @@ export const useGroupOperations = (
       
       const { error } = await supabase.rpc(
         'remove_permission_from_group', 
-        params as any
-      );
+        params
+      ) as { data: any, error: any };
 
       if (error) {
         throw error;
@@ -79,8 +79,8 @@ export const useGroupOperations = (
       
       const { error } = await supabase.rpc(
         'assign_user_to_group', 
-        params as any
-      );
+        params
+      ) as { data: any, error: any };
 
       if (error) {
         throw error;
@@ -109,8 +109,8 @@ export const useGroupOperations = (
       
       const { error } = await supabase.rpc(
         'remove_user_from_group', 
-        params as any
-      );
+        params
+      ) as { data: any, error: any };
 
       if (error) {
         throw error;

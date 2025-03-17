@@ -20,6 +20,21 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
     error: fetchError
   } = usePermissionFetchers();
 
+  const fetchUsers = async () => {
+    const data = await fetchUsersData();
+    setUsers(data);
+  };
+
+  const fetchPermissions = async () => {
+    const data = await fetchPermissionsData();
+    setPermissions(data);
+  };
+
+  const fetchPermissionGroups = async () => {
+    const data = await fetchPermissionGroupsData();
+    setPermissionGroups(data);
+  };
+
   const {
     assignPermissionToGroup,
     removePermissionFromGroup,
@@ -35,21 +50,6 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
     loading: userPermissionsLoading,
     error: userPermissionsError
   } = useUserPermissionOperations();
-
-  const fetchUsers = async () => {
-    const data = await fetchUsersData();
-    setUsers(data);
-  };
-
-  const fetchPermissions = async () => {
-    const data = await fetchPermissionsData();
-    setPermissions(data);
-  };
-
-  const fetchPermissionGroups = async () => {
-    const data = await fetchPermissionGroupsData();
-    setPermissionGroups(data);
-  };
 
   useEffect(() => {
     fetchUsers();

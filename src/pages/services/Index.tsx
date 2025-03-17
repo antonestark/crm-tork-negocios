@@ -1,49 +1,46 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useServiceAreasData, ServiceArea } from '@/hooks/use-service-areas-data';
+import { useServiceTasks } from '@/hooks/use-service-tasks';
+import { useServiceReports } from '@/hooks/use-service-reports';
+import { ServiceAreas } from '@/components/services/ServiceAreas';
+import { ServiceTasks } from '@/components/services/ServiceTasks';
+import { ServicesMetrics } from '@/components/services/ServicesMetrics';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
-import { Header } from "@/components/layout/Header";
-import { ServicesHeader } from "@/components/services/ServicesHeader";
-import { ServicesMetrics } from "@/components/services/ServicesMetrics";
-import { ServiceAreas } from "@/components/services/ServiceAreas";
-import { TaskPanel } from "@/components/services/TaskPanel";
-import { ServicesNav } from "@/components/services/ServicesNav";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { ServiceArea } from "@/hooks/use-service-areas-data";
-
-// Define interface for RPC results
-interface CountServicesByAreaResult {
-  area_id: string;
-  count: number;
+// Interface for RPC result
+interface ServiceStatisticsResult {
+  completed: number;
+  pending: number;
+  delayed: number;
+  avg_completion_time: number;
 }
 
-// Define a local version of ServiceArea without the conflicting fields
-// This avoids type conflicts with the imported ServiceArea type
-interface LocalServiceArea {
-  id: string;
-  name: string;
-  description?: string;
-  type?: string;
-  status?: string;
-  task_count: number;
-  pending_tasks: number;
-  delayed_tasks: number;
-}
-
-const ServicesIndex = () => {
-  const [areas, setAreas] = useState<LocalServiceArea[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function ServicesPage() {
+  const { areas, loading: areasLoading, error: areasError } = useServiceAreasData();
+  const { tasks, loading: tasksLoading, error: tasksError } = useServiceTasks();
+  const { reports, loading: reportsLoading, error: reportsError, metrics } = useServiceReports();
+  const [stats, setStats] = useState<ServiceStatisticsResult | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    fetchServiceStats();
     
+    // Set up a realtime subscription for stats updates
     const subscription = supabase
-      .channel('services_changes')
+      .channel('service_stats_changes')
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
-        table: 'service_areas' 
+        table: 'services' 
       }, () => {
-        fetchData();
+        fetchServiceStats();
       })
       .subscribe();
       
@@ -52,75 +49,75 @@ const ServicesIndex = () => {
     };
   }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchServiceStats = async () => {
     try {
-      // Fetch service areas
-      const { data: areasData, error: areasError } = await supabase
-        .from("service_areas")
-        .select(`*`)
-        .eq("status", "active")
-        .order("name", { ascending: true });
+      setStatsLoading(true);
       
-      if (areasError) {
-        console.error("Error fetching areas:", areasError);
-        toast.error("Erro ao carregar áreas de serviço");
-        throw areasError;
-      }
-      
-      // Use a direct function call to count services by area with proper type assertion
-      const { data: servicesCountData, error: servicesCountError } = await supabase
-        .rpc('count_services_by_area') as {
-          data: CountServicesByAreaResult[] | null, 
+      // Use proper type assertion for RPC calls
+      const { data, error } = await supabase
+        .rpc('get_service_statistics') as {
+          data: ServiceStatisticsResult | null, 
           error: any
         };
       
-      if (servicesCountError) {
-        console.error("Error counting services:", servicesCountError);
-      }
+      if (error) throw error;
       
-      // Process data to include task counts
-      const servicesCountArray = Array.isArray(servicesCountData) ? servicesCountData : [];
-      const processedAreas: LocalServiceArea[] = (areasData || []).map(area => {
-        const areaServiceCount = servicesCountArray.find((item: any) => item?.area_id === area.id)?.count || 0;
-        
-        return {
-          id: area.id,
-          name: area.name,
-          description: area.description,
-          type: area.type,
-          status: area.status,
-          task_count: Number(areaServiceCount),
-          pending_tasks: 0,  // Add missing properties to match ServiceArea type
-          delayed_tasks: 0   // Add missing properties to match ServiceArea type
-        };
-      });
-      
-      setAreas(processedAreas);
-      
-    } catch (error) {
-      console.error("Erro ao buscar dados:", error);
+      setStats(data);
+    } catch (err) {
+      console.error('Error fetching service statistics:', err);
+      toast.error('Erro ao carregar estatísticas de serviços');
     } finally {
-      setLoading(false);
+      setStatsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto py-6 px-4">
-        <ServicesNav />
-        <ServicesHeader />
-        <div className="mt-6">
-          <ServicesMetrics />
-        </div>
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-6">
-          <ServiceAreas areas={areas as unknown as ServiceArea[]} loading={loading} />
-          <TaskPanel />
-        </div>
-      </main>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Serviços</h1>
+        <Button asChild>
+          <Link to="/services/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Serviço
+          </Link>
+        </Button>
+      </div>
+      
+      <ServicesMetrics 
+        metrics={metrics} 
+        loading={reportsLoading} 
+      />
+      
+      <Tabs defaultValue="areas" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="areas">Áreas de Serviço</TabsTrigger>
+          <TabsTrigger value="recent">Atividades Recentes</TabsTrigger>
+        </TabsList>
+        <TabsContent value="areas" className="space-y-4">
+          <ServiceAreas 
+            areas={areas} 
+            loading={areasLoading} 
+            error={areasError} 
+          />
+        </TabsContent>
+        <TabsContent value="recent" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Atividades Recentes</CardTitle>
+              <CardDescription>
+                Últimas atualizações de serviços nas áreas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ServiceTasks 
+                tasks={tasks} 
+                loading={tasksLoading} 
+                error={tasksError} 
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-};
-
-export default ServicesIndex;
+}
