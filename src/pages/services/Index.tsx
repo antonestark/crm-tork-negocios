@@ -49,13 +49,16 @@ const ServicesPage = () => {
     };
   }, []);
 
-  // Use aggressive type assertion for RPC calls
+  // Use type assertion for RPC call
   const fetchServiceStats = async () => {
     try {
       setStatsLoading(true);
       
       const { data, error } = await (supabase
-        .rpc('get_service_statistics') as any);
+        .rpc('get_service_statistics') as unknown as Promise<{
+          data: ServiceStatisticsResult, 
+          error: any 
+        }>);
       
       if (error) throw error;
       
