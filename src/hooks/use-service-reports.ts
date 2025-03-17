@@ -38,7 +38,7 @@ export const useServiceReports = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch reports with area information - use "as any" to bypass TypeScript's strict checking
+      // Fetch reports with area information - use proper type assertion
       const { data, error: reportsError } = await supabase
         .from('service_reports')
         .select(`
@@ -46,13 +46,24 @@ export const useServiceReports = () => {
           service_areas (name)
         `)
         .order('report_date', { ascending: false })
-        .limit(10) as any;
+        .limit(10) as unknown as { 
+          data: Array<any> | null, 
+          error: any 
+        };
 
       if (reportsError) throw reportsError;
 
       // Fetch aggregated metrics
       const { data: metricsData, error: metricsError } = await supabase
-        .rpc('get_service_metrics') as any;
+        .rpc('get_service_metrics') as unknown as { 
+          data: { 
+            completed: number, 
+            pending: number, 
+            delayed: number, 
+            avg_completion_time: number 
+          } | null, 
+          error: any 
+        };
 
       if (metricsError) throw metricsError;
 
