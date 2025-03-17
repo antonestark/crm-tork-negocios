@@ -580,5 +580,5 @@ declare module './types' {
         [_ in never]: never;
       };
     };
-  };
+  }
 }
