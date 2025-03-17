@@ -1,111 +1,53 @@
 
-import { CheckCircle, Clock, AlertTriangle, RefreshCw } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ServiceTask } from "@/hooks/use-service-tasks";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 
-const TaskStatus = ({ status }: { status: "completed" | "ongoing" | "delayed" }) => {
-  const statusConfig = {
-    completed: {
-      icon: CheckCircle,
-      color: "text-green-500",
-      label: "Concluído",
-    },
-    ongoing: {
-      icon: Clock,
-      color: "text-yellow-500",
-      label: "Em Andamento",
-    },
-    delayed: {
-      icon: AlertTriangle,
-      color: "text-red-500",
-      label: "Atrasado",
-    },
+interface TaskPanelProps {
+  tasks: ServiceTask[];
+}
+
+export function TaskPanel({ tasks }: TaskPanelProps) {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge className="bg-green-500">Concluído</Badge>;
+      case 'delayed':
+        return <Badge variant="destructive">Atrasado</Badge>;
+      default:
+        return <Badge variant="outline">Em Andamento</Badge>;
+    }
   };
 
-  const config = statusConfig[status];
-  const Icon = config.icon;
-
   return (
-    <div className={`flex items-center ${config.color}`}>
-      <Icon className="h-4 w-4 mr-2" />
-      <span className="text-sm">{config.label}</span>
+    <div className="space-y-4">
+      {tasks.map((task) => (
+        <Card key={task.id} className="overflow-hidden">
+          <CardHeader className="p-4 pb-2">
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-base font-medium">{task.task}</CardTitle>
+              {getStatusBadge(task.status)}
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 pt-2">
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <p className="text-muted-foreground">Área:</p>
+                <p className="font-medium">{task.area}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-muted-foreground">Data:</p>
+                <p className="font-medium">{task.date} às {task.time}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
-};
-
-export type TaskPanelProps = {
-  tasks: ServiceTask[];
-  onRefresh?: () => void;
-  loading?: boolean;
-};
-
-export const TaskPanel = ({ tasks, onRefresh, loading = false }: TaskPanelProps) => {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div>
-          <CardTitle>Atividades Recentes</CardTitle>
-        </div>
-        {onRefresh && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onRefresh} 
-            disabled={loading}
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="space-y-4">
-            {[...Array(3)].map((_, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-5 w-40" />
-                </div>
-                <div className="flex items-center space-x-4">
-                  <Skeleton className="h-4 w-10" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : tasks.length > 0 ? (
-          <div className="space-y-4">
-            {tasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm text-muted-foreground">{task.area}</p>
-                  <p className="font-medium">{task.task}</p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-muted-foreground">{task.time}</span>
-                  <TaskStatus status={task.status} />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center p-6 text-center">
-            <p className="text-muted-foreground">Nenhum serviço encontrado</p>
-            {onRefresh && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-2" 
-                onClick={onRefresh}
-              >
-                Tentar novamente
-              </Button>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+}

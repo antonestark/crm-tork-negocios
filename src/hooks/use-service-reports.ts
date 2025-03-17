@@ -8,13 +8,11 @@ export interface ServiceReport {
   report_date: string;
   area_id: string;
   area_name: string;
-  completed: number;
-  pending: number;
-  delayed: number;
   completion_rate: number;
   completed_tasks: number;
   pending_tasks: number;
   delayed_tasks: number;
+  average_completion_time: number;
 }
 
 export interface ServicesMetricsData {
@@ -32,7 +30,7 @@ export const useServiceReports = () => {
     completed: 0,
     pending: 0,
     delayed: 0,
-    averageTime: 0,
+    averageTime: 0
   });
 
   const fetchReports = async () => {
@@ -40,41 +38,38 @@ export const useServiceReports = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch latest service reports for each area
-      // We need to use a type assertion since Database interface needs to be extended
-      const { data: reportsData, error: reportsError } = await supabase
-        .from('service_reports' as any)
-        .select('*, service_areas(name)')
+      // Fetch reports with area information
+      const { data, error: reportsError } = await (supabase
+        .from('service_reports')
+        .select(`
+          *,
+          service_areas (name)
+        `)
         .order('report_date', { ascending: false })
-        .limit(10) as { data: any[], error: any };
+        .limit(10) as unknown as { data: any[], error: any });
 
       if (reportsError) throw reportsError;
 
-      // Format the reports data
-      const formattedReports = reportsData.map((report: any) => ({
-        id: report.id,
-        report_date: report.report_date,
-        area_id: report.area_id,
-        area_name: report.service_areas?.name || 'Unknown Area',
-        completed: report.completed_services || 0,
-        pending: report.pending_services || 0,
-        delayed: report.delayed_services || 0,
-        completion_rate: report.completion_rate || 0,
-        completed_tasks: report.completed_services || 0,
-        pending_tasks: report.pending_services || 0,
-        delayed_tasks: report.delayed_services || 0,
-      }));
+      // Fetch aggregated metrics
+      const { data: metricsData, error: metricsError } = await (supabase
+        .rpc('get_service_metrics') as unknown as { data: any, error: any });
 
-      setReports(formattedReports);
+      if (metricsError) throw metricsError;
 
-      // Get overall metrics
-      // Use type assertion for RPC call
-      const { data: metricsData, error: metricsError } = await supabase
-        .rpc('get_service_statistics' as any) as { data: any, error: any };
+      if (data) {
+        const formattedReports = data.map((report: any) => ({
+          id: report.id,
+          report_date: report.report_date,
+          area_id: report.area_id,
+          area_name: report.service_areas?.name || 'Unknown Area',
+          completion_rate: report.completion_rate || 0,
+          completed_tasks: report.completed_tasks || 0,
+          pending_tasks: report.pending_tasks || 0,
+          delayed_tasks: report.delayed_tasks || 0,
+          average_completion_time: report.average_completion_time || 0
+        }));
 
-      if (metricsError) {
-        console.error('Error fetching reports:', metricsError);
-        throw metricsError;
+        setReports(formattedReports);
       }
 
       if (metricsData) {
@@ -82,13 +77,13 @@ export const useServiceReports = () => {
           completed: metricsData.completed || 0,
           pending: metricsData.pending || 0,
           delayed: metricsData.delayed || 0,
-          averageTime: metricsData.avg_completion_time || 0,
+          averageTime: Math.round(metricsData.avg_completion_time || 0)
         });
       }
     } catch (err) {
-      console.error('Error fetching reports:', err);
+      console.error('Error fetching service reports:', err);
       setError(err as Error);
-      toast.error('Erro ao carregar relatórios de serviços');
+      toast.error('Erro ao carregar relatórios de serviço');
     } finally {
       setLoading(false);
     }
@@ -103,7 +98,7 @@ export const useServiceReports = () => {
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
-        table: 'service_reports' 
+        table: 'service_reports'
       }, () => {
         fetchReports();
       })
@@ -114,11 +109,5 @@ export const useServiceReports = () => {
     };
   }, []);
 
-  return {
-    reports,
-    loading,
-    error,
-    metrics,
-    fetchReports,
-  };
+  return { reports, loading, error, metrics, fetchReports };
 };

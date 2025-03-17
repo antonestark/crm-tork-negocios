@@ -16,9 +16,9 @@ export interface Demand {
   assigned_user_name: string;
   requested_by: string | null;
   requester_name: string;
-  due_date: Date | null;
-  created_at: Date;
-  updated_at: Date;
+  due_date: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // Add null safety checks for assigned_user and requester
@@ -34,9 +34,9 @@ const mapDemandData = (d: any): Demand => ({
   assigned_user_name: d.assigned_user ? d.assigned_user.name : 'Unassigned',
   requested_by: d.requested_by || null,
   requester_name: d.requester ? d.requester.name : 'Anonymous',
-  due_date: d.due_date ? new Date(d.due_date) : null,
-  created_at: d.created_at ? new Date(d.created_at) : new Date(),
-  updated_at: d.updated_at ? new Date(d.updated_at) : new Date(),
+  due_date: d.due_date || null,
+  created_at: d.created_at ? d.created_at : new Date().toISOString(),
+  updated_at: d.updated_at ? d.updated_at : new Date().toISOString(),
 });
 
 export const useDemands = () => {
@@ -66,7 +66,7 @@ export const useDemands = () => {
       
       if (error) throw error;
       
-      const mappedDemands = (data || []).map((demand) => {
+      const mappedDemands = (data || []).map((demand: any) => {
         // Handle null service_areas
         const areaName = demand.service_areas ? demand.service_areas.name : 'Unknown Area';
         return mapDemandData({
@@ -89,9 +89,14 @@ export const useDemands = () => {
     try {
       setLoading(true);
       
+      // Format due_date to string if it's a Date object
+      const formattedDueDate = data.due_date instanceof Date 
+        ? data.due_date.toISOString() 
+        : data.due_date;
+      
       const { error } = await supabase
         .from('demands')
-        .insert([{
+        .insert({
           title: data.title,
           description: data.description,
           area_id: data.area_id,
@@ -99,8 +104,8 @@ export const useDemands = () => {
           status: data.status || 'open',
           assigned_to: data.assigned_to,
           requested_by: data.requested_by,
-          due_date: data.due_date,
-        }]);
+          due_date: formattedDueDate,
+        });
       
       if (error) throw error;
       

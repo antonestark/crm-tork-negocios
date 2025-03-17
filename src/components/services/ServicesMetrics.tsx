@@ -1,12 +1,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Clock, AlertTriangle, Calendar } from "lucide-react";
-import { useServiceReports } from "@/hooks/use-service-reports";
+import { useServiceReports, ServicesMetricsData } from "@/hooks/use-service-reports";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const ServicesMetrics = () => {
-  const { metrics, loading } = useServiceReports();
+interface ServicesMetricsProps {
+  metrics: ServicesMetricsData;
+  loading: boolean;
+}
 
+export const ServicesMetrics = ({ metrics, loading }: ServicesMetricsProps) => {
   if (loading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

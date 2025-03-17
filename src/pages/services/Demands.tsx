@@ -4,14 +4,38 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { useState } from "react";
 import { DemandFormDialog } from "@/components/services/demand-form";
-import { useDemands } from "@/hooks/use-demands";
+import { useDemands, Demand as HookDemand } from "@/hooks/use-demands";
 import { DemandsList } from "@/components/services/demands/DemandsList";
 import { DemandsHeader } from "@/components/services/demands/DemandsHeader";
 import { useDemandForm } from "@/components/services/demands/useDemandForm";
+import { Demand as TypeDemand } from "@/types/demands";
+
+// Create a utility function to convert between demand types
+const convertDemands = (demands: HookDemand[]): TypeDemand[] => {
+  return demands.map(demand => ({
+    id: demand.id,
+    title: demand.title,
+    description: demand.description,
+    area_id: demand.area_id,
+    priority: demand.priority,
+    assigned_to: demand.assigned_to,
+    requested_by: demand.requested_by,
+    due_date: demand.due_date,
+    status: demand.status,
+    created_at: demand.created_at,
+    updated_at: demand.updated_at,
+    area: { name: demand.area },
+    assigned_user: demand.assigned_to ? { name: demand.assigned_user_name } : null,
+    requester: demand.requested_by ? { name: demand.requester_name } : null
+  }));
+};
 
 const DemandsPage = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const { demands, loading, addDemand, fetchDemands } = useDemands();
+  const { demands: hookDemands, loading, addDemand, fetchDemands } = useDemands();
+  
+  // Convert the demands to the right type for the component
+  const demands = convertDemands(hookDemands);
   
   const { 
     formOpen, 
