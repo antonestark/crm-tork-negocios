@@ -40,12 +40,9 @@ export const useServiceTasks = () => {
     try {
       setLoading(true);
       
-      // Fetch services
+      // Use a direct SQL query to fetch the latest services without type issues
       const { data: servicesData, error: servicesError } = await supabase
-        .from('services')
-        .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(5);
+        .rpc('get_recent_services');
       
       if (servicesError) throw servicesError;
       
@@ -62,7 +59,7 @@ export const useServiceTasks = () => {
       if (areasError) throw areasError;
       
       // Process the data to match our ServiceTask interface
-      const processedTasks: ServiceTask[] = servicesData.map(item => {
+      const processedTasks: ServiceTask[] = servicesData.map((item: any) => {
         // Find the area name
         const area = areasData?.find(a => a.id === item.area_id);
         

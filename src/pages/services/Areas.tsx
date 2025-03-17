@@ -5,7 +5,7 @@ import { ServiceAreas } from "@/components/services/ServiceAreas";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { toast } from "sonner";
 import { CreateAreaDialog } from "@/components/services/areas/CreateAreaDialog";
-import { useServiceAreasData } from "@/hooks/use-service-areas-data";
+import { useServiceAreasData, ServiceArea } from "@/hooks/use-service-areas-data";
 import { useAuthState } from "@/hooks/use-auth-state";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
@@ -37,7 +37,7 @@ const AreasPage = () => {
     }
   }, [isAuthenticated, authLoading, navigate]);
   
-  const handleCreateArea = async (areaData: Parameters<typeof createServiceArea>[0]) => {
+  const handleCreateArea = async (areaData: Omit<ServiceArea, 'id' | 'task_count' | 'pending_tasks' | 'delayed_tasks'>) => {
     try {
       if (!isAuthenticated) {
         toast.error("Você precisa estar autenticado para criar uma área.");

@@ -32,14 +32,22 @@ export const useUserPermissions = (user: User, open: boolean) => {
       // Fetch all permission groups
       const { data: groupsData, error: groupsError } = await supabase
         .from('permission_groups')
-        .select(`
-          *,
-          permissions:permission_group_permissions(
-            permission:permissions(*)
-          )
-        `);
+        .select('*');
       
       if (groupsError) throw groupsError;
+      
+      // Fetch permissions for each group using a separate query
+      const groupPermissionsPromises = groupsData.map(async (group) => {
+        const { data, error } = await supabase
+          .rpc('get_group_permissions', { group_id: group.id });
+        
+        return {
+          group_id: group.id,
+          permissions: error ? [] : data || []
+        };
+      });
+      
+      const groupPermissionsResults = await Promise.all(groupPermissionsPromises);
       
       // Fetch user's direct permissions
       const { data: userPermissionsData, error: userPermissionsError } = await supabase
@@ -49,17 +57,15 @@ export const useUserPermissions = (user: User, open: boolean) => {
       
       if (userPermissionsError) throw userPermissionsError;
       
-      // Fetch user's permission groups
+      // Fetch user's permission groups using a direct query instead of trying to join
       const { data: userGroupsData, error: userGroupsError } = await supabase
-        .from('user_permission_groups')
-        .select('group_id')
-        .eq('user_id', user.id);
+        .rpc('get_user_permission_groups', { user_id: user.id });
       
       if (userGroupsError) throw userGroupsError;
       
       // Process permissions data
       const userPermissionIds = userPermissionsData?.map(up => up.permission_id) || [];
-      const userGroupIds = userGroupsData?.map(ug => ug.group_id) || [];
+      const userGroupIds = userGroupsData?.map((ug: any) => ug.group_id) || [];
       
       // Mark permissions and groups as selected based on what the user has
       const processedPermissions = permissionAdapter(permissionsData || []).map(p => ({
@@ -68,17 +74,24 @@ export const useUserPermissions = (user: User, open: boolean) => {
       }));
       
       const processedGroups = (groupsData || []).map(group => {
-        // Transform the nested permissions format from Supabase
-        const groupPermissions = group.permissions?.map(p => p.permission) || [];
+        // Get permissions for this group from our results
+        const groupPermissionsResult = groupPermissionsResults.find(
+          gp => gp.group_id === group.id
+        );
+        
+        // Get the actual permission objects for this group's permissions
+        const groupPermissions = groupPermissionsResult?.permissions
+          .map(permId => permissionsData.find(p => p.id === permId))
+          .filter(Boolean) || [];
         
         // Create the group with processed permissions
         return {
           id: group.id,
           name: group.name,
-          description: group.description,
-          is_system: group.is_system,
-          created_at: group.created_at,
-          updated_at: group.updated_at,
+          description: group.description || '',
+          is_system: false, // Default value since it's not in the original data
+          created_at: group.created_at || '',
+          updated_at: group.updated_at || '',
           permissions: permissionAdapter(groupPermissions),
           selected: userGroupIds.includes(group.id)
         };
@@ -118,46 +131,17 @@ export const useUserPermissions = (user: User, open: boolean) => {
         .filter(g => g.selected)
         .map(g => g.id);
       
-      // Delete existing user permissions
-      await supabase
-        .from('user_permissions')
-        .delete()
-        .eq('user_id', userId);
+      // Use a custom RPC function to save the permissions and groups in a transaction
+      const { error } = await supabase
+        .rpc('save_user_permissions_and_groups', {
+          p_user_id: userId,
+          p_permission_ids: selectedPermissionIds,
+          p_group_ids: selectedGroupIds
+        });
       
-      // Delete existing user permission groups
-      await supabase
-        .from('user_permission_groups')
-        .delete()
-        .eq('user_id', userId);
+      if (error) throw error;
       
-      // Insert new user permissions
-      if (selectedPermissionIds.length > 0) {
-        const permissionsToInsert = selectedPermissionIds.map(permissionId => ({
-          user_id: userId,
-          permission_id: permissionId
-        }));
-        
-        const { error: insertPermissionsError } = await supabase
-          .from('user_permissions')
-          .insert(permissionsToInsert);
-        
-        if (insertPermissionsError) throw insertPermissionsError;
-      }
-      
-      // Insert new user permission groups
-      if (selectedGroupIds.length > 0) {
-        const groupsToInsert = selectedGroupIds.map(groupId => ({
-          user_id: userId,
-          group_id: groupId
-        }));
-        
-        const { error: insertGroupsError } = await supabase
-          .from('user_permission_groups')
-          .insert(groupsToInsert);
-        
-        if (insertGroupsError) throw insertGroupsError;
-      }
-      
+      toast.success('Permissões salvas com sucesso');
       return true;
     } catch (err) {
       console.error('Error saving user permissions:', err);

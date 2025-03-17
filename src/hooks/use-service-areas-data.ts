@@ -59,25 +59,21 @@ export const useServiceAreasData = () => {
         throw areasError;
       }
 
-      // Then fetch services separately using raw SQL to avoid type issues
-      const { data: rawServicesData, error: servicesError } = await supabase
-        .rpc('get_services_by_area');
+      // Use a direct RPC function to get service stats without type issues
+      const { data: serviceStatsByArea, error: statsError } = await supabase
+        .rpc('get_service_stats_by_area');
       
-      if (servicesError) {
-        console.error("Error fetching services:", servicesError);
-        // Continue with the areas data even if services data fails
+      if (statsError) {
+        console.error("Error fetching service stats:", statsError);
+        // Continue with the areas data even if stats data fails
       }
       
       // Process the data to include task counts
       const processedAreas: ServiceArea[] = areasData.map(area => {
-        // Get services for this area
-        const areaServices = rawServicesData 
-          ? rawServicesData.filter((s: any) => s.area_id === area.id) 
-          : [];
-        
-        const totalTasks = areaServices.length;
-        const pendingTasks = areaServices.filter((s: any) => s.status === 'pending').length;
-        const delayedTasks = areaServices.filter((s: any) => s.status === 'delayed').length;
+        // Get service stats for this area
+        const areaStats = serviceStatsByArea 
+          ? serviceStatsByArea.find((s: any) => s.area_id === area.id) 
+          : null;
         
         return {
           id: area.id,
@@ -86,9 +82,9 @@ export const useServiceAreasData = () => {
           description: area.description,
           status: area.status || 'active',
           responsible_id: area.responsible_id,
-          task_count: totalTasks,
-          pending_tasks: pendingTasks,
-          delayed_tasks: delayedTasks
+          task_count: areaStats?.total_tasks || 0,
+          pending_tasks: areaStats?.pending_tasks || 0,
+          delayed_tasks: areaStats?.delayed_tasks || 0
         };
       });
       
@@ -250,8 +246,8 @@ export const useServiceAreasData = () => {
     loading,
     error,
     fetchServiceAreas,
-    createServiceArea: async () => {}, // Placeholder to be replaced by the kept code
-    updateServiceArea: async () => {}, // Placeholder to be replaced by the kept code
+    createServiceArea,
+    updateServiceArea,
     isAuthenticated
   };
 };

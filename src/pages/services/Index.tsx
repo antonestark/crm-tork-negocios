@@ -8,8 +8,11 @@ import { ServicesNav } from "@/components/services/ServicesNav";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ServiceArea } from "@/hooks/use-service-areas-data";
 
-interface ServiceArea {
+// Define a local version of ServiceArea without the conflicting fields
+// This avoids type conflicts with the imported ServiceArea type
+interface LocalServiceArea {
   id: string;
   name: string;
   description?: string;
@@ -19,7 +22,7 @@ interface ServiceArea {
 }
 
 const ServicesIndex = () => {
-  const [areas, setAreas] = useState<ServiceArea[]>([]);
+  const [areas, setAreas] = useState<LocalServiceArea[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,7 +60,7 @@ const ServicesIndex = () => {
         throw areasError;
       }
       
-      // Count services using a direct count query
+      // Use a direct function call to count services by area to avoid type issues
       const { data: servicesCountData, error: servicesCountError } = await supabase
         .rpc('count_services_by_area');
       
@@ -66,14 +69,18 @@ const ServicesIndex = () => {
       }
       
       // Process data to include task counts
-      const processedAreas = areasData.map(area => {
-        const areaCount = servicesCountData 
-          ? servicesCountData.find((count: any) => count.area_id === area.id)?.count || 0
+      const processedAreas: LocalServiceArea[] = areasData.map(area => {
+        const areaServiceCount = Array.isArray(servicesCountData) 
+          ? servicesCountData.find((item: any) => item.area_id === area.id)?.count || 0
           : 0;
         
         return {
-          ...area,
-          task_count: Number(areaCount)
+          id: area.id,
+          name: area.name,
+          description: area.description,
+          type: area.type,
+          status: area.status,
+          task_count: Number(areaServiceCount)
         };
       });
       
@@ -96,7 +103,7 @@ const ServicesIndex = () => {
           <ServicesMetrics />
         </div>
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-6">
-          <ServiceAreas areas={areas} loading={loading} />
+          <ServiceAreas areas={areas as ServiceArea[]} loading={loading} />
           <TaskPanel />
         </div>
       </main>

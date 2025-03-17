@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Demand, DemandCreate } from '@/types/demands';
@@ -19,23 +20,40 @@ export const useDemands = () => {
       setLoading(true);
       const formattedDemands = await fetchDemandsFromDB(statusFilter);
       
-      // Ensure we're setting properly typed data
-      const typedDemands: Demand[] = formattedDemands.map(d => ({
-        id: d.id,
-        title: d.title,
-        description: d.description,
-        area_id: d.area_id,
-        priority: d.priority,
-        assigned_to: d.assigned_to,
-        requested_by: d.requested_by,
-        due_date: d.due_date,
-        status: d.status,
-        created_at: d.created_at,
-        updated_at: d.updated_at,
-        area: d.area && { name: d.area.name },
-        assigned_user: d.assigned_user && { name: d.assigned_user.name },
-        requester: d.requester && { name: d.requester.name }
-      }));
+      // Handle the data safely to ensure we're setting properly typed data
+      const typedDemands: Demand[] = formattedDemands.map(d => {
+        // Safely extract nested properties with fallbacks
+        const areaName = typeof d.area === 'object' && d.area ? d.area.name || '' : '';
+        
+        // Handle potential SelectQueryError for assigned_user
+        let assignedUserName = '';
+        if (d.assigned_user && typeof d.assigned_user === 'object' && !('error' in d.assigned_user)) {
+          assignedUserName = d.assigned_user.name || '';
+        }
+        
+        // Handle potential SelectQueryError for requester
+        let requesterName = '';
+        if (d.requester && typeof d.requester === 'object' && !('error' in d.requester)) {
+          requesterName = d.requester.name || '';
+        }
+        
+        return {
+          id: d.id,
+          title: d.title,
+          description: d.description,
+          area_id: d.area_id,
+          priority: d.priority,
+          assigned_to: d.assigned_to,
+          requested_by: d.requested_by,
+          due_date: d.due_date,
+          status: d.status,
+          created_at: d.created_at,
+          updated_at: d.updated_at,
+          area: { name: areaName },
+          assigned_user: { name: assignedUserName },
+          requester: { name: requesterName }
+        };
+      });
       
       setDemands(typedDemands);
     } catch (err) {
@@ -94,8 +112,8 @@ export const useDemands = () => {
     loading,
     error,
     fetchDemands,
-    addDemand: async () => true, // Placeholder to be replaced by the kept code
-    updateDemand: async () => true, // Placeholder to be replaced by the kept code
-    deleteDemand: async () => true // Placeholder to be replaced by the kept code
+    addDemand,
+    updateDemand,
+    deleteDemand
   };
 };
