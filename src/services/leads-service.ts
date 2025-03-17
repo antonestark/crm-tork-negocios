@@ -11,12 +11,11 @@ export const fetchLeads = async (): Promise<Lead[]> => {
   try {
     console.log("Fetching leads from database...");
     
+    // Modified query to avoid using the relationship that doesn't exist
+    // Instead, we'll fetch all leads first, then get user data separately if needed
     const { data, error } = await supabase
       .from('leads')
-      .select(`
-        *,
-        assignedUser:assigned_to(id, email, name)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -27,30 +26,41 @@ export const fetchLeads = async (): Promise<Lead[]> => {
     console.log("Leads data from database:", data);
     
     // Process the data to match the Lead interface
-    const processedLeads = data?.map((lead: any) => {
+    const processedLeads = await Promise.all(data?.map(async (lead: any) => {
       // Normalize lead status to ensure consistent case
       const normalizedStatus = normalizeStatus(lead.status);
       
-      // Process assigned user data if available
+      // Fetch user data separately if a lead is assigned to someone
       let assignedUser = null;
-      if (lead.assignedUser) {
+      if (lead.assigned_to) {
         try {
-          assignedUser = {
-            id: lead.assignedUser.id || lead.assigned_to,
-            email: lead.assignedUser.email || null,
-            name: lead.assignedUser.name || 'Unknown User',
-            first_name: lead.assignedUser.name ? lead.assignedUser.name.split(' ')[0] : 'Unknown',
-            last_name: lead.assignedUser.name ? 
-              lead.assignedUser.name.split(' ').slice(1).join(' ') : 'User',
-            profile_image_url: null,
-            role: 'user',
-            phone: null,
-            active: true,
-            status: 'active',
-            last_login: null,
-            settings: {},
-            metadata: {},
-          };
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', lead.assigned_to)
+            .single();
+          
+          if (userError) {
+            console.warn('Could not fetch assigned user:', userError);
+            assignedUser = createDefaultUser(lead.assigned_to);
+          } else if (userData) {
+            assignedUser = {
+              id: userData.id,
+              email: userData.email || null,
+              name: userData.name || 'Unknown User',
+              first_name: userData.name ? userData.name.split(' ')[0] : 'Unknown',
+              last_name: userData.name ? 
+                userData.name.split(' ').slice(1).join(' ') : 'User',
+              profile_image_url: null,
+              role: userData.role || 'user',
+              phone: userData.phone || null,
+              active: userData.status === 'active',
+              status: userData.status || 'active',
+              last_login: null,
+              settings: {},
+              metadata: {},
+            };
+          }
         } catch (err) {
           console.error('Error processing assignedUser:', err);
           assignedUser = createDefaultUser(lead.assigned_to);
@@ -62,7 +72,7 @@ export const fetchLeads = async (): Promise<Lead[]> => {
         status: normalizedStatus,
         assignedUser
       };
-    }) || [];
+    }) || []);
     
     return processedLeads;
   } catch (err) {
