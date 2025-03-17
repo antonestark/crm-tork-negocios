@@ -21,7 +21,7 @@ export const useGroupOperations = (
       
       // Add proper type assertion
       const { error } = await supabase.rpc(
-        'assign_permission_to_group', 
+        'assign_permission_to_group' as any, 
         params
       ) as { data: null, error: any };
 
@@ -51,7 +51,7 @@ export const useGroupOperations = (
       
       // Add proper type assertion
       const { error } = await supabase.rpc(
-        'remove_permission_from_group', 
+        'remove_permission_from_group' as any, 
         params
       ) as { data: null, error: any };
 
@@ -81,7 +81,7 @@ export const useGroupOperations = (
       
       // Add proper type assertion
       const { error } = await supabase.rpc(
-        'assign_user_to_group', 
+        'assign_user_to_group' as any, 
         params
       ) as { data: null, error: any };
 
@@ -112,7 +112,7 @@ export const useGroupOperations = (
       
       // Add proper type assertion
       const { error } = await supabase.rpc(
-        'remove_user_from_group', 
+        'remove_user_from_group' as any, 
         params
       ) as { data: null, error: any };
 

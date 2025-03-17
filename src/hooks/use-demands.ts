@@ -1,118 +1,21 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { Demand, DemandCreate } from '@/types/demands';
-import { 
-  fetchDemandsFromDB, 
-  addDemandToDB, 
-  updateDemandInDB, 
-  deleteDemandFromDB 
-} from '@/services/demands';
-import { useDemandsSubscription } from './use-demands-subscription';
 
-export const useDemands = () => {
-  const [demands, setDemands] = useState<Demand[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+// Add this section to fix null safety issues in use-demands.ts where it accesses possibly null properties
+// Just including the parts that need to be fixed
 
-  const fetchDemands = async (statusFilter?: string | null) => {
-    try {
-      setLoading(true);
-      const formattedDemands = await fetchDemandsFromDB(statusFilter);
-      
-      // Handle the data safely to ensure we're setting properly typed data
-      const typedDemands: Demand[] = formattedDemands.map(d => {
-        // Safely extract nested properties with fallbacks
-        const areaName = d.area && typeof d.area === 'object' ? d.area.name || '' : '';
-        
-        // Handle assigned_user safely with proper null checking and optional chaining
-        let assignedUserName = '';
-        if (d.assigned_user != null) {
-          assignedUserName = typeof d.assigned_user === 'object' ? d.assigned_user?.name ?? '' : '';
-        }
-        
-        // Handle requester safely with proper null checking and optional chaining
-        let requesterName = '';
-        if (d.requester != null) {
-          requesterName = typeof d.requester === 'object' ? d.requester?.name ?? '' : '';
-        }
-        
-        return {
-          id: d.id,
-          title: d.title,
-          description: d.description,
-          area_id: d.area_id,
-          priority: d.priority,
-          assigned_to: d.assigned_to,
-          requested_by: d.requested_by,
-          due_date: d.due_date,
-          status: d.status,
-          created_at: d.created_at,
-          updated_at: d.updated_at,
-          area: { name: areaName },
-          assigned_user: { name: assignedUserName },
-          requester: { name: requesterName }
-        };
-      });
-      
-      setDemands(typedDemands);
-    } catch (err) {
-      console.error('Error fetching demands:', err);
-      setError(err as Error);
-      toast.error("Falha ao carregar demandas");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addDemand = async (demandData: DemandCreate): Promise<boolean> => {
-    try {
-      await addDemandToDB(demandData);
-      toast.success('Demanda criada com sucesso');
-      await fetchDemands();
-      return true;
-    } catch (err) {
-      console.error('Error adding demand:', err);
-      toast.error('Falha ao criar demanda');
-      return false;
-    }
-  };
-
-  const updateDemand = async (demandData: DemandCreate): Promise<boolean> => {
-    try {
-      await updateDemandInDB(demandData);
-      toast.success('Demanda atualizada com sucesso');
-      await fetchDemands();
-      return true;
-    } catch (err) {
-      console.error('Error updating demand:', err);
-      toast.error('Falha ao atualizar demanda');
-      return false;
-    }
-  };
-
-  const deleteDemand = async (id: string): Promise<boolean> => {
-    try {
-      await deleteDemandFromDB(id);
-      setDemands(prev => prev.filter(d => d.id !== id));
-      toast.success('Demanda excluída com sucesso');
-      return true;
-    } catch (err) {
-      console.error('Error deleting demand:', err);
-      toast.error('Falha ao excluir demanda');
-      return false;
-    }
-  };
-
-  // Set up real-time subscription
-  useDemandsSubscription(fetchDemands);
-
-  return {
-    demands,
-    loading,
-    error,
-    fetchDemands,
-    addDemand,
-    updateDemand,
-    deleteDemand
-  };
-};
+// Add null safety checks for assigned_user and requester
+const mapDemandData = (d: any) => ({
+  id: d.id,
+  title: d.title,
+  description: d.description || '',
+  area: d.area_name || 'General',
+  area_id: d.area_id,
+  priority: d.priority || 'medium',
+  status: d.status || 'open',
+  assigned_to: d.assigned_to || null,
+  assigned_user_name: d.assigned_user ? d.assigned_user.name : 'Unassigned',
+  requested_by: d.requested_by || null,
+  requester_name: d.requester ? d.requester.name : 'Anonymous',
+  due_date: d.due_date ? new Date(d.due_date) : null,
+  created_at: d.created_at ? new Date(d.created_at) : new Date(),
+  updated_at: d.updated_at ? new Date(d.updated_at) : new Date(),
+});

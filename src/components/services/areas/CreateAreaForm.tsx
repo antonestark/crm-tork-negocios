@@ -14,7 +14,7 @@ const areaFormSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   description: z.string().optional(),
   type: z.string(),
-  status: z.string().default("active")
+  status: z.enum(["active", "inactive"]).default("active")
 });
 
 type AreaFormValues = z.infer<typeof areaFormSchema>;
@@ -41,7 +41,7 @@ export const CreateAreaForm = ({ onSubmit, onCancel, isSubmitting }: CreateAreaF
       name: values.name,
       description: values.description,
       type: values.type,
-      status: values.status,
+      status: values.status as 'active' | 'inactive',
     });
   };
 

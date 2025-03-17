@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface ServiceReport {
+export interface ServiceReport {
   id: string;
   report_date: string;
   area_id: string;
@@ -11,6 +11,10 @@ interface ServiceReport {
   completed: number;
   pending: number;
   delayed: number;
+  completion_rate: number;
+  completed_tasks: number;
+  pending_tasks: number;
+  delayed_tasks: number;
 }
 
 export interface ServicesMetricsData {
@@ -37,8 +41,9 @@ export const useServiceReports = () => {
       setError(null);
 
       // Fetch latest service reports for each area
+      // Use type assertion for the Supabase call since service_reports is in the database
       const { data: reportsData, error: reportsError } = await supabase
-        .from('service_reports')
+        .from('service_reports' as any)
         .select('*, service_areas(name)')
         .order('report_date', { ascending: false })
         .limit(10);
@@ -54,13 +59,18 @@ export const useServiceReports = () => {
         completed: report.completed_services || 0,
         pending: report.pending_services || 0,
         delayed: report.delayed_services || 0,
+        completion_rate: report.completion_rate || 0,
+        completed_tasks: report.completed_services || 0,
+        pending_tasks: report.pending_services || 0,
+        delayed_tasks: report.delayed_services || 0,
       }));
 
       setReports(formattedReports);
 
       // Get overall metrics
+      // Use type assertion for RPC call
       const { data: metricsData, error: metricsError } = await supabase
-        .rpc('get_service_statistics') as { data: any, error: any };
+        .rpc('get_service_statistics' as any) as { data: any, error: any };
 
       if (metricsError) {
         console.error('Error fetching reports:', metricsError);

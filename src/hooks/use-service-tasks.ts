@@ -23,9 +23,9 @@ export const useServiceTasks = () => {
       setLoading(true);
       setError(null);
 
-      // Use Supabase RPC to get recent services
+      // Use Supabase RPC with type assertion to get recent services
       const { data, error: apiError } = await supabase
-        .rpc('get_recent_services') as { data: any[], error: any };
+        .rpc('get_recent_services' as any) as { data: any[], error: any };
 
       if (apiError) {
         throw apiError;

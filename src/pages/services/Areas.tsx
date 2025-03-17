@@ -10,20 +10,21 @@ import { useAuthState } from "@/hooks/use-auth-state";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const AreasPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   
   const { isAuthenticated, isLoading: authLoading } = useAuthState();
+  const { areas, loading, error, refresh } = useServiceAreasData();
   
-  const { 
-    areas, 
-    loading, 
-    error, 
-    createServiceArea,
-    isAuthenticated: areasAuthenticated
-  } = useServiceAreasData();
+  // Add local isAuthenticated state
+  const [userAuthenticated, setUserAuthenticated] = useState(false);
+  
+  useEffect(() => {
+    setUserAuthenticated(isAuthenticated);
+  }, [isAuthenticated]);
   
   useEffect(() => {
     // Redirect to login page if not authenticated after auth check completes
@@ -37,7 +38,30 @@ const AreasPage = () => {
     }
   }, [isAuthenticated, authLoading, navigate]);
   
-  const handleCreateArea = async (areaData: Omit<ServiceArea, 'id' | 'task_count' | 'pending_tasks' | 'delayed_tasks'>) => {
+  const createServiceArea = async (areaData: Omit<ServiceArea, 'id' | 'services_count' | 'pending_services' | 'task_count' | 'created_at'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('service_areas')
+        .insert([{
+          name: areaData.name,
+          description: areaData.description,
+          status: areaData.status,
+          type: areaData.type
+        }]);
+        
+      if (error) throw error;
+      
+      // Refresh the areas list
+      refresh();
+      
+      return data;
+    } catch (error) {
+      console.error('Error creating service area:', error);
+      throw error;
+    }
+  };
+  
+  const handleCreateArea = async (areaData: Omit<ServiceArea, 'id' | 'task_count' | 'pending_services' | 'services_count' | 'created_at'>) => {
     try {
       if (!isAuthenticated) {
         toast.error("Você precisa estar autenticado para criar uma área.");
@@ -116,7 +140,7 @@ const AreasPage = () => {
           <CreateAreaDialog 
             onCreateArea={handleCreateArea}
             isSubmitting={isSubmitting} 
-            isAuthenticated={isAuthenticated}
+            isAuthenticated={userAuthenticated}
           />
         </div>
 

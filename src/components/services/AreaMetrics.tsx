@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Progress } from "@/components/ui/progress";
-import { useServiceReports, ServiceReport } from "@/hooks/use-service-reports";
+import { useServiceReports } from "@/hooks/use-service-reports";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const AreaMetrics = () => {

@@ -11,6 +11,7 @@ export interface ServiceArea {
   status: 'active' | 'inactive';
   services_count: number;
   pending_services: number;
+  task_count: number; // Add this property to match the usage in ServiceAreas.tsx
   created_at: string;
 }
 
@@ -40,8 +41,9 @@ export const useServiceAreasData = (): ServiceAreasResult => {
       if (areasError) throw areasError;
 
       // Get service counts for each area
+      // Use type assertion for the RPC call
       const { data: countData, error: countError } = await supabase
-        .rpc('count_services_by_area') as { data: any[], error: any };
+        .rpc('count_services_by_area' as any) as { data: any[], error: any };
 
       if (countError) {
         console.error('Error counting services:', countError);
@@ -58,6 +60,7 @@ export const useServiceAreasData = (): ServiceAreasResult => {
           ...area,
           services_count: countInfo.total || 0,
           pending_services: countInfo.pending || 0,
+          task_count: countInfo.total || 0, // Add task_count property
         };
       });
 
