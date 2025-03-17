@@ -2,10 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo, Filter } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { ServiceFormDialog } from "./ServiceFormDialog";
 
 export const ServicesHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [openServiceForm, setOpenServiceForm] = useState(false);
   
   const handleNovaDemanda = () => {
     // Simplify the approach to avoid race conditions
@@ -21,32 +24,53 @@ export const ServicesHeader = () => {
     }
   };
   
+  const handleNovoServico = () => {
+    setOpenServiceForm(true);
+  };
+  
+  const handleFormSuccess = () => {
+    // Refresh the page or fetch data again
+    window.location.reload();
+  };
+  
   return (
-    <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Services</h2>
-        <p className="text-muted-foreground">
-          Gerencie as atividades de serviços gerais
-        </p>
+    <>
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Services</h2>
+          <p className="text-muted-foreground">
+            Gerencie as atividades de serviços gerais
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            className="flex items-center" 
+            size="sm"
+            onClick={handleNovoServico}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Tarefa
+          </Button>
+          <Button 
+            className="flex items-center" 
+            variant="outline" 
+            size="sm"
+            onClick={handleNovaDemanda}
+          >
+            <ListTodo className="mr-2 h-4 w-4" />
+            Nova Demanda
+          </Button>
+          <Button variant="outline" size="sm">
+            <Filter className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-      <div className="flex flex-col sm:flex-row gap-2">
-        <Button className="flex items-center" size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Tarefa
-        </Button>
-        <Button 
-          className="flex items-center" 
-          variant="outline" 
-          size="sm"
-          onClick={handleNovaDemanda}
-        >
-          <ListTodo className="mr-2 h-4 w-4" />
-          Nova Demanda
-        </Button>
-        <Button variant="outline" size="sm">
-          <Filter className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+      
+      <ServiceFormDialog 
+        open={openServiceForm} 
+        setOpen={setOpenServiceForm} 
+        onSuccess={handleFormSuccess}
+      />
+    </>
   );
 };

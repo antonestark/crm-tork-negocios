@@ -8,13 +8,11 @@ import { ServiceAreas } from '@/components/services/ServiceAreas';
 import { ServiceTasks } from '@/components/services/ServiceTasks';
 import { ServicesMetrics } from '@/components/services/ServicesMetrics';
 import { ServicesNav } from '@/components/services/ServicesNav';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Header } from '@/components/layout/Header';
+import { ServicesHeader } from '@/components/services/ServicesHeader';
 
 interface ServiceStatisticsResult {
   completed: number;
@@ -75,15 +73,7 @@ const ServicesPage = () => {
       <main className="container mx-auto py-6 px-4">
         <ServicesNav />
         
-        <div className="flex items-center justify-between mt-6">
-          <h1 className="text-3xl font-bold tracking-tight">Serviços</h1>
-          <Button asChild>
-            <Link to="/services/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Serviço
-            </Link>
-          </Button>
-        </div>
+        <ServicesHeader />
 
         <ServicesMetrics 
           metrics={metrics} 
