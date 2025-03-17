@@ -40,34 +40,40 @@ export const useServiceReports = () => {
       
       // First, fetch the count of services by status
       const { data: servicesData, error: servicesError } = await supabase
-        .from("services")
-        .select("status");
+        .from('services')
+        .select('status');
       
       if (servicesError) throw servicesError;
       
+      const servicesArray = servicesData || [];
+      
       // Count by status
-      const completed = servicesData?.filter(s => s.status === 'completed').length || 0;
-      const pending = servicesData?.filter(s => s.status === 'pending').length || 0;
-      const delayed = servicesData?.filter(s => s.status === 'delayed').length || 0;
+      const completed = servicesArray.filter(s => s.status === 'completed').length || 0;
+      const pending = servicesArray.filter(s => s.status === 'pending').length || 0;
+      const delayed = servicesArray.filter(s => s.status === 'delayed').length || 0;
       
       // Fetch service reports
       const { data: reportsData, error: reportsError } = await supabase
-        .from("service_reports")
-        .select("*");
+        .from('service_reports')
+        .select('*');
       
       if (reportsError) throw reportsError;
       
+      const reportsArray = reportsData || [];
+      
       // Fetch service areas for names
       const { data: areasData, error: areasError } = await supabase
-        .from("service_areas")
-        .select("id, name");
+        .from('service_areas')
+        .select('id, name');
         
       if (areasError) throw areasError;
       
+      const areasArray = areasData || [];
+      
       // Process the reports
-      const processedReports: ServiceReport[] = (reportsData || []).map(report => {
+      const processedReports: ServiceReport[] = reportsArray.map(report => {
         // Look up area name from areas data
-        const area = areasData?.find(a => a.id === report.area_id);
+        const area = areasArray.find(a => a.id === report.area_id);
         
         return {
           id: report.id,

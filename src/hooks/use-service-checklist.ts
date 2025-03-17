@@ -93,7 +93,7 @@ export const useServiceChecklist = (period?: string) => {
           id: item.id,
           name: item.name,
           description: item.description,
-          period: item.period,
+          period: item.period || '',
           area_id: item.area_id,
           area_name: area?.name,
           active: !!item.active,

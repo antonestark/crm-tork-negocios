@@ -57,22 +57,23 @@ const ServicesIndex = () => {
         throw areasError;
       }
       
-      // Separately fetch service counts
-      const { data: servicesData, error: servicesError } = await supabase
-        .from("services")
-        .select('id, area_id');
+      // Count services using a direct count query
+      const { data: servicesCountData, error: servicesCountError } = await supabase
+        .rpc('count_services_by_area');
       
-      if (servicesError) {
-        console.error("Error fetching services:", servicesError);
+      if (servicesCountError) {
+        console.error("Error counting services:", servicesCountError);
       }
       
       // Process data to include task counts
       const processedAreas = areasData.map(area => {
-        const areaTasks = servicesData?.filter(service => service.area_id === area.id) || [];
+        const areaCount = servicesCountData 
+          ? servicesCountData.find((count: any) => count.area_id === area.id)?.count || 0
+          : 0;
         
         return {
           ...area,
-          task_count: areaTasks.length
+          task_count: Number(areaCount)
         };
       });
       

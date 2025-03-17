@@ -1,9 +1,94 @@
-
-import { Database } from './types';
-
 // This file augments the Database interface from the original types.ts file
 // without modifying the read-only file directly
 
+export interface Services {
+  Row: {
+    id: string;
+    title: string;
+    description?: string | null;
+    status?: string | null;
+    area_id?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    assigned_to?: string | null;
+    due_date?: string | null;
+  };
+  Insert: {
+    id?: string;
+    title: string;
+    description?: string | null;
+    status?: string | null;
+    area_id?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    assigned_to?: string | null;
+    due_date?: string | null;
+  };
+  Update: {
+    id?: string;
+    title?: string;
+    description?: string | null;
+    status?: string | null;
+    area_id?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    assigned_to?: string | null;
+    due_date?: string | null;
+  };
+}
+
+export interface ServiceReports {
+  Row: {
+    id: string;
+    report_date: string;
+    area_id?: string | null;
+    average_completion_time: number;
+    created_by?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Insert: {
+    id?: string;
+    report_date: string;
+    area_id?: string | null;
+    average_completion_time: number;
+    created_by?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    report_date?: string;
+    area_id?: string | null;
+    average_completion_time?: number;
+    created_by?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+}
+
+export interface UserPermissionGroups {
+  Row: {
+    id: string;
+    user_id: string;
+    group_id: string;
+    created_at?: string | null;
+  };
+  Insert: {
+    id?: string;
+    user_id: string;
+    group_id: string;
+    created_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    user_id?: string;
+    group_id?: string;
+    created_at?: string | null;
+  };
+}
+
+// Augment the Database interface
 declare module './types' {
   export interface Database {
     public: {
@@ -486,71 +571,6 @@ declare module './types' {
             type?: string;
           };
         };
-        // Add missing tables
-        services: {
-          Row: {
-            id: string;
-            title: string;
-            description?: string;
-            status?: string;
-            area_id?: string;
-            created_at?: string;
-            updated_at?: string;
-            assigned_to?: string;
-            due_date?: string;
-          };
-          Insert: {
-            id?: string;
-            title: string;
-            description?: string;
-            status?: string;
-            area_id?: string;
-            created_at?: string;
-            updated_at?: string;
-            assigned_to?: string;
-            due_date?: string;
-          };
-          Update: {
-            id?: string;
-            title?: string;
-            description?: string;
-            status?: string;
-            area_id?: string;
-            created_at?: string;
-            updated_at?: string;
-            assigned_to?: string;
-            due_date?: string;
-          };
-        };
-        service_reports: {
-          Row: {
-            id: string;
-            report_date: string;
-            area_id?: string;
-            average_completion_time: number;
-            created_by?: string;
-            created_at?: string;
-            updated_at?: string;
-          };
-          Insert: {
-            id?: string;
-            report_date: string;
-            area_id?: string;
-            average_completion_time: number;
-            created_by?: string;
-            created_at?: string;
-            updated_at?: string;
-          };
-          Update: {
-            id?: string;
-            report_date?: string;
-            area_id?: string;
-            average_completion_time?: number;
-            created_by?: string;
-            created_at?: string;
-            updated_at?: string;
-          };
-        };
         user_groups: {
           Row: {
             id: string;
@@ -626,24 +646,16 @@ declare module './types' {
             name?: string;
           };
         };
+        
+        // Add missing tables
+        services: Services;
+        service_reports: ServiceReports;
+        user_permission_groups: UserPermissionGroups;
       };
-      Views: {
-        [_ in never]: never;
-      };
-      Functions: {
-        user_has_permission: {
-          Args: {
-            permission_code: string;
-          };
-          Returns: boolean;
-        };
-      };
-      Enums: {
-        [_ in never]: never;
-      };
-      CompositeTypes: {
-        [_ in never]: never;
-      };
+      Views: Database['public']['Views'];
+      Functions: Database['public']['Functions'];
+      Enums: Database['public']['Enums'];
+      CompositeTypes: Database['public']['CompositeTypes'];
     };
   }
 }

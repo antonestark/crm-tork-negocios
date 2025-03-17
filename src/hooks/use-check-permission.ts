@@ -22,16 +22,18 @@ export const useCheckPermission = (permissionCode: string) => {
     try {
       setLoading(true);
       
-      // Call the Supabase function to check if the user has the permission
-      const { data, error } = await supabase.rpc('user_has_permission', {
-        permission_code: permissionCode
-      });
+      // Instead of calling RPC, check permissions directly
+      const { data: permissionData, error: permissionError } = await supabase
+        .from('user_permissions')
+        .select('permission_id, permissions!inner(code)')
+        .eq('user_id', userId)
+        .eq('permissions.code', permissionCode);
       
-      if (error) {
-        console.error('Error checking permission:', error);
+      if (permissionError) {
+        console.error('Error checking permission:', permissionError);
         setHasPermission(false);
       } else {
-        setHasPermission(data || false);
+        setHasPermission(permissionData && permissionData.length > 0);
       }
     } catch (err) {
       console.error('Error checking permission:', err);

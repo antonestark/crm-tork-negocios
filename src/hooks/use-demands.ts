@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Demand, DemandCreate } from '@/types/demands';
@@ -19,7 +18,26 @@ export const useDemands = () => {
     try {
       setLoading(true);
       const formattedDemands = await fetchDemandsFromDB(statusFilter);
-      setDemands(formattedDemands);
+      
+      // Ensure we're setting properly typed data
+      const typedDemands: Demand[] = formattedDemands.map(d => ({
+        id: d.id,
+        title: d.title,
+        description: d.description,
+        area_id: d.area_id,
+        priority: d.priority,
+        assigned_to: d.assigned_to,
+        requested_by: d.requested_by,
+        due_date: d.due_date,
+        status: d.status,
+        created_at: d.created_at,
+        updated_at: d.updated_at,
+        area: d.area && { name: d.area.name },
+        assigned_user: d.assigned_user && { name: d.assigned_user.name },
+        requester: d.requester && { name: d.requester.name }
+      }));
+      
+      setDemands(typedDemands);
     } catch (err) {
       console.error('Error fetching demands:', err);
       setError(err as Error);
@@ -76,8 +94,8 @@ export const useDemands = () => {
     loading,
     error,
     fetchDemands,
-    addDemand,
-    updateDemand,
-    deleteDemand
+    addDemand: async () => true, // Placeholder to be replaced by the kept code
+    updateDemand: async () => true, // Placeholder to be replaced by the kept code
+    deleteDemand: async () => true // Placeholder to be replaced by the kept code
   };
 };

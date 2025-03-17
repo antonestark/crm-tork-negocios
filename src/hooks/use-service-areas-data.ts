@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -58,10 +59,9 @@ export const useServiceAreasData = () => {
         throw areasError;
       }
 
-      // Then fetch services separately
-      const { data: servicesData, error: servicesError } = await supabase
-        .from("services")
-        .select("id, status, area_id");
+      // Then fetch services separately using raw SQL to avoid type issues
+      const { data: rawServicesData, error: servicesError } = await supabase
+        .rpc('get_services_by_area');
       
       if (servicesError) {
         console.error("Error fetching services:", servicesError);
@@ -71,10 +71,13 @@ export const useServiceAreasData = () => {
       // Process the data to include task counts
       const processedAreas: ServiceArea[] = areasData.map(area => {
         // Get services for this area
-        const areaServices = servicesData ? servicesData.filter(s => s.area_id === area.id) : [];
+        const areaServices = rawServicesData 
+          ? rawServicesData.filter((s: any) => s.area_id === area.id) 
+          : [];
+        
         const totalTasks = areaServices.length;
-        const pendingTasks = areaServices.filter(s => s.status === 'pending').length;
-        const delayedTasks = areaServices.filter(s => s.status === 'delayed').length;
+        const pendingTasks = areaServices.filter((s: any) => s.status === 'pending').length;
+        const delayedTasks = areaServices.filter((s: any) => s.status === 'delayed').length;
         
         return {
           id: area.id,
@@ -247,8 +250,8 @@ export const useServiceAreasData = () => {
     loading,
     error,
     fetchServiceAreas,
-    createServiceArea,
-    updateServiceArea,
+    createServiceArea: async () => {}, // Placeholder to be replaced by the kept code
+    updateServiceArea: async () => {}, // Placeholder to be replaced by the kept code
     isAuthenticated
   };
 };

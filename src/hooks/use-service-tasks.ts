@@ -43,11 +43,16 @@ export const useServiceTasks = () => {
       // Fetch services
       const { data: servicesData, error: servicesError } = await supabase
         .from('services')
-        .select('id, title, status, updated_at, area_id')
+        .select('*')
         .order('updated_at', { ascending: false })
         .limit(5);
       
       if (servicesError) throw servicesError;
+      
+      if (!servicesData || servicesData.length === 0) {
+        setTasks([]);
+        return;
+      }
       
       // Fetch areas to get names
       const { data: areasData, error: areasError } = await supabase
