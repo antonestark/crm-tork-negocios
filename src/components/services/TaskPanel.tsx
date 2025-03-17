@@ -2,7 +2,7 @@
 import { CheckCircle, Clock, AlertTriangle, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useServiceTasks, ServiceTask } from "@/hooks/use-service-tasks";
+import { ServiceTask } from "@/hooks/use-service-tasks";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const TaskStatus = ({ status }: { status: "completed" | "ongoing" | "delayed" }) => {
@@ -35,24 +35,29 @@ const TaskStatus = ({ status }: { status: "completed" | "ongoing" | "delayed" })
   );
 };
 
-export const TaskPanel = () => {
-  const { tasks, loading, error, fetchTasks } = useServiceTasks();
+export type TaskPanelProps = {
+  tasks: ServiceTask[];
+  onRefresh?: () => void;
+  loading?: boolean;
+};
 
+export const TaskPanel = ({ tasks, onRefresh, loading = false }: TaskPanelProps) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle>Atividades Recentes</CardTitle>
-          {error && <CardDescription className="text-red-500">Erro ao carregar serviços</CardDescription>}
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => fetchTasks()} 
-          disabled={loading}
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-        </Button>
+        {onRefresh && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onRefresh} 
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -88,14 +93,16 @@ export const TaskPanel = () => {
         ) : (
           <div className="flex flex-col items-center justify-center p-6 text-center">
             <p className="text-muted-foreground">Nenhum serviço encontrado</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-2" 
-              onClick={() => fetchTasks()}
-            >
-              Tentar novamente
-            </Button>
+            {onRefresh && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-2" 
+                onClick={onRefresh}
+              >
+                Tentar novamente
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

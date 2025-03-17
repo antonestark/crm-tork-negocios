@@ -12,6 +12,14 @@ import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
+// Updated interface to match what our form returns
+interface AreaFormData {
+  name: string;
+  description?: string;
+  status: 'active' | 'inactive';
+  type: string;
+}
+
 const AreasPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -38,7 +46,7 @@ const AreasPage = () => {
     }
   }, [isAuthenticated, authLoading, navigate]);
   
-  const createServiceArea = async (areaData: Omit<ServiceArea, 'id' | 'services_count' | 'pending_services' | 'task_count' | 'created_at'>) => {
+  const createServiceArea = async (areaData: AreaFormData) => {
     try {
       const { data, error } = await supabase
         .from('service_areas')
@@ -61,7 +69,7 @@ const AreasPage = () => {
     }
   };
   
-  const handleCreateArea = async (areaData: Omit<ServiceArea, 'id' | 'task_count' | 'pending_services' | 'services_count' | 'created_at'>) => {
+  const handleCreateArea = async (areaData: AreaFormData) => {
     try {
       if (!isAuthenticated) {
         toast.error("Você precisa estar autenticado para criar uma área.");

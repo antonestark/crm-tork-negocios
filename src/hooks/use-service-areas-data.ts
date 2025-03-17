@@ -9,9 +9,10 @@ export interface ServiceArea {
   description?: string;
   manager_id?: string;
   status: 'active' | 'inactive';
+  type?: string;
   services_count: number;
   pending_services: number;
-  task_count: number; // Add this property to match the usage in ServiceAreas.tsx
+  task_count: number;
   created_at: string;
 }
 

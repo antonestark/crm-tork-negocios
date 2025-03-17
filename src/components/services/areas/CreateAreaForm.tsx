@@ -19,8 +19,16 @@ const areaFormSchema = z.object({
 
 type AreaFormValues = z.infer<typeof areaFormSchema>;
 
+// Define the correct type for what the form will submit
+type AreaSubmitData = {
+  name: string;
+  description?: string;
+  status: 'active' | 'inactive';
+  type: string;
+}
+
 interface CreateAreaFormProps {
-  onSubmit: (values: Omit<ServiceArea, 'id' | 'task_count' | 'pending_tasks' | 'delayed_tasks'>) => Promise<void>;
+  onSubmit: (values: AreaSubmitData) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
 }
@@ -41,7 +49,7 @@ export const CreateAreaForm = ({ onSubmit, onCancel, isSubmitting }: CreateAreaF
       name: values.name,
       description: values.description,
       type: values.type,
-      status: values.status as 'active' | 'inactive',
+      status: values.status,
     });
   };
 

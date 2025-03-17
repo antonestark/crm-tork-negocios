@@ -41,12 +41,12 @@ export const useServiceReports = () => {
       setError(null);
 
       // Fetch latest service reports for each area
-      // Use type assertion for the Supabase call since service_reports is in the database
+      // We need to use a type assertion since Database interface needs to be extended
       const { data: reportsData, error: reportsError } = await supabase
         .from('service_reports' as any)
         .select('*, service_areas(name)')
         .order('report_date', { ascending: false })
-        .limit(10);
+        .limit(10) as { data: any[], error: any };
 
       if (reportsError) throw reportsError;
 
