@@ -70,12 +70,14 @@ export const useServiceReports = () => {
         setReports(formattedReports);
       }
 
-      if (metricsData) {
+      if (metricsData && metricsData.length > 0) {
+        // Access the first item in the array since the function returns an array
+        const metrics = metricsData[0];
         setMetrics({
-          completed: metricsData.completed || 0,
-          pending: metricsData.pending || 0,
-          delayed: metricsData.delayed || 0,
-          averageTime: Math.round(metricsData.avg_completion_time || 0)
+          completed: metrics.completed || 0,
+          pending: metrics.pending || 0,
+          delayed: metrics.delayed || 0,
+          averageTime: Math.round(metrics.avg_completion_time || 0)
         });
       }
     } catch (err) {

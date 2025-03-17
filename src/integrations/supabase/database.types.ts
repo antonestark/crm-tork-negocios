@@ -36,6 +36,15 @@ export interface Services {
     assigned_to?: string | null;
     due_date?: string | null;
   };
+  Relationships: [
+    {
+      foreignKeyName: "services_area_id_fkey";
+      columns: ["area_id"];
+      isOneToOne: false;
+      referencedRelation: "service_areas";
+      referencedColumns: ["id"];
+    }
+  ];
 }
 
 export interface ServiceReports {
@@ -47,6 +56,10 @@ export interface ServiceReports {
     created_by?: string | null;
     created_at?: string | null;
     updated_at?: string | null;
+    completed_tasks?: number | null;
+    pending_tasks?: number | null;
+    delayed_tasks?: number | null;
+    completion_rate?: number | null;
   };
   Insert: {
     id?: string;
@@ -56,6 +69,10 @@ export interface ServiceReports {
     created_by?: string | null;
     created_at?: string | null;
     updated_at?: string | null;
+    completed_tasks?: number | null;
+    pending_tasks?: number | null;
+    delayed_tasks?: number | null;
+    completion_rate?: number | null;
   };
   Update: {
     id?: string;
@@ -65,7 +82,20 @@ export interface ServiceReports {
     created_by?: string | null;
     created_at?: string | null;
     updated_at?: string | null;
+    completed_tasks?: number | null;
+    pending_tasks?: number | null;
+    delayed_tasks?: number | null;
+    completion_rate?: number | null;
   };
+  Relationships: [
+    {
+      foreignKeyName: "service_reports_area_id_fkey";
+      columns: ["area_id"];
+      isOneToOne: false;
+      referencedRelation: "service_areas";
+      referencedColumns: ["id"];
+    }
+  ];
 }
 
 export interface UserPermissionGroups {
@@ -87,6 +117,22 @@ export interface UserPermissionGroups {
     group_id?: string;
     created_at?: string | null;
   };
+  Relationships: [
+    {
+      foreignKeyName: "user_permission_groups_user_id_fkey";
+      columns: ["user_id"];
+      isOneToOne: false;
+      referencedRelation: "users";
+      referencedColumns: ["id"];
+    },
+    {
+      foreignKeyName: "user_permission_groups_group_id_fkey";
+      columns: ["group_id"];
+      isOneToOne: false;
+      referencedRelation: "permission_groups";
+      referencedColumns: ["id"];
+    }
+  ];
 }
 
 // Import the Database type from types.ts but don't re-export it
