@@ -34,19 +34,7 @@ export default function Login() {
 
       console.log('Tentativa de login com:', email);
 
-      // Verificar se o usuário existe antes de tentar fazer login
-      const { data: userExists, error: userCheckError } = await supabase
-        .from('users')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (userCheckError) {
-        console.warn('Erro ao verificar usuário:', userCheckError);
-        // Continuar com o login mesmo se houver erro na verificação
-      }
-
-      // Tentativa de login com as credenciais fornecidas
+      // Primeiro, tente fazer o login diretamente
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -61,10 +49,20 @@ export default function Login() {
         }
 
         if (authError.message?.includes('database error')) {
-          console.error('Detalhes do erro de banco de dados:', authError);
-          
-          // Não usamos mais a chamada RPC que estava causando o erro
-          throw new Error('Ocorreu um erro no banco de dados. Entre em contato com o suporte técnico.');
+          // Verificar se o usuário existe no sistema
+          const { data: userExists } = await supabase
+            .from('users')
+            .select('id, email')
+            .eq('email', email)
+            .maybeSingle();
+            
+          if (userExists) {
+            console.log('Usuário existe na tabela users, mas houve um erro de banco de dados');
+            throw new Error('Ocorreu um erro no banco de dados. Entre em contato com o suporte técnico.');
+          } else {
+            console.log('Usuário não encontrado no sistema');
+            throw new Error('Usuário não encontrado. Verifique seu email ou registre uma nova conta.');
+          }
         }
 
         // Tratamento de qualquer outro erro
