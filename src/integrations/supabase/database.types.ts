@@ -486,6 +486,71 @@ declare module './types' {
             type?: string;
           };
         };
+        // Add missing tables
+        services: {
+          Row: {
+            id: string;
+            title: string;
+            description?: string;
+            status?: string;
+            area_id?: string;
+            created_at?: string;
+            updated_at?: string;
+            assigned_to?: string;
+            due_date?: string;
+          };
+          Insert: {
+            id?: string;
+            title: string;
+            description?: string;
+            status?: string;
+            area_id?: string;
+            created_at?: string;
+            updated_at?: string;
+            assigned_to?: string;
+            due_date?: string;
+          };
+          Update: {
+            id?: string;
+            title?: string;
+            description?: string;
+            status?: string;
+            area_id?: string;
+            created_at?: string;
+            updated_at?: string;
+            assigned_to?: string;
+            due_date?: string;
+          };
+        };
+        service_reports: {
+          Row: {
+            id: string;
+            report_date: string;
+            area_id?: string;
+            average_completion_time: number;
+            created_by?: string;
+            created_at?: string;
+            updated_at?: string;
+          };
+          Insert: {
+            id?: string;
+            report_date: string;
+            area_id?: string;
+            average_completion_time: number;
+            created_by?: string;
+            created_at?: string;
+            updated_at?: string;
+          };
+          Update: {
+            id?: string;
+            report_date?: string;
+            area_id?: string;
+            average_completion_time?: number;
+            created_by?: string;
+            created_at?: string;
+            updated_at?: string;
+          };
+        };
         user_groups: {
           Row: {
             id: string;

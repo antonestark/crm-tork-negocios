@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -43,36 +42,39 @@ export const useServiceAreasData = () => {
       
       console.log("Fetching service areas...");
       
-      // Fetch service areas with task counts
-      const { data, error } = await supabase
+      // First fetch service areas
+      const { data: areasData, error: areasError } = await supabase
         .from("service_areas")
-        .select(`
-          *,
-          services(
-            id,
-            status
-          )
-        `)
+        .select("*")
         .order("name", { ascending: true });
       
-      if (error) {
-        console.error("Supabase error:", error);
+      if (areasError) {
+        console.error("Supabase error:", areasError);
         
-        if (error.code === '42501' || error.message.includes("permission") || error.message.includes("JWTClaimsSetVerificationException")) {
+        if (areasError.code === '42501' || areasError.message.includes("permission") || areasError.message.includes("JWTClaimsSetVerificationException")) {
           throw new Error("Permissão negada. Sua sessão pode ter expirado.");
         }
         
-        throw error;
+        throw areasError;
+      }
+
+      // Then fetch services separately
+      const { data: servicesData, error: servicesError } = await supabase
+        .from("services")
+        .select("id, status, area_id");
+      
+      if (servicesError) {
+        console.error("Error fetching services:", servicesError);
+        // Continue with the areas data even if services data fails
       }
       
-      console.log("Received data:", data);
-      
       // Process the data to include task counts
-      const processedAreas: ServiceArea[] = data.map(area => {
-        const services = area.services || [];
-        const totalTasks = services.length;
-        const pendingTasks = services.filter(s => s.status === 'pending').length;
-        const delayedTasks = services.filter(s => s.status === 'delayed').length;
+      const processedAreas: ServiceArea[] = areasData.map(area => {
+        // Get services for this area
+        const areaServices = servicesData ? servicesData.filter(s => s.area_id === area.id) : [];
+        const totalTasks = areaServices.length;
+        const pendingTasks = areaServices.filter(s => s.status === 'pending').length;
+        const delayedTasks = areaServices.filter(s => s.status === 'delayed').length;
         
         return {
           id: area.id,

@@ -30,14 +30,14 @@ export const useServiceChecklist = (period?: string) => {
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
-        table: 'service_checklist_items' 
+        table: 'checklist_items' 
       }, () => {
         fetchChecklistItems();
       })
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
-        table: 'service_checklist_completed' 
+        table: 'checklist_completions' 
       }, () => {
         fetchChecklistItems();
       })
@@ -53,11 +53,8 @@ export const useServiceChecklist = (period?: string) => {
       setLoading(true);
       
       let query = supabase
-        .from("service_checklist_items")
-        .select(`
-          *,
-          service_areas(name)
-        `)
+        .from("checklist_items")
+        .select("*")
         .eq("active", true)
         .order("name", { ascending: true });
       
@@ -70,10 +67,17 @@ export const useServiceChecklist = (period?: string) => {
       
       if (itemsError) throw itemsError;
       
+      // Get area information
+      const { data: areasData, error: areasError } = await supabase
+        .from("service_areas")
+        .select("id, name");
+      
+      if (areasError) throw areasError;
+      
       // Get completed items for today
       const today = new Date().toISOString().split('T')[0];
       const { data: completedData, error: completedError } = await supabase
-        .from("service_checklist_completed")
+        .from("checklist_completions")
         .select("*")
         .gte("completed_at", `${today}T00:00:00`)
         .lte("completed_at", `${today}T23:59:59`);
@@ -83,6 +87,7 @@ export const useServiceChecklist = (period?: string) => {
       // Map completed status to items
       const processedItems: ChecklistItem[] = itemsData.map(item => {
         const completedItem = completedData?.find(c => c.checklist_item_id === item.id);
+        const area = areasData?.find(a => a.id === item.area_id);
         
         return {
           id: item.id,
@@ -90,8 +95,8 @@ export const useServiceChecklist = (period?: string) => {
           description: item.description,
           period: item.period,
           area_id: item.area_id,
-          area_name: item.service_areas?.name,
-          active: item.active,
+          area_name: area?.name,
+          active: !!item.active,
           completed: !!completedItem,
           completed_at: completedItem?.completed_at,
           completed_by: completedItem?.completed_by
@@ -113,7 +118,7 @@ export const useServiceChecklist = (period?: string) => {
       if (completed) {
         // Mark as completed
         const { error } = await supabase
-          .from("service_checklist_completed")
+          .from("checklist_completions")
           .insert([{
             checklist_item_id: itemId,
             completed_by: null, // Use auth.uid() if authenticated
@@ -125,7 +130,7 @@ export const useServiceChecklist = (period?: string) => {
         // Remove completion
         const today = new Date().toISOString().split('T')[0];
         const { error } = await supabase
-          .from("service_checklist_completed")
+          .from("checklist_completions")
           .delete()
           .eq("checklist_item_id", itemId)
           .gte("completed_at", `${today}T00:00:00`)

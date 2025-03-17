@@ -38,42 +38,50 @@ export const useServiceReports = () => {
     try {
       setLoading(true);
       
-      // Primeiro, buscar a contagem de serviços por status
+      // First, fetch the count of services by status
       const { data: servicesData, error: servicesError } = await supabase
         .from("services")
         .select("status");
       
       if (servicesError) throw servicesError;
       
-      // Contar por status
+      // Count by status
       const completed = servicesData?.filter(s => s.status === 'completed').length || 0;
       const pending = servicesData?.filter(s => s.status === 'pending').length || 0;
       const delayed = servicesData?.filter(s => s.status === 'delayed').length || 0;
       
-      // Buscar relatórios com dados da área
+      // Fetch service reports
       const { data: reportsData, error: reportsError } = await supabase
         .from("service_reports")
-        .select(`
-          *,
-          service_areas (name)
-        `)
-        .order("report_date", { ascending: false });
+        .select("*");
       
       if (reportsError) throw reportsError;
       
-      // Processar os relatórios
-      const processedReports: ServiceReport[] = (reportsData || []).map(report => ({
-        id: report.id,
-        report_date: report.report_date,
-        area_id: report.area_id,
-        area_name: report.service_areas?.name,
-        completed_tasks: completed,
-        pending_tasks: pending,
-        delayed_tasks: delayed,
-        average_completion_time: report.average_completion_time || 0,
-        created_by: report.created_by,
-        created_at: report.created_at
-      }));
+      // Fetch service areas for names
+      const { data: areasData, error: areasError } = await supabase
+        .from("service_areas")
+        .select("id, name");
+        
+      if (areasError) throw areasError;
+      
+      // Process the reports
+      const processedReports: ServiceReport[] = (reportsData || []).map(report => {
+        // Look up area name from areas data
+        const area = areasData?.find(a => a.id === report.area_id);
+        
+        return {
+          id: report.id,
+          report_date: report.report_date,
+          area_id: report.area_id,
+          area_name: area?.name,
+          completed_tasks: completed,
+          pending_tasks: pending,
+          delayed_tasks: delayed,
+          average_completion_time: report.average_completion_time || 0,
+          created_by: report.created_by,
+          created_at: report.created_at || new Date().toISOString()
+        };
+      });
       
       setReports(processedReports);
       setMetrics({

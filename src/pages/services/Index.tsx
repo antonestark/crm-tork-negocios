@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/layout/Header";
 import { ServicesHeader } from "@/components/services/ServicesHeader";
 import { ServicesMetrics } from "@/components/services/ServicesMetrics";
@@ -8,8 +9,17 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface ServiceArea {
+  id: string;
+  name: string;
+  description?: string;
+  type?: string;
+  status?: string;
+  task_count: number;
+}
+
 const ServicesIndex = () => {
-  const [areas, setAreas] = useState<any[]>([]);
+  const [areas, setAreas] = useState<ServiceArea[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,12 +44,10 @@ const ServicesIndex = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Fetch service areas
       const { data: areasData, error: areasError } = await supabase
         .from("service_areas")
-        .select(`
-          *,
-          services(count)
-        `)
+        .select(`*`)
         .eq("status", "active")
         .order("name", { ascending: true });
       
@@ -49,10 +57,24 @@ const ServicesIndex = () => {
         throw areasError;
       }
       
-      const processedAreas = areasData?.map(area => ({
-        ...area,
-        task_count: area.services?.[0]?.count || 0
-      })) || [];
+      // Separately fetch service counts
+      const { data: servicesData, error: servicesError } = await supabase
+        .from("services")
+        .select('id, area_id');
+      
+      if (servicesError) {
+        console.error("Error fetching services:", servicesError);
+      }
+      
+      // Process data to include task counts
+      const processedAreas = areasData.map(area => {
+        const areaTasks = servicesData?.filter(service => service.area_id === area.id) || [];
+        
+        return {
+          ...area,
+          task_count: areaTasks.length
+        };
+      });
       
       setAreas(processedAreas);
       

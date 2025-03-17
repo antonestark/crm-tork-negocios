@@ -40,30 +40,34 @@ export const useServiceTasks = () => {
     try {
       setLoading(true);
       
-      // Fetch services with their area names
-      const { data, error } = await supabase
+      // Fetch services
+      const { data: servicesData, error: servicesError } = await supabase
         .from('services')
-        .select(`
-          id,
-          title,
-          status,
-          updated_at,
-          area:service_areas(name)
-        `)
+        .select('id, title, status, updated_at, area_id')
         .order('updated_at', { ascending: false })
         .limit(5);
       
-      if (error) throw error;
+      if (servicesError) throw servicesError;
+      
+      // Fetch areas to get names
+      const { data: areasData, error: areasError } = await supabase
+        .from('service_areas')
+        .select('id, name');
+      
+      if (areasError) throw areasError;
       
       // Process the data to match our ServiceTask interface
-      const processedTasks: ServiceTask[] = data.map(item => {
+      const processedTasks: ServiceTask[] = servicesData.map(item => {
+        // Find the area name
+        const area = areasData?.find(a => a.id === item.area_id);
+        
         // Map database status to our component status
         let taskStatus: "completed" | "ongoing" | "delayed" = "ongoing";
         if (item.status === 'completed') taskStatus = "completed";
         if (item.status === 'delayed') taskStatus = "delayed";
         
         // Format the time
-        const updatedAt = new Date(item.updated_at);
+        const updatedAt = new Date(item.updated_at || new Date());
         const formattedTime = updatedAt.toLocaleTimeString('pt-BR', { 
           hour: '2-digit', 
           minute: '2-digit' 
@@ -71,7 +75,7 @@ export const useServiceTasks = () => {
         
         return {
           id: item.id,
-          area: item.area?.name || 'Área não especificada',
+          area: area?.name || 'Área não especificada',
           task: item.title,
           status: taskStatus,
           time: formattedTime
