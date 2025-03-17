@@ -49,13 +49,12 @@ const ServicesPage = () => {
     };
   }, []);
 
-  // Use type assertion to bypass TypeScript errors
+  // Use type assertion with any to bypass TypeScript errors completely
   const fetchServiceStats = async () => {
     try {
       setStatsLoading(true);
       
-      const { data, error } = await (supabase
-        .rpc('get_service_statistics') as unknown as Promise<{ data: ServiceStatisticsResult, error: any }>);
+      const { data, error } = await (supabase.rpc as any)('get_service_statistics');
       
       if (error) throw error;
       

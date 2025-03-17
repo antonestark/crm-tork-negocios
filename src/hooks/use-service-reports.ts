@@ -38,21 +38,23 @@ export const useServiceReports = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch reports with area information - use type assertion for table
-      const { data, error: reportsError } = await (supabase
-        .from('service_reports' as any)
+      // Fetch reports with area information - use type assertion with any
+      const { data, error: reportsError } = await (supabase.from as any)(
+        'service_reports'
+      )
         .select(`
           *,
           service_areas (name)
         `)
         .order('report_date', { ascending: false })
-        .limit(10) as unknown as Promise<{ data: any[], error: any }>);
+        .limit(10);
 
       if (reportsError) throw reportsError;
 
-      // Fetch aggregated metrics - use type assertion for RPC
-      const { data: metricsData, error: metricsError } = await (supabase
-        .rpc('get_service_metrics') as unknown as Promise<{ data: any, error: any }>);
+      // Fetch aggregated metrics - use type assertion with any
+      const { data: metricsData, error: metricsError } = await (supabase.rpc as any)(
+        'get_service_metrics'
+      );
 
       if (metricsError) throw metricsError;
 

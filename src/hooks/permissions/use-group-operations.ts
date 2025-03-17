@@ -19,11 +19,11 @@ export const useGroupOperations = (
         p_permission_id: permissionId,
       };
       
-      // Use type assertion to bypass TypeScript errors
-      const { error } = await (supabase.rpc(
+      // Use type assertion with any to bypass TypeScript errors completely
+      const { error } = await (supabase.rpc as any)(
         'assign_permission_to_group', 
         params
-      ) as unknown as Promise<{ data: any, error: any }>);
+      );
 
       if (error) {
         throw error;
@@ -49,11 +49,11 @@ export const useGroupOperations = (
         p_permission_id: permissionId,
       };
       
-      // Use type assertion to bypass TypeScript errors
-      const { error } = await (supabase.rpc(
+      // Use type assertion with any to bypass TypeScript errors completely
+      const { error } = await (supabase.rpc as any)(
         'remove_permission_from_group', 
         params
-      ) as unknown as Promise<{ data: any, error: any }>);
+      );
 
       if (error) {
         throw error;
@@ -79,11 +79,11 @@ export const useGroupOperations = (
         p_group_id: groupId,
       };
       
-      // Use type assertion to bypass TypeScript errors
-      const { error } = await (supabase.rpc(
+      // Use type assertion with any to bypass TypeScript errors completely
+      const { error } = await (supabase.rpc as any)(
         'assign_user_to_group', 
         params
-      ) as unknown as Promise<{ data: any, error: any }>);
+      );
 
       if (error) {
         throw error;
@@ -110,11 +110,11 @@ export const useGroupOperations = (
         p_group_id: groupId,
       };
       
-      // Use type assertion to bypass TypeScript errors
-      const { error } = await (supabase.rpc(
+      // Use type assertion with any to bypass TypeScript errors completely
+      const { error } = await (supabase.rpc as any)(
         'remove_user_from_group', 
         params
-      ) as unknown as Promise<{ data: any, error: any }>);
+      );
 
       if (error) {
         throw error;
