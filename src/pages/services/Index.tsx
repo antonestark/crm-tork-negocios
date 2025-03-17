@@ -63,8 +63,9 @@ const ServicesIndex = () => {
       }
       
       // Use a direct function call to count services by area to avoid type issues
+      // Remove explicit type casting to let TypeScript infer it
       const { data: servicesCountData, error: servicesCountError } = await supabase
-        .rpc('count_services_by_area') as { data: any[]; error: any };
+        .rpc('count_services_by_area');
       
       if (servicesCountError) {
         console.error("Error counting services:", servicesCountError);

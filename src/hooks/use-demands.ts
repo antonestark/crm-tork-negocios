@@ -31,7 +31,10 @@ export const useDemands = () => {
           if (typeof d.assigned_user === 'object' && 
               d.assigned_user !== null &&
               !('error' in d.assigned_user)) {
-            assignedUserName = d.assigned_user?.name ?? '';
+            // Add extra null check for the name property
+            assignedUserName = d.assigned_user && 'name' in d.assigned_user && d.assigned_user.name !== null 
+              ? d.assigned_user.name 
+              : '';
           }
         }
         
@@ -41,7 +44,10 @@ export const useDemands = () => {
           if (typeof d.requester === 'object' && 
               d.requester !== null &&
               !('error' in d.requester)) {
-            requesterName = d.requester?.name ?? '';
+            // Add extra null check for the name property  
+            requesterName = d.requester && 'name' in d.requester && d.requester.name !== null
+              ? d.requester.name
+              : '';
           }
         }
         

@@ -39,12 +39,13 @@ export const useUserPermissions = (user: User, open: boolean) => {
       // Fetch permissions for each group using a separate query
       const groupsArray = groupsData || [];
       const groupPermissionsPromises = groupsArray.map(async (group) => {
+        // Remove explicit typing and handle response properly
         const { data, error } = await supabase
-          .rpc('get_group_permissions', { group_id: group.id }) as { data: any[]; error: any };
+          .rpc('get_group_permissions', { group_id: group.id });
         
         return {
           group_id: group.id,
-          permissions: error || !data ? [] : data || []
+          permissions: error || !data ? [] : Array.isArray(data) ? data : []
         };
       });
       
@@ -59,8 +60,9 @@ export const useUserPermissions = (user: User, open: boolean) => {
       if (userPermissionsError) throw userPermissionsError;
       
       // Fetch user's permission groups using a custom RPC function
+      // Remove explicit typing and handle response properly
       const { data: userGroupsData, error: userGroupsError } = await supabase
-        .rpc('get_user_permission_groups', { user_id: user.id }) as { data: any[]; error: any };
+        .rpc('get_user_permission_groups', { user_id: user.id });
       
       if (userGroupsError) throw userGroupsError;
       

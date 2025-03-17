@@ -89,12 +89,12 @@ export interface UserPermissionGroups {
   };
 }
 
-// Import but don't export directly to avoid duplicate identifier
+// Import but don't directly re-export to avoid duplicate identifier
 import type { Database as OriginalDatabase } from './types';
 
 // Extend the Database interface using declaration merging
-declare module './types' {
-  interface Database {
+declare global {
+  interface Database extends OriginalDatabase {
     public: {
       Tables: {
         activity_logs: OriginalDatabase['public']['Tables']['activity_logs'];
@@ -128,5 +128,5 @@ declare module './types' {
   }
 }
 
-// Use export type to fix the re-export issue
+// Export the Database type from original types.ts
 export type { Database } from './types';
