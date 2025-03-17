@@ -23,6 +23,12 @@ interface LocalServiceArea {
   delayed_tasks: number;
 }
 
+// Interface for RPC results
+interface CountServicesByAreaResult {
+  area_id: string;
+  count: number;
+}
+
 const ServicesIndex = () => {
   const [areas, setAreas] = useState<LocalServiceArea[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +70,7 @@ const ServicesIndex = () => {
       
       // Use a direct function call to count services by area to avoid type issues
       const { data: servicesCountData, error: servicesCountError } = await supabase
-        .rpc('count_services_by_area') as { data: any, error: any };
+        .rpc('count_services_by_area') as { data: CountServicesByAreaResult[] | null, error: any };
       
       if (servicesCountError) {
         console.error("Error counting services:", servicesCountError);

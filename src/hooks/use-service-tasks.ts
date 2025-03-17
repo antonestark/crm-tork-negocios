@@ -11,6 +11,15 @@ export type ServiceTask = {
   time: string;
 };
 
+// Define interface for RPC results
+interface RecentServicesResult {
+  id?: string | number;
+  area_id?: string;
+  title?: string;
+  status?: string;
+  updated_at?: string;
+}
+
 export const useServiceTasks = () => {
   const [tasks, setTasks] = useState<ServiceTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +51,7 @@ export const useServiceTasks = () => {
       
       // Use a direct SQL query to fetch the latest services without type issues
       const { data: servicesData, error: servicesError } = await supabase
-        .rpc('get_recent_services') as { data: any, error: any };
+        .rpc('get_recent_services') as { data: RecentServicesResult[] | null, error: any };
       
       if (servicesError) throw servicesError;
       

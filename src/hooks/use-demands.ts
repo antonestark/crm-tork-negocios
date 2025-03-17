@@ -22,33 +22,21 @@ export const useDemands = () => {
       // Handle the data safely to ensure we're setting properly typed data
       const typedDemands: Demand[] = formattedDemands.map(d => {
         // Safely extract nested properties with fallbacks
-        const areaName = typeof d.area === 'object' && d.area ? d.area.name || '' : '';
+        const areaName = d.area && typeof d.area === 'object' ? d.area.name || '' : '';
         
-        // Handle assigned_user safely with comprehensive null checks
+        // Handle assigned_user safely - ensuring all checks pass before accessing properties
         let assignedUserName = '';
-        if (d.assigned_user !== null && d.assigned_user !== undefined) {
+        if (d.assigned_user != null) {
           if (typeof d.assigned_user === 'object') {
-            // Check if name property exists and is a string
-            if ('name' in d.assigned_user && 
-                d.assigned_user.name !== null && 
-                d.assigned_user.name !== undefined &&
-                typeof d.assigned_user.name === 'string') {
-              assignedUserName = d.assigned_user.name;
-            }
+            assignedUserName = d.assigned_user.name ?? '';
           }
         }
         
-        // Handle requester safely with comprehensive null checks
+        // Handle requester safely - ensuring all checks pass before accessing properties
         let requesterName = '';
-        if (d.requester !== null && d.requester !== undefined) {
+        if (d.requester != null) {
           if (typeof d.requester === 'object') {
-            // Check if name property exists and is a string
-            if ('name' in d.requester && 
-                d.requester.name !== null && 
-                d.requester.name !== undefined &&
-                typeof d.requester.name === 'string') {
-              requesterName = d.requester.name;
-            }
+            requesterName = d.requester.name ?? '';
           }
         }
         

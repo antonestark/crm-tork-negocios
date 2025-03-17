@@ -23,6 +23,23 @@ export type ServiceMetrics = {
   averageTime: number;
 };
 
+// Define interface for RPC results
+interface ServiceStatistics {
+  completed: number;
+  pending: number;
+  delayed: number;
+  avg_completion_time: number;
+}
+
+interface ServiceReport {
+  id: string;
+  report_date: string;
+  area_id?: string;
+  average_completion_time: number;
+  created_by?: string;
+  created_at: string;
+}
+
 export const useServiceReports = () => {
   const [reports, setReports] = useState<ServiceReport[]>([]);
   const [metrics, setMetrics] = useState<ServiceMetrics>({
@@ -40,7 +57,7 @@ export const useServiceReports = () => {
       
       // Use a direct SQL query or RPC function to get the service counts
       const { data: serviceStats, error: statsError } = await supabase
-        .rpc('get_service_statistics') as { data: any, error: any };
+        .rpc('get_service_statistics') as { data: ServiceStatistics[] | null, error: any };
       
       if (statsError) throw statsError;
       
@@ -55,7 +72,7 @@ export const useServiceReports = () => {
       
       // Fetch service reports using a direct SQL query or RPC function
       const { data: reportsData, error: reportsError } = await supabase
-        .rpc('get_service_reports') as { data: any, error: any };
+        .rpc('get_service_reports') as { data: ServiceReport[] | null, error: any };
       
       if (reportsError) throw reportsError;
       
