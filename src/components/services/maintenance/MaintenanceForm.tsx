@@ -10,7 +10,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Define the schema
 const maintenanceFormSchema = z.object({
@@ -30,6 +30,11 @@ interface MaintenanceFormProps {
 
 export const MaintenanceForm = ({ onSubmit, areas, setOpen }: MaintenanceFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  useEffect(() => {
+    // Log areas to help debug
+    console.log("Areas available in maintenance form:", areas);
+  }, [areas]);
   
   const form = useForm<z.infer<typeof maintenanceFormSchema>>({
     resolver: zodResolver(maintenanceFormSchema),
@@ -150,9 +155,13 @@ export const MaintenanceForm = ({ onSubmit, areas, setOpen }: MaintenanceFormPro
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {areas.map(area => (
-                    <SelectItem key={area.id} value={area.id}>{area.name}</SelectItem>
-                  ))}
+                  {areas && areas.length > 0 ? (
+                    areas.map(area => (
+                      <SelectItem key={area.id} value={area.id}>{area.name}</SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="loading" disabled>Carregando áreas...</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />

@@ -24,7 +24,7 @@ export const MetadataFields: React.FC<MetadataFieldsProps> = ({ form }) => {
                 date={field.value ? new Date(field.value) : undefined} 
                 setDate={(date) => {
                   console.log("Setting due date:", date);
-                  field.onChange(date ? date.toISOString() : undefined);
+                  field.onChange(date ? date : undefined);
                 }}
               />
             </FormControl>
