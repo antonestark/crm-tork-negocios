@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { BookingEvent, BookingRequest } from '@/types/scheduling';
 import { format, startOfDay, endOfDay } from 'date-fns';
@@ -79,6 +78,50 @@ export const fetchCalendarData = async () => {
   return { available, booked };
 };
 
+// Function to generate a unique customer ID 
+const generateCustomerId = async (): Promise<string> => {
+  // Get the current highest customer ID
+  const { data, error } = await supabase
+    .from("scheduling")
+    .select("customer_id")
+    .order("customer_id", { ascending: false })
+    .limit(1);
+  
+  if (error) {
+    console.error("Error fetching customer IDs:", error);
+    // Start from 1000 if we can't fetch existing IDs
+    return "1000";
+  }
+  
+  // If there are no existing customer IDs, start from 1000
+  if (!data || data.length === 0 || !data[0].customer_id) {
+    return "1000";
+  }
+  
+  // Increment the highest customer ID by 1
+  const highestId = parseInt(data[0].customer_id);
+  return (highestId + 1).toString();
+};
+
+// Function to check for scheduling conflicts
+const checkForConflicts = async (startTime: string, endTime: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from("scheduling")
+    .select("id")
+    .lt("end_time", endTime)
+    .gt("start_time", startTime)
+    .or(`start_time.gte.${startTime},start_time.lt.${endTime}`)
+    .or(`end_time.gt.${startTime},end_time.lte.${endTime}`)
+    .not("status", "eq", "cancelled");
+  
+  if (error) {
+    console.error("Error checking for conflicts:", error);
+    return true; // Assume there's a conflict if we can't check
+  }
+  
+  return data && data.length > 0;
+};
+
 export const createBookingInDb = async (bookingData: BookingRequest) => {
   // Validate that all required fields are present
   if (!bookingData.title || !bookingData.start_time || !bookingData.end_time || !bookingData.status) {
@@ -102,6 +145,18 @@ export const createBookingInDb = async (bookingData: BookingRequest) => {
     throw new Error("O horário de término deve ser posterior ao horário de início");
   }
   
+  // Check for scheduling conflicts
+  const hasConflict = await checkForConflicts(bookingData.start_time, bookingData.end_time);
+  if (hasConflict) {
+    throw new Error("Este horário já está reservado. Por favor, escolha outro horário");
+  }
+  
+  // Generate a customer ID if one wasn't provided
+  let customerId = bookingData.customer_id;
+  if (!customerId) {
+    customerId = await generateCustomerId();
+  }
+  
   // Create the booking object
   const bookingObject: any = {
     title: bookingData.title,
@@ -112,7 +167,7 @@ export const createBookingInDb = async (bookingData: BookingRequest) => {
     user_id: bookingData.user_id,
     description: bookingData.description,
     location: bookingData.location,
-    customer_id: bookingData.customer_id,
+    customer_id: customerId,
     email: bookingData.email,
     phone: bookingData.phone
   };

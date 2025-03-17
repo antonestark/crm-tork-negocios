@@ -13,7 +13,8 @@ import {
   FormField, 
   FormItem, 
   FormLabel, 
-  FormMessage 
+  FormMessage,
+  FormDescription 
 } from '@/components/ui/form';
 import { agendamentoFormSchema, AgendamentoFormValues } from './schema';
 import { Loader2 } from 'lucide-react';
@@ -71,8 +72,11 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
               <FormItem>
                 <FormLabel>ID do Cliente (opcional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="ID do cliente (numérico)" {...field} />
+                  <Input placeholder="Será gerado automaticamente se vazio" {...field} />
                 </FormControl>
+                <FormDescription className="text-xs">
+                  Deixe em branco para gerar automaticamente
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

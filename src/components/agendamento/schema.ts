@@ -25,7 +25,7 @@ export const agendamentoFormSchema = z.object({
   user: userSchema.optional().default({}),
   description: z.string().min(5, { message: 'Descrição deve ter pelo menos 5 caracteres' }),
   location: z.string().optional(),
-  customer_id: z.string().regex(/^[0-9]+$/, { message: 'ID do cliente deve ser numérico' }).optional()
+  customer_id: z.string().regex(/^[0-9]*$/, { message: 'ID do cliente deve ser numérico' }).optional()
 })
 .refine(data => {
   // Validate start_time is before end_time
@@ -62,57 +62,4 @@ export const createBookingData = (values: AgendamentoFormValues) => {
     email: values.email,
     phone: values.phone
   };
-};
-
-// Function to register an appointment
-export const registerAppointment = async (appointmentData: ReturnType<typeof createBookingData>, supabase: any) => {
-  try {
-    // Create the appointment
-    const { data, error } = await supabase
-      .from("scheduling")
-      .insert([{
-        title: appointmentData.title,
-        start_time: appointmentData.start_time,
-        end_time: appointmentData.end_time,
-        status: appointmentData.status,
-        client_id: null,
-        description: appointmentData.description,
-        location: appointmentData.location,
-        customer_id: appointmentData.customer_id,
-        email: appointmentData.email,
-        phone: appointmentData.phone
-      }])
-      .select();
-    
-    if (error) {
-      if (error.message.includes('check_end_after_start')) {
-        throw new Error("O horário de término deve ser posterior ao horário de início");
-      } else if (error.message.includes('conflito com outro agendamento')) {
-        throw new Error("Este horário já está reservado. Por favor, escolha outro horário");
-      } else if (error.message.includes('validate_customer_id')) {
-        throw new Error("ID do cliente inválido. Deve ser numérico");
-      } else if (error.message.includes('validate_status')) {
-        throw new Error("Status inválido. Deve ser confirmed, cancelled ou pending");
-      } else if (error.message.includes('Já existe um agendamento confirmado para este email')) {
-        throw new Error("Já existe um agendamento confirmado para este email na mesma data");
-      } else if (error.message.includes('Já existe um agendamento confirmado para este telefone')) {
-        throw new Error("Já existe um agendamento confirmado para este telefone na mesma data");
-      } else {
-        throw error;
-      }
-    }
-    
-    return { 
-      success: true, 
-      id: data[0].id,
-      message: 'Agendamento criado com sucesso' 
-    };
-  } catch (err: any) {
-    console.error("Error registering appointment:", err);
-    return { 
-      success: false, 
-      message: err.message || 'Falha ao criar agendamento',
-      error: err
-    };
-  }
 };
