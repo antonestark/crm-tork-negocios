@@ -71,13 +71,13 @@ export const useServiceReports = () => {
       }
 
       if (metricsData && metricsData.length > 0) {
-        // Access the first item in the array since the function returns an array
-        const metrics = metricsData[0];
+        // Fix: Access the first item in the array since the function returns an array
+        const metricsItem = metricsData[0];
         setMetrics({
-          completed: metrics.completed || 0,
-          pending: metrics.pending || 0,
-          delayed: metrics.delayed || 0,
-          averageTime: Math.round(metrics.avg_completion_time || 0)
+          completed: metricsItem.completed || 0,
+          pending: metricsItem.pending || 0,
+          delayed: metricsItem.delayed || 0,
+          averageTime: Math.round(metricsItem.avg_completion_time || 0)
         });
       }
     } catch (err) {

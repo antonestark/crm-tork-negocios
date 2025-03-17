@@ -51,15 +51,15 @@ export interface ServiceReports {
   Row: {
     id: string;
     report_date: string;
-    area_id?: string | null;
+    area_id: string;  // Changed from optional to required to match the expected type
     average_completion_time: number;
-    created_by?: string | null;
-    created_at?: string | null;
-    updated_at?: string | null;
-    completed_tasks?: number | null;
-    pending_tasks?: number | null;
-    delayed_tasks?: number | null;
-    completion_rate?: number | null;
+    created_by: string;  // Changed from optional to required
+    created_at: string;  // Changed from optional to required
+    updated_at: string;  // Changed from optional to required
+    completed_tasks: number;  // Changed from optional to required
+    pending_tasks: number;  // Changed from optional to required
+    delayed_tasks: number;  // Changed from optional to required
+    completion_rate: number;  // Changed from optional to required
   };
   Insert: {
     id?: string;
