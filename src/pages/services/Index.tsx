@@ -7,12 +7,14 @@ import { useServiceReports } from '@/hooks/use-service-reports';
 import { ServiceAreas } from '@/components/services/ServiceAreas';
 import { ServiceTasks } from '@/components/services/ServiceTasks';
 import { ServicesMetrics } from '@/components/services/ServicesMetrics';
+import { ServicesNav } from '@/components/services/ServicesNav';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { Header } from '@/components/layout/Header';
 
 interface ServiceStatisticsResult {
   completed: number;
@@ -68,52 +70,57 @@ const ServicesPage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Serviços</h1>
-        <Button asChild>
-          <Link to="/services/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Serviço
-          </Link>
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main className="container mx-auto py-6 px-4">
+        <ServicesNav />
+        
+        <div className="flex items-center justify-between mt-6">
+          <h1 className="text-3xl font-bold tracking-tight">Serviços</h1>
+          <Button asChild>
+            <Link to="/services/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Serviço
+            </Link>
+          </Button>
+        </div>
 
-      <ServicesMetrics 
-        metrics={metrics} 
-        loading={reportsLoading} 
-      />
+        <ServicesMetrics 
+          metrics={metrics} 
+          loading={reportsLoading} 
+        />
 
-      <Tabs defaultValue="areas" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="areas">Áreas de Serviço</TabsTrigger>
-          <TabsTrigger value="recent">Atividades Recentes</TabsTrigger>
-        </TabsList>
-        <TabsContent value="areas" className="space-y-4">
-          <ServiceAreas 
-            areas={areas} 
-            loading={areasLoading} 
-            error={areasError} 
-          />
-        </TabsContent>
-        <TabsContent value="recent" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Atividades Recentes</CardTitle>
-              <CardDescription>
-                Últimas atualizações de serviços nas áreas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ServiceTasks 
-                tasks={tasks} 
-                loading={tasksLoading} 
-                error={tasksError} 
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        <Tabs defaultValue="areas" className="space-y-4 mt-6">
+          <TabsList>
+            <TabsTrigger value="areas">Áreas de Serviço</TabsTrigger>
+            <TabsTrigger value="recent">Atividades Recentes</TabsTrigger>
+          </TabsList>
+          <TabsContent value="areas" className="space-y-4">
+            <ServiceAreas 
+              areas={areas} 
+              loading={areasLoading} 
+              error={areasError} 
+            />
+          </TabsContent>
+          <TabsContent value="recent" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Atividades Recentes</CardTitle>
+                <CardDescription>
+                  Últimas atualizações de serviços nas áreas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ServiceTasks 
+                  tasks={tasks} 
+                  loading={tasksLoading} 
+                  error={tasksError} 
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
     </div>
   );
 };
