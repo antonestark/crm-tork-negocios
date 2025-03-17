@@ -12,9 +12,19 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 
 const registerSchema = z.object({
-  name: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
-  email: z.string().email({ message: 'E-mail inválido' }),
-  password: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres' }),
+  name: z.string()
+    .min(3, { message: 'O nome deve ter pelo menos 3 caracteres' })
+    .max(100, { message: 'O nome deve ter no máximo 100 caracteres' })
+    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, { message: 'O nome deve conter apenas letras' }),
+  email: z.string()
+    .email({ message: 'E-mail inválido' })
+    .max(255, { message: 'E-mail muito longo' }),
+  password: z.string()
+    .min(6, { message: 'A senha deve ter pelo menos 6 caracteres' })
+    .max(72, { message: 'A senha deve ter no máximo 72 caracteres' })
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/, {
+      message: 'A senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número',
+    }),
   confirmPassword: z.string().min(6, { message: 'A confirmação de senha deve ter pelo menos 6 caracteres' }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'As senhas não coincidem',
@@ -32,12 +42,45 @@ export function RegisterForm() {
     resolver: zodResolver(registerSchema),
   });
 
+  // Mapeia códigos de erro para mensagens amigáveis
+  const getErrorMessage = (errorCode: string): string => {
+    const errorMessages: Record<string, string> = {
+      'user-already-exists': 'Este e-mail já está registrado no sistema.',
+      'invalid-email': 'O formato do e-mail é inválido.',
+      'weak-password': 'A senha fornecida é muito fraca. Use uma senha mais forte.',
+      'email-already-in-use': 'Este e-mail já está sendo utilizado.',
+      'database-error': 'Erro no banco de dados. Entre em contato com o suporte.',
+      'network-error': 'Problema de conexão. Verifique sua internet e tente novamente.',
+    };
+
+    return errorMessages[errorCode] || 'Ocorreu um erro ao fazer o cadastro. Tente novamente.';
+  };
+
   const onSubmit = async (data: RegisterFormValues) => {
     try {
       setIsLoading(true);
       setError('');
 
-      const { error } = await supabase.auth.signUp({
+      console.log('Registro: Tentando criar conta para:', data.email);
+
+      // Verifica se o e-mail já existe
+      const { data: emailCheck, error: emailCheckError } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', data.email)
+        .maybeSingle();
+
+      if (emailCheckError) {
+        console.error('Erro ao verificar e-mail existente:', emailCheckError);
+        throw new Error('database-error');
+      }
+
+      if (emailCheck) {
+        throw new Error('user-already-exists');
+      }
+
+      // Tentativa de registro
+      const { error: signUpError, data: userData } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -47,19 +90,35 @@ export function RegisterForm() {
         },
       });
 
-      if (error) {
-        throw error;
+      if (signUpError) {
+        console.error('Erro de registro:', signUpError);
+        
+        // Identificar tipo específico de erro
+        if (signUpError.message?.includes('email')) {
+          throw new Error('invalid-email');
+        } else if (signUpError.message?.includes('password')) {
+          throw new Error('weak-password');
+        } else if (signUpError.message?.includes('already')) {
+          throw new Error('email-already-in-use');
+        } else {
+          throw signUpError;
+        }
       }
 
+      console.log('Registro: Conta criada com sucesso para:', data.email);
       toast.success('Cadastro realizado com sucesso', {
         description: 'Faça login para acessar sua conta'
       });
       navigate('/login');
     } catch (err: any) {
-      console.error('Registration error:', err);
-      setError(err.message || 'Ocorreu um erro ao fazer o cadastro');
+      console.error('Erro no registro:', err);
+      
+      // Determinar o tipo de erro para exibir mensagem apropriada
+      const errorType = err.message || 'unknown-error';
+      setError(getErrorMessage(errorType));
+      
       toast.error('Falha no cadastro', {
-        description: err.message || 'Verifique os dados e tente novamente'
+        description: getErrorMessage(errorType)
       });
     } finally {
       setIsLoading(false);
