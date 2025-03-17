@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -85,7 +84,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('assign_permission_to_group', {
         p_group_id: groupId,
         p_permission_id: permissionId,
-      } as any);
+      } as Record<string, any>);
 
       if (error) {
         throw error;
@@ -101,14 +100,13 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
     }
   };
 
-  // Fix the RPC function calls by adding proper type assertions
   const removePermissionFromGroup = async (groupId: string, permissionId: string) => {
     try {
       setLoading(true);
       const { error } = await supabase.rpc('remove_permission_from_group', {
         p_group_id: groupId,
         p_permission_id: permissionId,
-      } as unknown as Record<string, any>);
+      } as Record<string, any>);
 
       if (error) {
         throw error;
@@ -130,7 +128,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('assign_user_to_group', {
         p_user_id: userId,
         p_group_id: groupId,
-      } as unknown as Record<string, any>);
+      } as Record<string, any>);
 
       if (error) {
         throw error;
@@ -153,7 +151,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('remove_user_from_group', {
         p_user_id: userId,
         p_group_id: groupId,
-      } as unknown as Record<string, any>);
+      } as Record<string, any>);
 
       if (error) {
         throw error;
@@ -170,7 +168,6 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
     }
   };
 
-  // New methods to handle user permission management
   const fetchUserPermissions = useCallback(async (userId: string) => {
     if (!userId) return;
     
