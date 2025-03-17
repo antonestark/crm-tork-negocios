@@ -1,8 +1,16 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { User, Permission, PermissionGroup } from '@/types/admin';
 import { permissionAdapter, permissionGroupAdapter, userAdapter } from '@/integrations/supabase/adapters';
+
+// Define interface for RPC results to address type errors
+interface RpcFunctionParams {
+  p_group_id: string;
+  p_permission_id?: string;
+  p_user_id?: string;
+}
 
 export const useUserPermissions = (user?: User, isOpen?: boolean) => {
   const [users, setUsers] = useState<User[]>([]);
@@ -84,7 +92,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('assign_permission_to_group', {
         p_group_id: groupId,
         p_permission_id: permissionId,
-      } as Record<string, any>);
+      } as RpcFunctionParams);
 
       if (error) {
         throw error;
@@ -106,7 +114,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('remove_permission_from_group', {
         p_group_id: groupId,
         p_permission_id: permissionId,
-      } as Record<string, any>);
+      } as RpcFunctionParams);
 
       if (error) {
         throw error;
@@ -128,7 +136,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('assign_user_to_group', {
         p_user_id: userId,
         p_group_id: groupId,
-      } as Record<string, any>);
+      } as RpcFunctionParams);
 
       if (error) {
         throw error;
@@ -151,7 +159,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       const { error } = await supabase.rpc('remove_user_from_group', {
         p_user_id: userId,
         p_group_id: groupId,
-      } as Record<string, any>);
+      } as RpcFunctionParams);
 
       if (error) {
         throw error;
@@ -182,7 +190,7 @@ export const useUserPermissions = (user?: User, isOpen?: boolean) => {
       
       if (permsError) throw permsError;
       
-      // Fix: change user_permission_groups to user_groups
+      // Use user_groups instead of user_permission_groups
       const { data: userGroups, error: groupsError } = await supabase
         .from('user_groups')
         .select('group_id')

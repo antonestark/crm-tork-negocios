@@ -10,6 +10,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ServiceArea } from "@/hooks/use-service-areas-data";
 
+// Define interface for RPC results
+interface CountServicesByAreaResult {
+  area_id: string;
+  count: number;
+}
+
 // Define a local version of ServiceArea without the conflicting fields
 // This avoids type conflicts with the imported ServiceArea type
 interface LocalServiceArea {
@@ -21,12 +27,6 @@ interface LocalServiceArea {
   task_count: number;
   pending_tasks: number;
   delayed_tasks: number;
-}
-
-// Interface for RPC results
-interface CountServicesByAreaResult {
-  area_id: string;
-  count: number;
 }
 
 const ServicesIndex = () => {

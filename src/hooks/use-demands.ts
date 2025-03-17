@@ -27,7 +27,7 @@ export const useDemands = () => {
         
         // Handle assigned_user safely with proper null checking
         let assignedUserName = '';
-        if (d.assigned_user != null) {
+        if (d.assigned_user != null && d.assigned_user !== undefined) {
           if (typeof d.assigned_user === 'object' && d.assigned_user !== null) {
             assignedUserName = d.assigned_user.name || '';
           }
@@ -35,7 +35,7 @@ export const useDemands = () => {
         
         // Handle requester safely with proper null checking
         let requesterName = '';
-        if (d.requester != null) {
+        if (d.requester != null && d.requester !== undefined) {
           if (typeof d.requester === 'object' && d.requester !== null) {
             requesterName = d.requester.name || '';
           }
