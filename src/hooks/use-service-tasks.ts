@@ -41,9 +41,9 @@ export const useServiceTasks = () => {
       setLoading(true);
       
       // Use a direct SQL query to fetch the latest services without type issues
-      // Remove the explicit typing to let TypeScript infer it
+      // Use any to resolve type error
       const { data: servicesData, error: servicesError } = await supabase
-        .rpc('get_recent_services');
+        .rpc('get_recent_services') as { data: any[], error: any };
       
       if (servicesError) throw servicesError;
       

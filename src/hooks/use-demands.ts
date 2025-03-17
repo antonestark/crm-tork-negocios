@@ -32,9 +32,12 @@ export const useDemands = () => {
               d.assigned_user !== null &&
               !('error' in d.assigned_user)) {
             // Add extra null check for the name property
-            assignedUserName = d.assigned_user && 'name' in d.assigned_user && d.assigned_user.name !== null 
-              ? d.assigned_user.name 
-              : '';
+            assignedUserName = d.assigned_user && 
+              'name' in d.assigned_user && 
+              d.assigned_user.name !== null && 
+              typeof d.assigned_user.name === 'string'
+                ? d.assigned_user.name 
+                : '';
           }
         }
         
@@ -45,9 +48,12 @@ export const useDemands = () => {
               d.requester !== null &&
               !('error' in d.requester)) {
             // Add extra null check for the name property  
-            requesterName = d.requester && 'name' in d.requester && d.requester.name !== null
-              ? d.requester.name
-              : '';
+            requesterName = d.requester && 
+              'name' in d.requester && 
+              d.requester.name !== null && 
+              typeof d.requester.name === 'string'
+                ? d.requester.name
+                : '';
           }
         }
         

@@ -89,11 +89,13 @@ export interface UserPermissionGroups {
   };
 }
 
-// Import but don't directly re-export to avoid duplicate identifier
+// Import the Database type from types.ts but don't re-export it
 import type { Database as OriginalDatabase } from './types';
 
-// Extend the Database interface using declaration merging
+// Use declaration merging to extend the Database interface
 declare global {
+  // This will merge with any existing Database interface in global scope
+  // We're NOT creating a new interface, just extending the existing one
   interface Database extends OriginalDatabase {
     public: {
       Tables: {
@@ -128,5 +130,5 @@ declare global {
   }
 }
 
-// Export the Database type from original types.ts
+// Export type but rename to avoid conflict with the imported type
 export type { Database } from './types';

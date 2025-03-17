@@ -39,9 +39,9 @@ export const useUserPermissions = (user: User, open: boolean) => {
       // Fetch permissions for each group using a separate query
       const groupsArray = groupsData || [];
       const groupPermissionsPromises = groupsArray.map(async (group) => {
-        // Remove explicit typing and handle response properly
+        // Use any to resolve type error
         const { data, error } = await supabase
-          .rpc('get_group_permissions', { group_id: group.id });
+          .rpc('get_group_permissions', { group_id: group.id }) as { data: any[], error: any };
         
         return {
           group_id: group.id,
@@ -60,9 +60,9 @@ export const useUserPermissions = (user: User, open: boolean) => {
       if (userPermissionsError) throw userPermissionsError;
       
       // Fetch user's permission groups using a custom RPC function
-      // Remove explicit typing and handle response properly
+      // Use any to resolve type error
       const { data: userGroupsData, error: userGroupsError } = await supabase
-        .rpc('get_user_permission_groups', { user_id: user.id });
+        .rpc('get_user_permission_groups', { user_id: user.id }) as { data: any[], error: any };
       
       if (userGroupsError) throw userGroupsError;
       
@@ -141,12 +141,13 @@ export const useUserPermissions = (user: User, open: boolean) => {
         .map(g => g.id);
       
       // Use a custom RPC function to save the permissions and groups in a transaction
+      // Use any to resolve type error
       const { error } = await supabase
         .rpc('save_user_permissions_and_groups', {
           p_user_id: userId,
           p_permission_ids: selectedPermissionIds,
           p_group_ids: selectedGroupIds
-        });
+        }) as { error: any };
       
       if (error) throw error;
       
