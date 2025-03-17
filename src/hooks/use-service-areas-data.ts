@@ -42,12 +42,9 @@ export const useServiceAreasData = (): ServiceAreasResult => {
       if (areasError) throw areasError;
 
       // Get service counts for each area
-      // Use type assertion for RPC call
+      // To fix TypeScript errors, we need to cast the entire expression
       const { data: countData, error: countError } = await (supabase
-        .rpc('count_services_by_area') as unknown as Promise<{ 
-          data: Array<{area_id: string, total: number, pending: number}>, 
-          error: any 
-        }>);
+        .rpc('count_services_by_area') as any);
 
       if (countError) {
         console.error('Error counting services:', countError);

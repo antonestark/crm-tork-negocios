@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useServiceAreasData } from '@/hooks/use-service-areas-data';
@@ -49,16 +48,13 @@ const ServicesPage = () => {
     };
   }, []);
 
-  // Use type assertion for RPC call
+  // To fix TypeScript errors, cast the entire expression to any
   const fetchServiceStats = async () => {
     try {
       setStatsLoading(true);
       
       const { data, error } = await (supabase
-        .rpc('get_service_statistics') as unknown as Promise<{
-          data: ServiceStatisticsResult, 
-          error: any 
-        }>);
+        .rpc('get_service_statistics') as any);
       
       if (error) throw error;
       
