@@ -572,6 +572,100 @@ export type Database = {
         }
         Relationships: []
       }
+      service_reports: {
+        Row: {
+          area_id: string | null
+          average_completion_time: number | null
+          completed_tasks: number | null
+          completion_rate: number | null
+          created_at: string | null
+          created_by: string | null
+          delayed_tasks: number | null
+          id: string
+          pending_tasks: number | null
+          report_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          average_completion_time?: number | null
+          completed_tasks?: number | null
+          completion_rate?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          delayed_tasks?: number | null
+          id?: string
+          pending_tasks?: number | null
+          report_date?: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          average_completion_time?: number | null
+          completed_tasks?: number | null
+          completion_rate?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          delayed_tasks?: number | null
+          id?: string
+          pending_tasks?: number | null
+          report_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_reports_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          area_id: string | null
+          assigned_to: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_groups: {
         Row: {
           created_at: string | null
@@ -671,7 +765,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      count_services_by_area: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          area_id: string
+          total: number
+          pending: number
+        }[]
+      }
+      get_recent_services: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          description: string
+          status: string
+          area_id: string
+          area_name: string
+          updated_at: string
+        }[]
+      }
+      get_service_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          completed: number
+          pending: number
+          delayed: number
+          avg_completion_time: number
+        }[]
+      }
+      get_service_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          completed: number
+          pending: number
+          delayed: number
+          avg_completion_time: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

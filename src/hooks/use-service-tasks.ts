@@ -23,8 +23,7 @@ export const useServiceTasks = () => {
       setLoading(true);
       setError(null);
 
-      // Use type assertion with any to bypass TypeScript errors completely
-      const { data, error: apiError } = await (supabase.rpc as any)('get_recent_services');
+      const { data, error: apiError } = await supabase.rpc('get_recent_services');
 
       if (apiError) {
         throw apiError;
