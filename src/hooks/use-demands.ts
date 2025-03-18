@@ -44,17 +44,16 @@ export const useDemands = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchDemands = async (statusFilter?: string) => {
+  const fetchDemands = async (statusFilter?: string | null) => {
     try {
       setLoading(true);
       
+      // Modified query to use simple joins instead of foreign key hints
       let query = supabase
         .from('demands')
         .select(`
           *,
-          service_areas (name:name),
-          assigned_user:users!demands_assigned_to_fkey (name),
-          requester:users!demands_requested_by_fkey (name)
+          service_areas (name)
         `)
         .order('created_at', { ascending: false });
       
@@ -66,12 +65,38 @@ export const useDemands = () => {
       
       if (error) throw error;
       
+      // Additional query to get user names
+      const userIds = data
+        ?.filter(d => d.assigned_to || d.requested_by)
+        .flatMap(d => [d.assigned_to, d.requested_by])
+        .filter(Boolean) as string[];
+      
+      const uniqueUserIds = [...new Set(userIds)];
+      
+      let userMap: Record<string, string> = {};
+      
+      if (uniqueUserIds.length > 0) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id, name')
+          .in('id', uniqueUserIds);
+          
+        if (userData) {
+          userMap = userData.reduce((acc, user) => ({
+            ...acc,
+            [user.id]: user.name
+          }), {});
+        }
+      }
+      
       const mappedDemands = (data || []).map((demand: any) => {
         // Handle null service_areas
         const areaName = demand.service_areas ? demand.service_areas.name : 'Unknown Area';
         return mapDemandData({
           ...demand,
-          area_name: areaName
+          area_name: areaName,
+          assigned_user: demand.assigned_to ? { name: userMap[demand.assigned_to] || 'Unknown' } : null,
+          requester: demand.requested_by ? { name: userMap[demand.requested_by] || 'Unknown' } : null
         });
       });
       
@@ -109,7 +134,7 @@ export const useDemands = () => {
       
       if (error) throw error;
       
-      toast.success('Demand created successfully');
+      toast.success('Demanda criada com sucesso');
       fetchDemands();
       return true;
     } catch (err) {
