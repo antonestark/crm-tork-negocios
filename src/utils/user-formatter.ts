@@ -31,16 +31,5 @@ export function formatUserFromDatabase(userData: any): User | null {
     metadata: userData.metadata || {},
     created_at: userData.created_at || '',
     updated_at: userData.updated_at || '',
-    // Add client fields
-    company_name: userData.company_name || '',
-    trading_name: userData.trading_name || '',
-    responsible: userData.responsible || '',
-    room: userData.room || '',
-    meeting_room_credits: userData.meeting_room_credits || 0,
-    contract_start_date: userData.contract_start_date || '',
-    contract_end_date: userData.contract_end_date || '',
-    cnpj: userData.cnpj || '',
-    address: userData.address || '',
-    monthly_value: userData.monthly_value || 0
   };
 }

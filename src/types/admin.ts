@@ -15,17 +15,6 @@ export interface User {
   created_at: string;
   updated_at: string;
   department?: Department | null;
-  // Added client fields
-  company_name?: string;
-  trading_name?: string;
-  responsible?: string;
-  room?: string;
-  meeting_room_credits?: number;
-  contract_start_date?: string;
-  contract_end_date?: string;
-  cnpj?: string;
-  address?: string;
-  monthly_value?: number;
 }
 
 export interface Department {

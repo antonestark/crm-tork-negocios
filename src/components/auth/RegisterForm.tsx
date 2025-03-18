@@ -120,7 +120,6 @@ export function RegisterForm() {
           name: data.name,
           email: data.email,
           role: 'user', // Default role
-          active: true,
           status: 'active'
         });
 

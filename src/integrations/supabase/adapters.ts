@@ -21,25 +21,13 @@ export const userAdapter = (data: any[]): User[] => {
     created_at: item.created_at,
     updated_at: item.updated_at,
     department: item.department ? departmentAdapter([item.department])[0] : null,
-    // Add client fields
-    company_name: item.company_name || '',
-    trading_name: item.trading_name || '',
-    responsible: item.responsible || '',
-    room: item.room || '',
-    meeting_room_credits: item.meeting_room_credits || 0,
-    contract_start_date: item.contract_start_date || '',
-    contract_end_date: item.contract_end_date || '',
-    cnpj: item.cnpj || '',
-    address: item.address || '',
-    monthly_value: item.monthly_value || 0
   }));
 };
 
-// Keep the clientAdapter for backward compatibility until fully migrated
 export const clientAdapter = (data: any[]): Client[] => {
   return data.map(item => ({
     id: item.id,
-    company_name: item.name || item.company_name || '', // Map name to company_name
+    company_name: item.company_name || '',
     trading_name: item.trading_name || '',
     responsible: item.responsible || '',
     room: item.room || '',
