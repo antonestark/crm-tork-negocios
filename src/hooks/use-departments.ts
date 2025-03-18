@@ -21,6 +21,7 @@ export const useDepartments = () => {
         schema: 'public', 
         table: 'departments' 
       }, () => {
+        console.log('Department data changed, refreshing...');
         fetchDepartments();
       })
       .subscribe();
@@ -32,6 +33,7 @@ export const useDepartments = () => {
 
   const fetchDepartments = async () => {
     try {
+      console.log('Fetching departments...');
       setLoading(true);
       
       const { data, error } = await supabase
@@ -43,6 +45,7 @@ export const useDepartments = () => {
       
       if (error) throw error;
       
+      console.log('Departments data received:', data);
       const adaptedData = departmentAdapter(data || []);
       
       // Get member counts for each department
@@ -67,8 +70,10 @@ export const useDepartments = () => {
         }));
         
         setDepartments(departmentsWithCount);
+        console.log('Departments with counts:', departmentsWithCount);
       } else {
         // If we can't get member counts, just use the adapted data
+        console.warn('Could not fetch member counts:', userError);
         setDepartments(adaptedData);
       }
     } catch (err) {

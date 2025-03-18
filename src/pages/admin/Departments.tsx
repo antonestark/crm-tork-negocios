@@ -22,7 +22,15 @@ export default function DepartmentsPage() {
       <div className="flex h-full">
         <AdminNav />
         <div className="w-full p-4">
-          <PermissionGuard permissionCode="admin:departments:view">
+          <PermissionGuard 
+            permissionCode="admin:departments:view"
+            fallback={
+              <div className="flex flex-col items-center justify-center h-full text-center p-6">
+                <p className="text-muted-foreground mb-2">Você não tem permissão para visualizar departamentos.</p>
+                <p className="text-sm text-muted-foreground">Entre em contato com o administrador do sistema.</p>
+              </div>
+            }
+          >
             <EnhancedDepartmentsView />
           </PermissionGuard>
         </div>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Department } from '@/types/admin';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface DepartmentListProps {
   departments: Department[];
@@ -48,11 +49,24 @@ export function DepartmentList({
       
       <ScrollArea className="h-[calc(100vh-220px)]">
         {loading ? (
-          <p className="text-center py-4">Carregando departamentos...</p>
+          <div className="space-y-2 p-2">
+            <Skeleton className="h-16 w-full rounded-md" />
+            <Skeleton className="h-16 w-full rounded-md" />
+            <Skeleton className="h-16 w-full rounded-md" />
+          </div>
         ) : error ? (
-          <p className="text-center py-4 text-destructive">Erro ao carregar departamentos</p>
+          <div className="text-center py-4 px-2">
+            <p className="text-destructive font-medium">Erro ao carregar departamentos</p>
+            <p className="text-sm text-muted-foreground mt-1">Tente novamente mais tarde</p>
+          </div>
         ) : departments.length === 0 ? (
-          <p className="text-center py-4 text-muted-foreground">Nenhum departamento encontrado</p>
+          <div className="text-center py-8 px-2">
+            <Building className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+            <p className="text-muted-foreground mb-2">Nenhum departamento encontrado</p>
+            <Button onClick={onNewDepartment} variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-1" /> Criar Departamento
+            </Button>
+          </div>
         ) : (
           <div className="space-y-2">
             {departments.map((department) => (
