@@ -1,5 +1,6 @@
 
 
+
 // This file augments the Database interface from the original types.ts file
 // without modifying the read-only file directly
 
@@ -136,8 +137,113 @@ export interface UserPermissionGroups {
   ];
 }
 
+// Add definitions for the missing tables
+export interface ChatMessages {
+  Row: {
+    id: number;
+    conversation_id: string | null;
+    user_message: string | null;
+    bot_message: string | null;
+    created_at: string | null;
+    phone: string | null;
+    active: boolean | null;
+    message_type: string | null;
+  };
+  Insert: {
+    id?: number;
+    conversation_id?: string | null;
+    user_message?: string | null;
+    bot_message?: string | null;
+    created_at?: string | null;
+    phone?: string | null;
+    active?: boolean | null;
+    message_type?: string | null;
+  };
+  Update: {
+    id?: number;
+    conversation_id?: string | null;
+    user_message?: string | null;
+    bot_message?: string | null;
+    created_at?: string | null;
+    phone?: string | null;
+    active?: boolean | null;
+    message_type?: string | null;
+  };
+  Relationships: [];
+}
+
+export interface Chats {
+  Row: {
+    id: number;
+    phone: string | null;
+    conversation_id: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+    app: string | null;
+  };
+  Insert: {
+    id?: number;
+    phone?: string | null;
+    conversation_id?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    app?: string | null;
+  };
+  Update: {
+    id?: number;
+    phone?: string | null;
+    conversation_id?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    app?: string | null;
+  };
+  Relationships: [];
+}
+
+export interface Documents {
+  Row: {
+    id: number;
+    content: string | null;
+    embedding: string | null;
+    metadata: Json | null;
+  };
+  Insert: {
+    id?: number;
+    content?: string | null;
+    embedding?: string | null;
+    metadata?: Json | null;
+  };
+  Update: {
+    id?: number;
+    content?: string | null;
+    embedding?: string | null;
+    metadata?: Json | null;
+  };
+  Relationships: [];
+}
+
+export interface N8nChatHistories {
+  Row: {
+    id: number;
+    session_id: string;
+    message: Json;
+  };
+  Insert: {
+    id?: number;
+    session_id: string;
+    message: Json;
+  };
+  Update: {
+    id?: number;
+    session_id?: string;
+    message?: Json;
+  };
+  Relationships: [];
+}
+
 // Import the Database type from types.ts but don't re-export it
 import type { Database as OriginalDatabase } from './types';
+import { Json } from './types';
 
 // Use declaration merging to extend the Database interface
 declare global {
@@ -164,10 +270,16 @@ declare global {
         user_permissions: OriginalDatabase['public']['Tables']['user_permissions'];
         users: OriginalDatabase['public']['Tables']['users'];
         
-        // Add missing tables that are causing the type errors
+        // Add previously missing tables that are causing the type errors
         services: Services;
         service_reports: ServiceReports;
         user_permission_groups: UserPermissionGroups;
+        
+        // Add the missing tables that caused the error
+        chat_messages: ChatMessages;
+        chats: Chats;
+        documents: Documents;
+        n8n_chat_histories: N8nChatHistories;
       };
       Views: OriginalDatabase['public']['Views'];
       Functions: OriginalDatabase['public']['Functions'];
