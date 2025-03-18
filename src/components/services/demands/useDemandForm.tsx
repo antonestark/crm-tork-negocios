@@ -19,6 +19,16 @@ export function useDemandForm({ fetchDemands, statusFilter, addDemand }: UseDema
     setFormOpen(true);
   }, []);
 
+  const handleFormClose = useCallback((open: boolean) => {
+    console.log("Form open state changing to:", open);
+    setFormOpen(open);
+    
+    if (!open) {
+      console.log("Form closed, refreshing demands");
+      fetchDemands(statusFilter);
+    }
+  }, [fetchDemands, statusFilter]);
+
   useEffect(() => {
     console.log("Location state changed:", location.state);
     if (location.state?.openDemandForm) {
@@ -49,16 +59,6 @@ export function useDemandForm({ fetchDemands, statusFilter, addDemand }: UseDema
       window.removeEventListener('storage', checkLocalStorage);
     };
   }, [openDemandForm]);
-
-  const handleFormClose = (open: boolean) => {
-    console.log("Form open state changing to:", open);
-    setFormOpen(open);
-    
-    if (!open) {
-      console.log("Form closed, refreshing demands");
-      fetchDemands(statusFilter);
-    }
-  };
 
   return {
     formOpen,
