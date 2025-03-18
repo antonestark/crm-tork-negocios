@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, ListTodo, Filter } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { ServiceFormDialog } from "./ServiceFormDialog";
+import { ServiceFormDialog } from "./service-form";
 
 export const ServicesHeader = () => {
   const navigate = useNavigate();
