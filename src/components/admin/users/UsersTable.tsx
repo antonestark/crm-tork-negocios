@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { User } from '@/types/admin';
 import { ensureDepartmentFormat } from './UsersTable.helper';
-import { useUsers, UserCreate } from '@/hooks/use-users';
+import { useUsers, UserCreate } from '@/hooks/users';
 import { DataTable } from '@/components/admin/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

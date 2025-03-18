@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { User } from '@/types/admin';
 import { useForm } from 'react-hook-form';
-import { UserCreate } from '@/hooks/use-users';
+import { UserCreate } from '@/hooks/users';
 
 interface UserFormDialogProps {
   open: boolean;
