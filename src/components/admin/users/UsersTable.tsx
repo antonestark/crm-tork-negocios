@@ -63,7 +63,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
     }
   };
 
-  const handleSaveUser = async (userData: Partial<User>) => {
+  const handleSaveUser = async (userData: Partial<User> & { email: string }) => {
     if (selectedUser) {
       // Update existing user
       const success = await updateUser({
@@ -74,7 +74,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
         toast.success('Usuário atualizado com sucesso');
       }
     } else {
-      // Add new user
+      // Add new user - ensure email is provided
       const success = await addUser(userData);
       if (success) {
         toast.success('Usuário adicionado com sucesso');

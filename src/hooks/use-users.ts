@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 type UserRole = 'user' | 'admin' | 'super_admin';
 
 // Define interface for user creation that includes email
-interface UserCreate extends Partial<User> {
+export interface UserCreate extends Partial<User> {
   email: string;  // Make email required for new users
   password?: string; // Optional password for new users
 }
