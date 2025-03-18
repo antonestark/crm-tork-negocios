@@ -1,4 +1,3 @@
-
 // This file contains adapters for converting data from the Supabase database to the app's types
 
 import { User, Department, Permission, PermissionGroup, ActivityLog } from "@/types/admin";
@@ -13,7 +12,7 @@ export const userAdapter = (data: any[]): User[] => {
     role: item.role,
     department_id: item.department_id,
     phone: item.phone || null,
-    email: item.email || '', // Ensure email is included
+    email: item.email || '', 
     active: item.active || false,
     status: item.status || 'inactive',
     last_login: item.last_login,
@@ -21,10 +20,22 @@ export const userAdapter = (data: any[]): User[] => {
     metadata: item.metadata || {},
     created_at: item.created_at,
     updated_at: item.updated_at,
-    department: item.department ? departmentAdapter([item.department])[0] : null
+    department: item.department ? departmentAdapter([item.department])[0] : null,
+    // Add client fields
+    company_name: item.company_name || '',
+    trading_name: item.trading_name || '',
+    responsible: item.responsible || '',
+    room: item.room || '',
+    meeting_room_credits: item.meeting_room_credits || 0,
+    contract_start_date: item.contract_start_date || '',
+    contract_end_date: item.contract_end_date || '',
+    cnpj: item.cnpj || '',
+    address: item.address || '',
+    monthly_value: item.monthly_value || 0
   }));
 };
 
+// Keep the clientAdapter for backward compatibility until fully migrated
 export const clientAdapter = (data: any[]): Client[] => {
   return data.map(item => ({
     id: item.id,

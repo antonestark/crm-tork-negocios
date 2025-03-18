@@ -1,9 +1,8 @@
-
 export interface User {
   id: string;
   first_name: string;
   last_name: string;
-  email?: string; // Add email field
+  email?: string;
   profile_image_url: string | null;
   role: string;
   department_id: number | null;
@@ -16,6 +15,17 @@ export interface User {
   created_at: string;
   updated_at: string;
   department?: Department | null;
+  // Added client fields
+  company_name?: string;
+  trading_name?: string;
+  responsible?: string;
+  room?: string;
+  meeting_room_credits?: number;
+  contract_start_date?: string;
+  contract_end_date?: string;
+  cnpj?: string;
+  address?: string;
+  monthly_value?: number;
 }
 
 export interface Department {
@@ -82,6 +92,8 @@ export interface Booking {
   status: string;
   client_id?: string;
   client?: { company_name: string } | null;
+  user_id?: string; // Add user_id for referencing users instead of clients
+  user?: User | null; // Add user reference
 }
 
 export interface ServiceArea {

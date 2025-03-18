@@ -8,10 +8,11 @@ import { toast } from 'sonner';
 // Define the roles enum to match Supabase's expected values
 type UserRole = 'user' | 'admin' | 'super_admin';
 
-// Define interface for user creation that includes email
+// Define interface for user creation that includes email and client fields
 export interface UserCreate extends Partial<User> {
   email: string;  // Make email required for new users
   password?: string; // Optional password for new users
+  // Client fields already included through Partial<User>
 }
 
 export const useUsers = () => {
@@ -44,8 +45,7 @@ export const useUsers = () => {
       setLoading(true);
       console.log('Fetching users from database...');
       
-      // Modified query to not try to join with departments directly
-      // since the error in console shows there's no foreign key relationship
+      // Modified query to include all fields
       const { data, error } = await supabase
         .from('users')
         .select('*');
@@ -74,15 +74,25 @@ export const useUsers = () => {
         throw new Error('Email é obrigatório');
       }
       
-      // Create properly typed user object for Supabase without active field
-      // which doesn't exist in the actual database schema
+      // Create properly typed user object for Supabase
       const userDataForDb = {
         name: `${userData.first_name} ${userData.last_name}`,
         email: userData.email,
         department_id: userData.department_id,
         phone: userData.phone || null,
         role: role,
-        status: userData.status || 'active'
+        status: userData.status || 'active',
+        // Include client fields
+        company_name: userData.company_name,
+        trading_name: userData.trading_name,
+        responsible: userData.responsible,
+        room: userData.room,
+        meeting_room_credits: userData.meeting_room_credits,
+        contract_start_date: userData.contract_start_date,
+        contract_end_date: userData.contract_end_date,
+        cnpj: userData.cnpj,
+        address: userData.address,
+        monthly_value: userData.monthly_value
       };
       
       console.log('Adding new user with data:', userDataForDb);
@@ -117,7 +127,6 @@ export const useUsers = () => {
       }
       
       // Insert into users table regardless of auth success/failure
-      // This allows admin to create users in the database without authentication
       const { data, error } = await supabase
         .from('users')
         .insert(userDataForDb)
@@ -149,13 +158,23 @@ export const useUsers = () => {
       // Ensure role is one of the allowed values
       const role = (userData.role as UserRole);
       
-      // Remove active field which doesn't exist in database
+      // Include client fields in the update
       const updateData = {
         name: `${userData.first_name} ${userData.last_name}`,
         department_id: userData.department_id,
         phone: userData.phone,
         role: role,
-        status: userData.status
+        status: userData.status,
+        company_name: userData.company_name,
+        trading_name: userData.trading_name,
+        responsible: userData.responsible,
+        room: userData.room,
+        meeting_room_credits: userData.meeting_room_credits,
+        contract_start_date: userData.contract_start_date,
+        contract_end_date: userData.contract_end_date,
+        cnpj: userData.cnpj,
+        address: userData.address,
+        monthly_value: userData.monthly_value
       };
       
       console.log('Updating user with data:', updateData);
