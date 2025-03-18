@@ -9,12 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-
-interface AreaType {
-  id: string;
-  name: string;
-  code: string;
-}
+import { AreaType } from "./AreaTypesManager";
 
 const areaFormSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -60,16 +55,17 @@ export const CreateAreaForm = ({ onSubmit, onCancel, isSubmitting }: CreateAreaF
         setLoadingTypes(true);
         const { data, error } = await supabase
           .from('area_types')
-          .select('*')
+          .select('id, name, code')
           .order('name');
           
         if (error) throw error;
         
-        setAreaTypes(data || []);
+        // Add type assertion to ensure TypeScript knows the data structure
+        setAreaTypes(data as AreaType[] || []);
         
         // If we have area types, set the first one as default
         if (data && data.length > 0) {
-          form.setValue('type', data[0].code);
+          form.setValue('type', (data[0] as AreaType).code);
         }
       } catch (error) {
         console.error('Error fetching area types:', error);

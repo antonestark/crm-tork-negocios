@@ -1,6 +1,3 @@
-
-
-
 // This file augments the Database interface from the original types.ts file
 // without modifying the read-only file directly
 
@@ -135,6 +132,32 @@ export interface UserPermissionGroups {
       referencedColumns: ["id"];
     }
   ];
+}
+
+// Add definitions for the area_types table
+export interface AreaTypes {
+  Row: {
+    id: string;
+    name: string;
+    code: string;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Insert: {
+    id?: string;
+    name: string;
+    code: string;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    name?: string;
+    code?: string;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Relationships: [];
 }
 
 // Add definitions for the missing tables
@@ -275,6 +298,9 @@ declare global {
         service_reports: ServiceReports;
         user_permission_groups: UserPermissionGroups;
         
+        // Add the new area_types table
+        area_types: AreaTypes;
+        
         // Add the missing tables that caused the error
         chat_messages: ChatMessages;
         chats: Chats;
@@ -291,4 +317,3 @@ declare global {
 
 // Export the Database type from types.ts as DatabaseTypes to avoid name conflicts
 export type { Database } from './types';
-

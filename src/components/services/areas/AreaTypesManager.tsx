@@ -29,12 +29,13 @@ export const AreaTypesManager = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('area_types')
-        .select('*')
+        .select('id, name, code')
         .order('name');
 
       if (error) throw error;
       
-      setAreaTypes(data || []);
+      // Add type assertion to ensure TypeScript knows the data structure
+      setAreaTypes(data as AreaType[] || []);
     } catch (error) {
       console.error('Error fetching area types:', error);
       toast.error('Erro ao carregar tipos de áreas');

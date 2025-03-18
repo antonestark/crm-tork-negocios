@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { AreaType } from "@/components/services/areas/AreaTypesManager";
 
 // Updated interface to match what our form returns
 interface AreaFormData {
@@ -79,7 +80,7 @@ const AreasPage = () => {
       // Check if we need to seed default values
       const { data: existingTypes, error: countError } = await supabase
         .from('area_types')
-        .select('*');
+        .select('id, name, code');
         
       if (countError) throw countError;
       
