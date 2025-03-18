@@ -20,6 +20,14 @@ interface AreaFormData {
   type: string;
 }
 
+const DEFAULT_AREA_TYPES = [
+  { name: 'Áreas Comuns', code: 'common' },
+  { name: 'Banheiros', code: 'bathroom' },
+  { name: 'Salas Privativas', code: 'private' },
+  { name: 'Áreas Externas', code: 'external' },
+  { name: 'Ar Condicionado', code: 'ac' }
+];
+
 const AreasPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -35,6 +43,9 @@ const AreasPage = () => {
   }, [isAuthenticated]);
   
   useEffect(() => {
+    // Ensure area_types table exists with initial data
+    setupAreaTypes();
+    
     // Redirect to login page if not authenticated after auth check completes
     if (!authLoading && !isAuthenticated) {
       toast.error("Você precisa estar autenticado para acessar esta página.");
@@ -45,6 +56,46 @@ const AreasPage = () => {
       console.warn("User not authenticated, should redirect to login");
     }
   }, [isAuthenticated, authLoading, navigate]);
+  
+  const setupAreaTypes = async () => {
+    try {
+      // Check if area_types table exists
+      const { error: checkError } = await supabase
+        .from('area_types')
+        .select('id', { count: 'exact', head: true });
+      
+      // If we get an error like "relation area_types does not exist", create the table
+      if (checkError && checkError.message.includes('does not exist')) {
+        console.log('Creating area_types table...');
+        
+        // Create the table via RPC (assuming you have a SQL function for this)
+        // For this example, we'll use a simplified approach and assume the table exists
+        // In a real app, you'd need to handle this server-side or via migration
+        
+        console.warn('area_types table does not exist. This would need server-side handling.');
+        return;
+      }
+      
+      // Check if we need to seed default values
+      const { data: existingTypes, error: countError } = await supabase
+        .from('area_types')
+        .select('*');
+        
+      if (countError) throw countError;
+      
+      // If no types exist, seed with defaults
+      if (!existingTypes || existingTypes.length === 0) {
+        console.log('Seeding default area types...');
+        const { error: insertError } = await supabase
+          .from('area_types')
+          .insert(DEFAULT_AREA_TYPES);
+          
+        if (insertError) throw insertError;
+      }
+    } catch (error) {
+      console.error('Error setting up area types:', error);
+    }
+  };
   
   const createServiceArea = async (areaData: AreaFormData) => {
     try {

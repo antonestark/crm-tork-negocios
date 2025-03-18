@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +8,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ServiceArea } from "@/hooks/use-service-areas-data";
+import { supabase } from "@/integrations/supabase/client";
+
+interface AreaType {
+  id: string;
+  name: string;
+  code: string;
+}
 
 const areaFormSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -34,15 +40,46 @@ interface CreateAreaFormProps {
 }
 
 export const CreateAreaForm = ({ onSubmit, onCancel, isSubmitting }: CreateAreaFormProps) => {
+  const [areaTypes, setAreaTypes] = useState<AreaType[]>([]);
+  const [loadingTypes, setLoadingTypes] = useState(true);
+  
   const form = useForm<AreaFormValues>({
     resolver: zodResolver(areaFormSchema),
     defaultValues: {
       name: "",
       description: "",
-      type: "common",
+      type: "",
       status: "active"
     }
   });
+
+  // Fetch area types on component mount
+  useEffect(() => {
+    const fetchAreaTypes = async () => {
+      try {
+        setLoadingTypes(true);
+        const { data, error } = await supabase
+          .from('area_types')
+          .select('*')
+          .order('name');
+          
+        if (error) throw error;
+        
+        setAreaTypes(data || []);
+        
+        // If we have area types, set the first one as default
+        if (data && data.length > 0) {
+          form.setValue('type', data[0].code);
+        }
+      } catch (error) {
+        console.error('Error fetching area types:', error);
+      } finally {
+        setLoadingTypes(false);
+      }
+    };
+    
+    fetchAreaTypes();
+  }, [form]);
 
   const handleSubmit = async (values: AreaFormValues) => {
     await onSubmit({
@@ -94,18 +131,24 @@ export const CreateAreaForm = ({ onSubmit, onCancel, isSubmitting }: CreateAreaF
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tipo</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value || 'common'}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
+                    <SelectValue placeholder={loadingTypes ? "Carregando tipos..." : "Selecione o tipo"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="common">Áreas Comuns</SelectItem>
-                  <SelectItem value="bathroom">Banheiros</SelectItem>
-                  <SelectItem value="private">Salas Privativas</SelectItem>
-                  <SelectItem value="external">Áreas Externas</SelectItem>
-                  <SelectItem value="ac">Ar Condicionado</SelectItem>
+                  {loadingTypes ? (
+                    <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                  ) : areaTypes.length > 0 ? (
+                    areaTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.code}>
+                        {type.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-types" disabled>Nenhum tipo cadastrado</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -135,9 +178,14 @@ export const CreateAreaForm = ({ onSubmit, onCancel, isSubmitting }: CreateAreaF
           )}
         />
         
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? 'Criando...' : 'Criar Área'}
-        </Button>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Criando...' : 'Criar Área'}
+          </Button>
+        </div>
       </form>
     </Form>
   );
