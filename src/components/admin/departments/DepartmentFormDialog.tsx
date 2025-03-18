@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Department, User } from '@/types/admin';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
 
 export interface DepartmentFormDialogProps {
-  open: boolean;  // Changed from isOpen to open
+  open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (formData: Department) => Promise<void> | void;
   department?: Department | null;
@@ -18,7 +20,7 @@ export interface DepartmentFormDialogProps {
 }
 
 const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
-  open,  // Changed from isOpen to open
+  open,
   onOpenChange,
   onSave,
   department,
@@ -26,29 +28,25 @@ const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
   users = [],
   isEditing = false
 }) => {
-  const [formData, setFormData] = useState<Partial<Department>>({
-    name: department?.name || '',
-    description: department?.description || '',
-    parent_id: department?.parent_id || null,
-    manager_id: department?.manager_id || null,
-    // Add other fields as needed
-  });
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const form = useForm({
+    defaultValues: {
+      name: department?.name || '',
+      description: department?.description || '',
+      parent_id: department?.parent_id || null,
+      manager_id: department?.manager_id || null,
+    }
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
     
     try {
       // Casting formData to Department as required by onSave
-      await onSave(formData as Department);
+      await onSave(data as Department);
       onOpenChange(false);
+      form.reset();
     } catch (error) {
       console.error('Error submitting department form:', error);
     } finally {
@@ -58,43 +56,51 @@ const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Department' : 'Create Department'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar Departamento' : 'Criar Departamento'}</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
               name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nome do departamento" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
+            
+            <FormField
+              control={form.control}
               name="description"
-              value={formData.description || ''}
-              onChange={handleChange}
-              rows={3}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Descrição do departamento" {...field} rows={3} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </form>
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

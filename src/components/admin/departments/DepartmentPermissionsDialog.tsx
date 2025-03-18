@@ -7,8 +7,10 @@ import { usePermissions } from '@/hooks/use-permissions';
 import { useDepartmentPermissions } from '@/hooks/use-department-permissions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 
 interface DepartmentPermissionsDialogProps {
   open: boolean;
@@ -30,6 +32,7 @@ export function DepartmentPermissionsDialog({
   
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Update selected permissions when department permissions change
   useEffect(() => {
@@ -58,8 +61,15 @@ export function DepartmentPermissionsDialog({
   
   const loading = permissionsLoading || departmentPermissionsLoading;
   
+  // Filter permissions based on search query
+  const filteredPermissions = permissions.filter(permission => 
+    permission.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    permission.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    permission.module.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
   // Group permissions by module
-  const permissionsByModule = permissions.reduce((acc, permission) => {
+  const permissionsByModule = filteredPermissions.reduce((acc, permission) => {
     if (!acc[permission.module]) {
       acc[permission.module] = [];
     }
@@ -69,61 +79,80 @@ export function DepartmentPermissionsDialog({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
+      <DialogContent className="sm:max-w-[700px] max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>
-            Permissões do Departamento: {department?.name}
+            Permissões de Visualização: {department?.name}
           </DialogTitle>
         </DialogHeader>
         
         {loading ? (
           <div className="flex justify-center items-center p-6">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            <span className="ml-2">Carregando...</span>
+            <span className="ml-2">Carregando permissões...</span>
           </div>
         ) : (
-          <ScrollArea className="h-[500px] pr-4">
-            <div className="space-y-6">
-              {Object.entries(permissionsByModule).map(([module, modulePermissions]) => (
-                <div key={module} className="space-y-2">
-                  <h3 className="font-medium text-lg capitalize">{module}</h3>
-                  <div className="grid grid-cols-1 gap-2 pl-2">
-                    {modulePermissions.map(permission => (
-                      <div key={permission.id} className="flex items-start space-x-2 py-1">
-                        <Checkbox 
-                          id={permission.id}
-                          checked={selectedPermissions.includes(permission.id)}
-                          onCheckedChange={(checked) => 
-                            handlePermissionChange(permission.id, checked as boolean)
-                          }
-                        />
-                        <div className="grid gap-1">
-                          <Label 
-                            htmlFor={permission.id}
-                            className="font-medium cursor-pointer"
-                          >
-                            {permission.name}
-                          </Label>
-                          {permission.description && (
-                            <p className="text-sm text-muted-foreground">
-                              {permission.description}
-                            </p>
-                          )}
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {permission.actions.map(action => (
-                              <span key={action} className="text-xs bg-secondary px-2 py-0.5 rounded-full">
-                                {action}
-                              </span>
-                            ))}
+          <>
+            <div className="relative mb-4">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar permissões..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            
+            <ScrollArea className="h-[500px] pr-4">
+              <div className="space-y-6">
+                {Object.entries(permissionsByModule).map(([module, modulePermissions]) => (
+                  <div key={module} className="space-y-2">
+                    <h3 className="font-medium text-lg capitalize">{module}</h3>
+                    <Separator />
+                    <div className="grid grid-cols-1 gap-2 pl-2">
+                      {modulePermissions.map(permission => (
+                        <div key={permission.id} className="flex items-start space-x-2 py-1">
+                          <Checkbox 
+                            id={permission.id}
+                            checked={selectedPermissions.includes(permission.id)}
+                            onCheckedChange={(checked) => 
+                              handlePermissionChange(permission.id, checked as boolean)
+                            }
+                          />
+                          <div className="grid gap-1">
+                            <Label 
+                              htmlFor={permission.id}
+                              className="font-medium cursor-pointer"
+                            >
+                              {permission.name}
+                            </Label>
+                            {permission.description && (
+                              <p className="text-sm text-muted-foreground">
+                                {permission.description}
+                              </p>
+                            )}
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {permission.actions.map(action => (
+                                <span key={action} className="text-xs bg-secondary px-2 py-0.5 rounded-full">
+                                  {action}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+                ))}
+                
+                {Object.keys(permissionsByModule).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    {searchQuery ? 'Nenhuma permissão encontrada para esta busca' : 'Nenhuma permissão disponível'}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </>
         )}
         
         <DialogFooter>
@@ -144,7 +173,7 @@ export function DepartmentPermissionsDialog({
                 Salvando...
               </>
             ) : (
-              'Salvar'
+              'Salvar Permissões'
             )}
           </Button>
         </DialogFooter>

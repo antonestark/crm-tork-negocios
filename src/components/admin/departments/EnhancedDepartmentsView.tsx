@@ -5,8 +5,8 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DepartmentList } from './DepartmentList';
 import { DepartmentDetails } from './DepartmentDetails';
-import DepartmentFormDialog from './DepartmentFormDialog'; // Changed from named import to default import
-import DepartmentMembersDialog from './DepartmentMembersDialog'; // Changed from named import to default import
+import DepartmentFormDialog from './DepartmentFormDialog';
+import DepartmentMembersDialog from './DepartmentMembersDialog';
 import { DepartmentPermissionsDialog } from './DepartmentPermissionsDialog';
 import { Department } from '@/types/admin';
 import { useDepartments } from '@/hooks/use-departments';
@@ -32,7 +32,7 @@ export function EnhancedDepartmentsView() {
   // Filter departments based on search query
   const filteredDepartments = departments.filter(dept => 
     dept.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    dept.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (dept.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
   
   // Handle department selection
@@ -106,30 +106,37 @@ export function EnhancedDepartmentsView() {
   const handleSaveDepartment = async (data: Partial<Department>) => {
     let success;
     
-    if (isEditMode && selectedDepartment) {
-      // Update existing department
-      success = await updateDepartment({
-        ...selectedDepartment,
-        ...data
-      });
+    try {
+      if (isEditMode && selectedDepartment) {
+        // Update existing department
+        success = await updateDepartment({
+          ...selectedDepartment,
+          ...data
+        });
+        
+        if (success) {
+          toast.success("Departamento atualizado", {
+            description: "As alterações foram salvas com sucesso."
+          });
+        }
+      } else {
+        // Create new department
+        success = await addDepartment(data as Department);
+        
+        if (success) {
+          toast.success("Departamento criado", {
+            description: "O novo departamento foi criado com sucesso."
+          });
+        }
+      }
       
-      if (success) {
-        toast.success("Departamento atualizado", {
-          description: "As alterações foram salvas com sucesso."
+      if (!success) {
+        toast.error("Erro", {
+          description: "Ocorreu um erro ao salvar o departamento."
         });
       }
-    } else {
-      // Create new department
-      success = await addDepartment(data as Department);
-      
-      if (success) {
-        toast.success("Departamento criado", {
-          description: "O novo departamento foi criado com sucesso."
-        });
-      }
-    }
-    
-    if (!success) {
+    } catch (error) {
+      console.error('Error saving department:', error);
       toast.error("Erro", {
         description: "Ocorreu um erro ao salvar o departamento."
       });
@@ -137,7 +144,7 @@ export function EnhancedDepartmentsView() {
   };
   
   return (
-    <div className="flex h-[calc(100vh-120px)]">
+    <div className="flex h-[calc(100vh-220px)]">
       {/* Departments List */}
       <DepartmentList 
         departments={filteredDepartments}
@@ -167,8 +174,8 @@ export function EnhancedDepartmentsView() {
             <p className="text-muted-foreground mb-4">
               Selecione um departamento para ver seus detalhes ou crie um novo.
             </p>
-            <Button onClick={handleNewDepartment}>
-              <Plus className="h-4 w-4 mr-1" /> Novo Departamento
+            <Button onClick={handleNewDepartment} size="lg">
+              <Plus className="h-4 w-4 mr-2" /> Novo Departamento
             </Button>
           </div>
         )}
@@ -180,6 +187,7 @@ export function EnhancedDepartmentsView() {
         onOpenChange={setIsFormOpen}
         department={isEditMode ? selectedDepartment : undefined}
         onSave={handleSaveDepartment}
+        isEditing={isEditMode}
       />
       
       {/* Department Members Dialog */}

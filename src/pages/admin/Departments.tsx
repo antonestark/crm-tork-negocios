@@ -12,7 +12,7 @@ export default function DepartmentsPage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Departamentos</h2>
           <p className="text-muted-foreground">
-            Gerencie os departamentos da organização e seus responsáveis.
+            Gerencie os departamentos da organização e suas permissões de visualização.
           </p>
         </div>
       </div>
