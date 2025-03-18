@@ -828,66 +828,45 @@ export type Database = {
       }
       users: {
         Row: {
-          address: string | null
-          cnpj: string | null
-          company_name: string | null
-          contract_end_date: string | null
-          contract_start_date: string | null
+          active: boolean | null
           created_at: string | null
           department_id: number | null
           email: string
           id: string
-          meeting_room_credits: number | null
-          monthly_value: number | null
+          last_login: string | null
           name: string | null
           phone: string | null
-          responsible: string | null
+          profile_image_url: string | null
           role: string | null
-          room: string | null
           status: string | null
-          trading_name: string | null
           updated_at: string | null
         }
         Insert: {
-          address?: string | null
-          cnpj?: string | null
-          company_name?: string | null
-          contract_end_date?: string | null
-          contract_start_date?: string | null
+          active?: boolean | null
           created_at?: string | null
           department_id?: number | null
           email: string
           id?: string
-          meeting_room_credits?: number | null
-          monthly_value?: number | null
+          last_login?: string | null
           name?: string | null
           phone?: string | null
-          responsible?: string | null
+          profile_image_url?: string | null
           role?: string | null
-          room?: string | null
           status?: string | null
-          trading_name?: string | null
           updated_at?: string | null
         }
         Update: {
-          address?: string | null
-          cnpj?: string | null
-          company_name?: string | null
-          contract_end_date?: string | null
-          contract_start_date?: string | null
+          active?: boolean | null
           created_at?: string | null
           department_id?: number | null
           email?: string
           id?: string
-          meeting_room_credits?: number | null
-          monthly_value?: number | null
+          last_login?: string | null
           name?: string | null
           phone?: string | null
-          responsible?: string | null
+          profile_image_url?: string | null
           role?: string | null
-          room?: string | null
           status?: string | null
-          trading_name?: string | null
           updated_at?: string | null
         }
         Relationships: []

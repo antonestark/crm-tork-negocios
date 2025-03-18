@@ -5,8 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { clientAdapter } from '@/integrations/supabase/adapters';
 import { toast } from 'sonner';
 
+// Define interface for client creation
 export interface ClientCreate extends Partial<Client> {
-  company_name: string;  // Make company name required for new clients
+  company_name: string;  // Make company_name required for new clients
 }
 
 export const useClients = () => {
@@ -59,50 +60,17 @@ export const useClients = () => {
 
   const addClient = async (clientData: ClientCreate) => {
     try {
-      // Check if company name exists
+      // Check if company_name exists
       if (!clientData.company_name) {
         throw new Error('Nome da empresa é obrigatório');
       }
       
-      // Create properly typed client object for Supabase
-      const clientDataForDb = {
-        company_name: clientData.company_name,
-        trading_name: clientData.trading_name,
-        responsible: clientData.responsible,
-        room: clientData.room,
-        meeting_room_credits: clientData.meeting_room_credits || 0,
-        status: clientData.status || 'active',
-        contract_start_date: clientData.contract_start_date,
-        contract_end_date: clientData.contract_end_date,
-        cnpj: clientData.cnpj,
-        address: clientData.address,
-        email: clientData.email,
-        phone: clientData.phone,
-        monthly_value: clientData.monthly_value || 0,
-        notes: clientData.notes
-      };
-      
-      console.log('Adding new client with data:', clientDataForDb);
-      
-      // Check if company with same name already exists
-      const { data: existingClient, error: checkError } = await supabase
-        .from('clients')
-        .select('id, company_name')
-        .eq('company_name', clientData.company_name)
-        .maybeSingle();
-        
-      if (checkError) {
-        console.error('Error checking for existing client:', checkError);
-      }
-      
-      if (existingClient) {
-        throw new Error(`Cliente com nome ${clientData.company_name} já existe`);
-      }
+      console.log('Adding new client with data:', clientData);
       
       // Insert into clients table
       const { data, error } = await supabase
         .from('clients')
-        .insert(clientDataForDb)
+        .insert(clientData)
         .select();
       
       if (error) {
@@ -125,28 +93,11 @@ export const useClients = () => {
 
   const updateClient = async (clientData: Client) => {
     try {
-      const updateData = {
-        company_name: clientData.company_name,
-        trading_name: clientData.trading_name,
-        responsible: clientData.responsible,
-        room: clientData.room,
-        meeting_room_credits: clientData.meeting_room_credits,
-        status: clientData.status,
-        contract_start_date: clientData.contract_start_date,
-        contract_end_date: clientData.contract_end_date,
-        cnpj: clientData.cnpj,
-        address: clientData.address,
-        email: clientData.email,
-        phone: clientData.phone,
-        monthly_value: clientData.monthly_value,
-        notes: clientData.notes
-      };
-      
-      console.log('Updating client with data:', updateData);
+      console.log('Updating client with data:', clientData);
       
       const { error } = await supabase
         .from('clients')
-        .update(updateData)
+        .update(clientData)
         .eq('id', clientData.id);
       
       if (error) throw error;
@@ -155,6 +106,7 @@ export const useClients = () => {
       setClients(prev => 
         prev.map(c => c.id === clientData.id ? { ...c, ...clientData } : c)
       );
+      toast.success('Cliente atualizado com sucesso');
       return true;
     } catch (err) {
       console.error('Error updating client:', err);
@@ -176,6 +128,7 @@ export const useClients = () => {
       
       console.log('Client deleted successfully');
       setClients(prev => prev.filter(c => c.id !== id));
+      toast.success('Cliente excluído com sucesso');
       return true;
     } catch (err) {
       console.error('Error deleting client:', err);
