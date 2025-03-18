@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Department, User } from '@/types/admin';
-import { useUsers } from '@/hooks/use-users';
+import { useUsers } from '@/hooks/users';
 import { compareDepartmentIds } from './EnhancedDepartmentsView';
 
 interface DepartmentDetailsProps {
