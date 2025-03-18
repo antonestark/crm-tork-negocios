@@ -1,18 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { CreateAreaForm } from "./CreateAreaForm";
 import { ServiceArea } from "@/hooks/use-service-areas-data";
 import { supabase } from "@/integrations/supabase/client";
-
-interface AreaFormData {
-  name: string;
-  description?: string;
-  status: 'active' | 'inactive';
-  type: string;
-}
+import { AreaSubmitData } from "./hooks/useAreaForm";
 
 interface EditAreaDialogProps {
   area: ServiceArea | null;
@@ -23,7 +16,7 @@ interface EditAreaDialogProps {
 
 export function EditAreaDialog({ area, open, onOpenChange, onUpdated }: EditAreaDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formValues, setFormValues] = useState<AreaFormData | null>(null);
+  const [formValues, setFormValues] = useState<AreaSubmitData | null>(null);
   
   useEffect(() => {
     if (area) {
@@ -36,7 +29,7 @@ export function EditAreaDialog({ area, open, onOpenChange, onUpdated }: EditArea
     }
   }, [area]);
 
-  const handleSubmit = async (values: AreaFormData) => {
+  const handleSubmit = async (values: AreaSubmitData) => {
     try {
       if (!area) return;
       

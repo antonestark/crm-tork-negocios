@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Lock, Settings } from "lucide-react";
@@ -6,17 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CreateAreaForm } from "./CreateAreaForm";
 import { AreaTypesManager } from "./AreaTypesManager";
 import { toast } from "sonner";
-
-// Define what the form will submit
-interface AreaFormData {
-  name: string;
-  description?: string;
-  status: 'active' | 'inactive';
-  type: string;
-}
+import { AreaSubmitData } from "./hooks/useAreaForm";
 
 interface CreateAreaDialogProps {
-  onCreateArea: (data: AreaFormData) => Promise<void>;
+  onCreateArea: (data: AreaSubmitData) => Promise<void>;
   isSubmitting: boolean;
   isAuthenticated: boolean;
 }
@@ -39,7 +31,7 @@ export const CreateAreaDialog = ({ onCreateArea, isSubmitting, isAuthenticated }
     }
   };
   
-  const handleSubmit = async (values: AreaFormData) => {
+  const handleSubmit = async (values: AreaSubmitData) => {
     try {
       if (!isAuthenticated) {
         setError("Você precisa estar autenticado para criar uma área.");

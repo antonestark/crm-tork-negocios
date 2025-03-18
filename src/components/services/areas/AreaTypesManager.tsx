@@ -42,4 +42,4 @@ export const AreaTypesManager = () => {
   );
 };
 
-export { AreaType } from './types';
+export type { AreaType } from './types';

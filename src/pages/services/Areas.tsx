@@ -10,15 +10,7 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AreaType } from "@/components/services/areas/AreaTypesManager";
-
-// Updated interface to match what our form returns
-interface AreaFormData {
-  name: string;
-  description?: string;
-  status: 'active' | 'inactive';
-  type: string;
-}
+import { AreaSubmitData } from "@/components/services/areas/hooks/useAreaForm";
 
 const DEFAULT_AREA_TYPES = [
   { name: 'Áreas Comuns', code: 'common' },
@@ -97,7 +89,7 @@ const AreasPage = () => {
     }
   };
   
-  const createServiceArea = async (areaData: AreaFormData) => {
+  const createServiceArea = async (areaData: AreaSubmitData) => {
     try {
       const { data, error } = await supabase
         .from('service_areas')
@@ -120,7 +112,7 @@ const AreasPage = () => {
     }
   };
   
-  const handleCreateArea = async (areaData: AreaFormData) => {
+  const handleCreateArea = async (areaData: AreaSubmitData) => {
     try {
       if (!isAuthenticated) {
         toast.error("Você precisa estar autenticado para criar uma área.");
