@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { User } from '@/types/admin';
 import { ensureDepartmentFormat } from './UsersTable.helper';
-import { useUsers } from '@/hooks/use-users';
+import { useUsers, UserCreate } from '@/hooks/use-users';
 import { DataTable } from '@/components/admin/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,7 +63,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
     }
   };
 
-  const handleSaveUser = async (userData: Partial<User> & { email: string }) => {
+  const handleSaveUser = async (userData: UserCreate) => {
     if (selectedUser) {
       // Update existing user
       const success = await updateUser({

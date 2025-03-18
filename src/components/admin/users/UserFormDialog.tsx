@@ -8,12 +8,26 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { User } from '@/types/admin';
 import { useForm } from 'react-hook-form';
+import { UserCreate } from '@/hooks/use-users';
 
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
-  onSave: (userData: Partial<User> & { email: string }) => void;
+  onSave: (userData: UserCreate) => void;
+}
+
+// Define a type for the form fields
+interface UserFormFields {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  role: string;
+  department_id: number | null;
+  active: boolean;
+  status: string;
+  password?: string; // Add password as an optional field
 }
 
 export const UserFormDialog: React.FC<UserFormDialogProps> = ({
@@ -23,7 +37,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
   onSave,
 }) => {
   // Initialize form with user data or empty values
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<UserFormFields>({
     defaultValues: user ? {
       first_name: user.first_name || '',
       last_name: user.last_name || '',
@@ -42,6 +56,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
       department_id: null,
       active: true,
       status: 'active',
+      password: '', // Initialize empty password for new users
     }
   });
 
@@ -51,7 +66,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const status = watch('status');
 
   // Handle form submission
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: UserFormFields) => {
     onSave({
       ...data,
       active: !!data.active,
