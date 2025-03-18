@@ -27,18 +27,26 @@ export const fetchMaintenances = async () => {
 
 export const fetchAreas = async () => {
   try {
+    console.log("Fetching service areas for maintenance form...");
+    
     const { data, error } = await supabase
       .from("service_areas")
       .select("id, name")
       .eq("status", "active")
       .order("name", { ascending: true });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching service areas:", error);
+      throw error;
+    }
+    
+    console.log("Service areas fetched successfully:", data);
     
     return data || [];
   } catch (error) {
     console.error("Erro ao buscar áreas:", error);
-    throw error;
+    // Return empty array instead of throwing to avoid breaking the UI
+    return [];
   }
 };
 

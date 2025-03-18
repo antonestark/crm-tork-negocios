@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Define the schema
 const maintenanceFormSchema = z.object({
@@ -30,10 +31,23 @@ interface MaintenanceFormProps {
 
 export const MaintenanceForm = ({ onSubmit, areas, setOpen }: MaintenanceFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [areasLoading, setAreasLoading] = useState(true);
   
   useEffect(() => {
     // Log areas to help debug
     console.log("Areas available in maintenance form:", areas);
+    
+    // If areas data is loaded, set loading to false
+    if (areas && areas.length > 0) {
+      setAreasLoading(false);
+    } else {
+      // If areas array is empty but exists, set a timeout to prevent infinite loading state
+      const timer = setTimeout(() => {
+        setAreasLoading(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
   }, [areas]);
   
   const form = useForm<z.infer<typeof maintenanceFormSchema>>({
@@ -148,22 +162,28 @@ export const MaintenanceForm = ({ onSubmit, areas, setOpen }: MaintenanceFormPro
           render={({ field }) => (
             <FormItem>
               <FormLabel>Área</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a área" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {areas && areas.length > 0 ? (
-                    areas.map(area => (
-                      <SelectItem key={area.id} value={area.id}>{area.name}</SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="loading" disabled>Carregando áreas...</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              {areasLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : (
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a área" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {areas && areas.length > 0 ? (
+                      areas.map(area => (
+                        <SelectItem key={area.id} value={area.id}>{area.name}</SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-areas" disabled>Nenhuma área disponível</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
               <FormMessage />
             </FormItem>
           )}
