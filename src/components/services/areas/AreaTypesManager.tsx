@@ -42,4 +42,5 @@ export const AreaTypesManager = () => {
   );
 };
 
+// Change from "export type { AreaType } from './types';" to:
 export type { AreaType } from './types';
