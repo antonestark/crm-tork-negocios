@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +10,8 @@ type UserRole = 'user' | 'admin' | 'super_admin';
 
 // Define interface for user creation that includes email
 interface UserCreate extends Partial<User> {
-  email?: string;
+  email: string;  // Make email required for new users
+  password?: string; // Optional password for new users
 }
 
 export const useUsers = () => {
@@ -66,16 +68,39 @@ export const useUsers = () => {
       // Ensure role is one of the allowed values
       const role = (userData.role as UserRole) || 'user';
       
+      // Check if email exists
+      if (!userData.email) {
+        throw new Error('Email é obrigatório');
+      }
+      
       // Create properly typed user object for Supabase
       const userDataForDb = {
         name: `${userData.first_name} ${userData.last_name}`,
-        email: userData.email || '', // Now TypeScript knows email exists
-        password: 'temporary_password',
-        role: role,
+        email: userData.email,
         department_id: userData.department_id,
         phone: userData.phone || null,
+        role: role,
+        status: userData.status || 'active',
+        active: userData.active !== false
       };
       
+      // First, try to create auth user if password is provided
+      if (userData.password) {
+        const { error: authError } = await supabase.auth.signUp({
+          email: userData.email,
+          password: userData.password,
+          options: {
+            data: {
+              name: userDataForDb.name,
+              role: role
+            }
+          }
+        });
+        
+        if (authError) throw authError;
+      }
+      
+      // Then insert into users table
       const { data, error } = await supabase
         .from('users')
         .insert(userDataForDb)
@@ -85,11 +110,10 @@ export const useUsers = () => {
       
       const newUser = userAdapter(data || [])[0];
       setUsers(prev => [...prev, newUser]);
-      toast.success('Usuário adicionado com sucesso');
       return true;
     } catch (err) {
       console.error('Error adding user:', err);
-      toast.error('Falha ao adicionar usuário');
+      toast.error(`Falha ao adicionar usuário: ${err.message || 'Erro desconhecido'}`);
       return false;
     }
   };
@@ -106,8 +130,8 @@ export const useUsers = () => {
           department_id: userData.department_id,
           phone: userData.phone,
           role: role,
-          // Don't update email as it might be used for authentication
-          // Don't update password here for security reasons
+          status: userData.status,
+          active: userData.active
         })
         .eq('id', userData.id);
       
@@ -116,11 +140,10 @@ export const useUsers = () => {
       setUsers(prev => 
         prev.map(u => u.id === userData.id ? { ...u, ...userData } : u)
       );
-      toast.success('Usuário atualizado com sucesso');
       return true;
     } catch (err) {
       console.error('Error updating user:', err);
-      toast.error('Falha ao atualizar usuário');
+      toast.error(`Falha ao atualizar usuário: ${err.message || 'Erro desconhecido'}`);
       return false;
     }
   };
@@ -135,11 +158,10 @@ export const useUsers = () => {
       if (error) throw error;
       
       setUsers(prev => prev.filter(u => u.id !== id));
-      toast.success('Usuário excluído com sucesso');
       return true;
     } catch (err) {
       console.error('Error deleting user:', err);
-      toast.error('Falha ao excluir usuário');
+      toast.error(`Falha ao excluir usuário: ${err.message || 'Erro desconhecido'}`);
       return false;
     }
   };

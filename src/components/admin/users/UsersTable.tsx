@@ -1,9 +1,14 @@
-// Since this file is not editable but includes errors, we need to create a helper function
-// to ensure it can work correctly with Department objects that might be missing _memberCount.
 
-import React, { useState, useEffect } from 'react';
-import { User, Department } from '@/types/admin';
+import React, { useState } from 'react';
+import { User } from '@/types/admin';
 import { ensureDepartmentFormat } from './UsersTable.helper';
+import { useUsers } from '@/hooks/use-users';
+import { DataTable } from '@/components/admin/data-table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, Edit, Trash2, UserPlus } from 'lucide-react';
+import { UserFormDialog } from './UserFormDialog';
+import { toast } from 'sonner';
 
 interface UsersTableProps {
   filters: {
@@ -13,101 +18,159 @@ interface UsersTableProps {
   };
 }
 
-// Make sure to export the component
 export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
-  // Mock data for users (replace with actual data fetching)
-  const mockUsers: User[] = [
+  const { users, loading, addUser, updateUser, deleteUser } = useUsers();
+  const [openUserFormDialog, setOpenUserFormDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  // Apply filters
+  const filteredUsers = users.filter(user => {
+    // Filter by status
+    if (filters.status !== 'all' && user.status !== filters.status) {
+      return false;
+    }
+    
+    // Filter by department
+    if (filters.department !== 'all' && 
+        (!user.department_id || String(user.department_id) !== filters.department)) {
+      return false;
+    }
+    
+    // Filter by search
+    if (filters.search && !`${user.first_name} ${user.last_name}`.toLowerCase().includes(filters.search.toLowerCase())) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  const handleOpenNewUserDialog = () => {
+    setSelectedUser(null);
+    setOpenUserFormDialog(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setOpenUserFormDialog(true);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
+      const success = await deleteUser(userId);
+      if (success) {
+        toast.success('Usuário excluído com sucesso');
+      }
+    }
+  };
+
+  const handleSaveUser = async (userData: Partial<User>) => {
+    if (selectedUser) {
+      // Update existing user
+      const success = await updateUser({
+        ...selectedUser,
+        ...userData,
+      });
+      if (success) {
+        toast.success('Usuário atualizado com sucesso');
+      }
+    } else {
+      // Add new user
+      const success = await addUser(userData);
+      if (success) {
+        toast.success('Usuário adicionado com sucesso');
+      }
+    }
+  };
+
+  const columns = [
     {
-      id: '1',
-      first_name: 'John',
-      last_name: 'Doe',
-      profile_image_url: null,
-      role: 'admin',
-      department_id: 1,
-      phone: '123-456-7890',
-      active: true,
-      status: 'active',
-      last_login: '2024-03-15T12:00:00Z',
-      settings: {},
-      metadata: {},
-      created_at: '2024-03-01T10:00:00Z',
-      updated_at: '2024-03-15T12:00:00Z',
-      department: {
-        id: '1',
-        name: 'IT',
-        description: 'Information Technology',
-        path: '/it',
-        level: 1,
-        parent_id: null,
-        manager_id: null,
-        settings: {},
-        metadata: {},
-        created_at: '2024-03-01T10:00:00Z',
-        updated_at: '2024-03-15T12:00:00Z',
-        _memberCount: 10,
-        manager: null,
-      },
+      key: 'name',
+      title: 'Nome',
+      render: (user: User) => (
+        <div className="flex flex-col">
+          <span className="font-medium">{`${user.first_name} ${user.last_name}`}</span>
+          <span className="text-xs text-muted-foreground">{user.email}</span>
+        </div>
+      ),
     },
     {
-      id: '2',
-      first_name: 'Jane',
-      last_name: 'Smith',
-      profile_image_url: null,
-      role: 'user',
-      department_id: 2,
-      phone: '987-654-3210',
-      active: false,
-      status: 'inactive',
-      last_login: '2024-03-10T14:00:00Z',
-      settings: {},
-      metadata: {},
-      created_at: '2024-02-15T08:00:00Z',
-      updated_at: '2024-03-10T14:00:00Z',
-      department: {
-        id: '2',
-        name: 'Marketing',
-        description: 'Marketing Department',
-        path: '/marketing',
-        level: 1,
-        parent_id: null,
-        manager_id: null,
-        settings: {},
-        metadata: {},
-        created_at: '2024-02-15T08:00:00Z',
-        updated_at: '2024-03-10T14:00:00Z',
-        _memberCount: 5,
-        manager: null,
-      },
+      key: 'role',
+      title: 'Função',
+      render: (user: User) => (
+        <Badge variant={user.role === 'admin' ? 'default' : 'outline'}>
+          {user.role === 'admin' ? 'Administrador' : user.role === 'super_admin' ? 'Super Admin' : 'Usuário'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'department',
+      title: 'Departamento',
+      render: (user: User) => (
+        <span>
+          {user.department ? ensureDepartmentFormat(user.department).name : 'Sem departamento'}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      title: 'Status',
+      render: (user: User) => (
+        <Badge variant={user.active ? 'success' : 'destructive'}>
+          {user.active ? 'Ativo' : 'Inativo'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'actions',
+      title: 'Ações',
+      render: (user: User) => (
+        <div className="flex space-x-2">
+          <Button
+            onClick={() => handleEditUser(user)}
+            variant="outline"
+            size="sm"
+          >
+            <Edit className="h-4 w-4 mr-1" />
+            Editar
+          </Button>
+          <Button
+            onClick={() => handleDeleteUser(user.id)}
+            variant="destructive"
+            size="sm"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Excluir
+          </Button>
+        </div>
+      ),
     },
   ];
 
-  const [users, setUsers] = useState<User[]>(mockUsers);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    // Simulate fetching users from an API
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  }, [filters]);
-
-  if (loading) {
-    return <div>Loading users...</div>;
-  }
-
   return (
-    <div>
-      <h2>Users Table</h2>
-      {users.map((user) => (
-        <div key={user.id}>
-          {user.first_name} {user.last_name} - {user.role} -{' '}
-          {user.department ? ensureDepartmentFormat(user.department).name : 'No Department'}
-        </div>
-      ))}
+    <div className="space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">Usuários</h2>
+        <Button onClick={handleOpenNewUserDialog}>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Novo Usuário
+        </Button>
+      </div>
+
+      <DataTable
+        data={filteredUsers}
+        columns={columns}
+        loading={loading}
+        noDataMessage="Nenhum usuário encontrado"
+      />
+
+      <UserFormDialog
+        open={openUserFormDialog}
+        onOpenChange={setOpenUserFormDialog}
+        user={selectedUser}
+        onSave={handleSaveUser}
+      />
     </div>
   );
 };
 
-// This is the default export to maintain compatibility
 export default UsersTable;

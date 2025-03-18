@@ -31,9 +31,12 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 
+// Create a schema that includes email and optional password field for new users
 const userFormSchema = z.object({
   first_name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
   last_name: z.string().min(2, { message: 'Sobrenome deve ter pelo menos 2 caracteres' }),
+  email: z.string().email({ message: 'Email inválido' }),
+  password: z.string().min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }).optional(),
   role: z.string().min(1, { message: 'Função é obrigatória' }),
   department_id: z.string().nullable(),
   phone: z.string().nullable(),
@@ -51,7 +54,7 @@ interface UserFormDialogProps {
   onSave: (data: Partial<User>) => void;
 }
 
-export default function UserFormDialog({
+export function UserFormDialog({
   open,
   onOpenChange,
   user,
@@ -64,6 +67,8 @@ export default function UserFormDialog({
     defaultValues: {
       first_name: '',
       last_name: '',
+      email: '',
+      password: '',
       role: 'user',
       department_id: null,
       phone: null,
@@ -78,6 +83,7 @@ export default function UserFormDialog({
       form.reset({
         first_name: user.first_name,
         last_name: user.last_name,
+        email: user.email || '',
         role: user.role,
         department_id: user.department_id ? String(user.department_id) : null,
         phone: user.phone,
@@ -89,6 +95,8 @@ export default function UserFormDialog({
       form.reset({
         first_name: '',
         last_name: '',
+        email: '',
+        password: '',
         role: 'user',
         department_id: null,
         phone: null,
@@ -152,6 +160,45 @@ export default function UserFormDialog({
               />
             </div>
             
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="email" 
+                      placeholder="exemplo@email.com" 
+                      {...field} 
+                      disabled={isEditMode} // Email cannot be changed for existing users
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {!isEditMode && (
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Senha</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Senha para novo usuário" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -170,7 +217,7 @@ export default function UserFormDialog({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="manager">Gerente</SelectItem>
+                        <SelectItem value="super_admin">Super Admin</SelectItem>
                         <SelectItem value="user">Usuário</SelectItem>
                       </SelectContent>
                     </Select>
@@ -277,3 +324,5 @@ export default function UserFormDialog({
     </Dialog>
   );
 }
+
+export default UserFormDialog;

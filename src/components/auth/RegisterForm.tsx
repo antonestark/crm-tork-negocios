@@ -63,6 +63,11 @@ export function RegisterForm() {
 
       console.log('Registro: Tentando criar conta para:', data.email);
 
+      // Extract first and last name from the full name
+      const nameParts = data.name.split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(' ');
+
       // Verifica se o e-mail já existe
       const { data: emailCheck, error: emailCheckError } = await supabase
         .from('users')
@@ -103,6 +108,22 @@ export function RegisterForm() {
         } else {
           throw signUpError;
         }
+      }
+
+      // Adiciona o usuário na tabela de users
+      const { error: userInsertError } = await supabase
+        .from('users')
+        .insert({
+          name: data.name,
+          email: data.email,
+          role: 'user', // Default role
+          active: true,
+          status: 'active'
+        });
+
+      if (userInsertError) {
+        console.error('Erro ao inserir usuário na tabela users:', userInsertError);
+        // Continue anyway since auth user was created
       }
 
       console.log('Registro: Conta criada com sucesso para:', data.email);
