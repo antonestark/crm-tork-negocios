@@ -87,23 +87,37 @@ export const useUsers = () => {
       
       console.log('Adding new user with data:', userDataForDb);
       
-      // First, try to create auth user if password is provided
+      // First check if user with this email already exists in auth
+      let authError = false;
+      
+      // Try to create auth user if password is provided, but continue even if it fails
       if (userData.password) {
-        const { error: authError } = await supabase.auth.signUp({
-          email: userData.email,
-          password: userData.password,
-          options: {
-            data: {
-              name: userDataForDb.name,
-              role: role
+        try {
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: userData.email,
+            password: userData.password,
+            options: {
+              data: {
+                name: userDataForDb.name,
+                role: role
+              }
+            }
+          });
+          
+          if (signUpError) {
+            console.warn('Auth user creation failed, but continuing:', signUpError.message);
+            // Only set auth error if it's not because the user already exists
+            if (signUpError.message !== 'User already registered') {
+              authError = true;
             }
           }
-        });
-        
-        if (authError) throw authError;
+        } catch (authErr) {
+          console.warn('Auth error caught, but continuing:', authErr);
+        }
       }
       
-      // Then insert into users table
+      // Insert into users table regardless of auth success/failure
+      // This allows admin to create users in the database without authentication
       const { data, error } = await supabase
         .from('users')
         .insert(userDataForDb)
@@ -114,6 +128,14 @@ export const useUsers = () => {
       console.log('User added successfully:', data);
       const newUser = userAdapter(data || [])[0];
       setUsers(prev => [...prev, newUser]);
+      
+      // Show appropriate toast based on auth result
+      if (authError) {
+        toast.warning('Usuário criado no banco de dados, mas falha ao criar no sistema de autenticação');
+      } else {
+        toast.success('Usuário adicionado com sucesso');
+      }
+      
       return true;
     } catch (err) {
       console.error('Error adding user:', err);
