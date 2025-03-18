@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
@@ -97,13 +96,28 @@ export const useUsers = () => {
       
       console.log('Adding new user with data:', userDataForDb);
       
-      // First check if user with this email already exists in auth
-      let authError = false;
+      // First check if user with this email already exists in users table
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('id, email')
+        .eq('email', userData.email)
+        .maybeSingle();
+        
+      if (checkError) {
+        console.error('Error checking for existing user:', checkError);
+      }
+      
+      if (existingUser) {
+        throw new Error(`Usuário com email ${userData.email} já existe`);
+      }
       
       // Try to create auth user if password is provided, but continue even if it fails
+      let authError = false;
+      let authUserId = null;
+      
       if (userData.password) {
         try {
-          const { error: signUpError } = await supabase.auth.signUp({
+          const { data: authData, error: signUpError } = await supabase.auth.signUp({
             email: userData.email,
             password: userData.password,
             options: {
@@ -115,26 +129,33 @@ export const useUsers = () => {
           });
           
           if (signUpError) {
-            console.warn('Auth user creation failed, but continuing:', signUpError.message);
+            console.warn('Auth user creation failed:', signUpError.message);
             // Only set auth error if it's not because the user already exists
             if (signUpError.message !== 'User already registered') {
               authError = true;
             }
+          } else if (authData && authData.user) {
+            console.log('Auth user created successfully:', authData.user.id);
+            authUserId = authData.user.id;
           }
         } catch (authErr) {
-          console.warn('Auth error caught, but continuing:', authErr);
+          console.warn('Auth error caught:', authErr);
+          authError = true;
         }
       }
       
-      // Insert into users table regardless of auth success/failure
+      // Insert into users table
       const { data, error } = await supabase
         .from('users')
         .insert(userDataForDb)
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting user to database:', error);
+        throw error;
+      }
       
-      console.log('User added successfully:', data);
+      console.log('User added successfully to database:', data);
       const newUser = userAdapter(data || [])[0];
       setUsers(prev => [...prev, newUser]);
       

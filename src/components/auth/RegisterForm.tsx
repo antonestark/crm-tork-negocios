@@ -68,7 +68,7 @@ export function RegisterForm() {
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(' ');
 
-      // Verifica se o e-mail já existe
+      // Verifica se o e-mail já existe na tabela users
       const { data: emailCheck, error: emailCheckError } = await supabase
         .from('users')
         .select('email')
@@ -84,7 +84,7 @@ export function RegisterForm() {
         throw new Error('user-already-exists');
       }
 
-      // Tentativa de registro
+      // Tentativa de registro no Auth
       const { error: signUpError, data: userData } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -96,7 +96,7 @@ export function RegisterForm() {
       });
 
       if (signUpError) {
-        console.error('Erro de registro:', signUpError);
+        console.error('Erro de registro no Auth:', signUpError);
         
         // Identificar tipo específico de erro
         if (signUpError.message?.includes('email')) {
@@ -110,15 +110,10 @@ export function RegisterForm() {
         }
       }
 
-      // Adiciona o usuário na tabela de users com logs detalhados
-      console.log('Tentando inserir usuário na tabela users:', {
-        name: data.name,
-        email: data.email,
-        role: 'user',
-        active: true,
-        status: 'active'
-      });
+      // Se chegou aqui, o registro Auth foi bem-sucedido
+      console.log('Usuário criado no Auth com sucesso:', userData);
 
+      // Adiciona o usuário na tabela de users
       const { error: userInsertError } = await supabase
         .from('users')
         .insert({
@@ -131,7 +126,21 @@ export function RegisterForm() {
 
       if (userInsertError) {
         console.error('Erro ao inserir usuário na tabela users:', userInsertError);
-        // Continue anyway since auth user was created
+        
+        // Tentar identificar o problema no banco de dados
+        if (userInsertError.message?.includes('duplicate')) {
+          toast.warning('Este e-mail já existe na tabela de usuários, mas o registro na autenticação foi bem-sucedido.');
+        } else {
+          toast.warning('Conta criada, mas houve um problema ao salvar dados adicionais. Alguns recursos podem estar limitados.');
+        }
+        
+        // Log detalhado do erro para debugging
+        console.error('Detalhes do erro de inserção:', {
+          message: userInsertError.message,
+          code: userInsertError.code,
+          details: userInsertError.details,
+          hint: userInsertError.hint
+        });
       } else {
         console.log('Usuário inserido com sucesso na tabela users');
       }
