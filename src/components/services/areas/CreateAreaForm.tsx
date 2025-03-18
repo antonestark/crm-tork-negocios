@@ -54,14 +54,14 @@ export const CreateAreaForm = ({ onSubmit, onCancel, isSubmitting }: CreateAreaF
       try {
         setLoadingTypes(true);
         const { data, error } = await supabase
-          .from('area_types')
+          .from('area_types' as any)
           .select('id, name, code')
           .order('name');
           
         if (error) throw error;
         
         // Add type assertion to ensure TypeScript knows the data structure
-        setAreaTypes(data as AreaType[] || []);
+        setAreaTypes((data || []) as AreaType[]);
         
         // If we have area types, set the first one as default
         if (data && data.length > 0) {

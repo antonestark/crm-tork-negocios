@@ -39,6 +39,30 @@ export type Database = {
         }
         Relationships: []
       }
+      area_types: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           active: boolean | null
