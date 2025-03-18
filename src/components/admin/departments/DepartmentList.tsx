@@ -57,12 +57,21 @@ export function DepartmentList({
         ) : error ? (
           <div className="text-center py-4 px-2">
             <p className="text-destructive font-medium">Erro ao carregar departamentos</p>
-            <p className="text-sm text-muted-foreground mt-1">Tente novamente mais tarde</p>
+            <p className="text-sm text-muted-foreground mt-1">{error.message || 'Tente novamente mais tarde'}</p>
           </div>
         ) : departments.length === 0 ? (
           <div className="text-center py-8 px-2">
             <Building className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-            <p className="text-muted-foreground mb-2">Nenhum departamento encontrado</p>
+            {searchQuery ? (
+              <>
+                <p className="text-muted-foreground mb-2">Nenhum departamento encontrado para "{searchQuery}"</p>
+                <Button onClick={() => onSearchChange('')} variant="outline" size="sm" className="mb-2">
+                  Limpar pesquisa
+                </Button>
+              </>
+            ) : (
+              <p className="text-muted-foreground mb-2">Nenhum departamento cadastrado</p>
+            )}
             <Button onClick={onNewDepartment} variant="outline" size="sm">
               <Plus className="h-4 w-4 mr-1" /> Criar Departamento
             </Button>

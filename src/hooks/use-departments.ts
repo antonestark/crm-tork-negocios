@@ -11,6 +11,7 @@ export const useDepartments = () => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    console.log('useDepartments: Initializing hook');
     fetchDepartments();
 
     // Set up a realtime subscription
@@ -27,25 +28,31 @@ export const useDepartments = () => {
       .subscribe();
       
     return () => {
+      console.log('useDepartments: Cleaning up subscription');
       subscription.unsubscribe();
     };
   }, []);
 
   const fetchDepartments = async () => {
     try {
-      console.log('Fetching departments...');
+      console.log('Fetching departments from Supabase...');
       setLoading(true);
+      setError(null);
       
       const { data, error } = await supabase
         .from('departments')
         .select(`
           *,
           manager:users(id, name)
-        `);
+        `)
+        .order('name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching departments:', error);
+        throw new Error(`Failed to fetch departments: ${error.message}`);
+      }
       
-      console.log('Departments data received:', data);
+      console.log('Departments raw data received:', data?.length || 0, 'records');
       const adaptedData = departmentAdapter(data || []);
       
       // Get member counts for each department
@@ -53,33 +60,35 @@ export const useDepartments = () => {
         .from('users')
         .select('department_id');
         
-      if (!userError) {
-        // Count members per department
-        const counts: Record<string, number> = {};
-        userData?.forEach(user => {
-          if (user.department_id) {
-            const deptId = user.department_id.toString();
-            counts[deptId] = (counts[deptId] || 0) + 1;
-          }
-        });
-        
-        // Add member counts to departments
-        const departmentsWithCount = adaptedData.map(dept => ({
-          ...dept,
-          _memberCount: counts[dept.id] || 0
-        }));
-        
-        setDepartments(departmentsWithCount);
-        console.log('Departments with counts:', departmentsWithCount);
-      } else {
-        // If we can't get member counts, just use the adapted data
+      if (userError) {
         console.warn('Could not fetch member counts:', userError);
         setDepartments(adaptedData);
+        return;
       }
+      
+      // Count members per department
+      const counts: Record<string, number> = {};
+      userData?.forEach(user => {
+        if (user.department_id) {
+          const deptId = user.department_id.toString();
+          counts[deptId] = (counts[deptId] || 0) + 1;
+        }
+      });
+      
+      // Add member counts to departments
+      const departmentsWithCount = adaptedData.map(dept => ({
+        ...dept,
+        _memberCount: counts[dept.id] || 0
+      }));
+      
+      setDepartments(departmentsWithCount);
+      console.log('Departments processed:', departmentsWithCount.length, 'departments with counts');
     } catch (err) {
-      console.error('Error fetching departments:', err);
+      console.error('Error in fetchDepartments:', err);
       setError(err as Error);
-      toast.error('Falha ao carregar departamentos');
+      toast.error('Falha ao carregar departamentos', {
+        description: (err as Error).message
+      });
     } finally {
       setLoading(false);
     }
@@ -87,6 +96,7 @@ export const useDepartments = () => {
 
   const addDepartment = async (department: Partial<Department>) => {
     try {
+      console.log('Adding new department:', department.name);
       const { data, error } = await supabase
         .from('departments')
         .insert([{
@@ -96,22 +106,29 @@ export const useDepartments = () => {
         }])
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding department:', error);
+        throw new Error(`Failed to add department: ${error.message}`);
+      }
       
       const newDepartment = departmentAdapter(data || [])[0];
       newDepartment._memberCount = 0;
       
       setDepartments(prev => [...prev, newDepartment]);
+      console.log('Department added successfully:', newDepartment.name);
       return true;
     } catch (err) {
-      console.error('Error adding department:', err);
-      toast.error('Falha ao adicionar departamento');
+      console.error('Error in addDepartment:', err);
+      toast.error('Falha ao adicionar departamento', {
+        description: (err as Error).message
+      });
       return false;
     }
   };
 
   const updateDepartment = async (department: Department) => {
     try {
+      console.log('Updating department:', department.id, department.name);
       // Convert department.id to number if it's a string
       const departmentId = typeof department.id === 'string' ? parseInt(department.id, 10) : department.id;
       
@@ -124,22 +141,29 @@ export const useDepartments = () => {
         })
         .eq('id', departmentId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating department:', error);
+        throw new Error(`Failed to update department: ${error.message}`);
+      }
       
       setDepartments(prev => 
         prev.map(d => d.id === department.id ? { ...d, ...department } : d)
       );
       toast.success('Departamento atualizado com sucesso');
+      console.log('Department updated successfully:', department.name);
       return true;
     } catch (err) {
-      console.error('Error updating department:', err);
-      toast.error('Falha ao atualizar departamento');
+      console.error('Error in updateDepartment:', err);
+      toast.error('Falha ao atualizar departamento', {
+        description: (err as Error).message
+      });
       return false;
     }
   };
 
   const deleteDepartment = async (id: string) => {
     try {
+      console.log('Deleting department:', id);
       // Convert id to number if it's a string
       const departmentId = typeof id === 'string' ? parseInt(id, 10) : id;
       
@@ -148,14 +172,20 @@ export const useDepartments = () => {
         .delete()
         .eq('id', departmentId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting department:', error);
+        throw new Error(`Failed to delete department: ${error.message}`);
+      }
       
       setDepartments(prev => prev.filter(d => d.id !== id));
       toast.success('Departamento excluído com sucesso');
+      console.log('Department deleted successfully');
       return true;
     } catch (err) {
-      console.error('Error deleting department:', err);
-      toast.error('Falha ao excluir departamento');
+      console.error('Error in deleteDepartment:', err);
+      toast.error('Falha ao excluir departamento', {
+        description: (err as Error).message
+      });
       return false;
     }
   };
