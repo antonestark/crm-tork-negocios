@@ -42,16 +42,17 @@ export const useUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      console.log('Fetching users from database...');
       
+      // Modified query to not try to join with departments directly
+      // since the error in console shows there's no foreign key relationship
       const { data, error } = await supabase
         .from('users')
-        .select(`
-          *,
-          department:departments(*)
-        `);
+        .select('*');
       
       if (error) throw error;
       
+      console.log('Users data fetched successfully:', data);
       const adaptedData = userAdapter(data || []);
       setUsers(adaptedData);
     } catch (err) {
@@ -73,16 +74,18 @@ export const useUsers = () => {
         throw new Error('Email é obrigatório');
       }
       
-      // Create properly typed user object for Supabase
+      // Create properly typed user object for Supabase without active field
+      // which doesn't exist in the actual database schema
       const userDataForDb = {
         name: `${userData.first_name} ${userData.last_name}`,
         email: userData.email,
         department_id: userData.department_id,
         phone: userData.phone || null,
         role: role,
-        status: userData.status || 'active',
-        active: userData.active !== false
+        status: userData.status || 'active'
       };
+      
+      console.log('Adding new user with data:', userDataForDb);
       
       // First, try to create auth user if password is provided
       if (userData.password) {
@@ -108,6 +111,7 @@ export const useUsers = () => {
       
       if (error) throw error;
       
+      console.log('User added successfully:', data);
       const newUser = userAdapter(data || [])[0];
       setUsers(prev => [...prev, newUser]);
       return true;
@@ -123,20 +127,25 @@ export const useUsers = () => {
       // Ensure role is one of the allowed values
       const role = (userData.role as UserRole);
       
+      // Remove active field which doesn't exist in database
+      const updateData = {
+        name: `${userData.first_name} ${userData.last_name}`,
+        department_id: userData.department_id,
+        phone: userData.phone,
+        role: role,
+        status: userData.status
+      };
+      
+      console.log('Updating user with data:', updateData);
+      
       const { error } = await supabase
         .from('users')
-        .update({
-          name: `${userData.first_name} ${userData.last_name}`,
-          department_id: userData.department_id,
-          phone: userData.phone,
-          role: role,
-          status: userData.status,
-          active: userData.active
-        })
+        .update(updateData)
         .eq('id', userData.id);
       
       if (error) throw error;
       
+      console.log('User updated successfully');
       setUsers(prev => 
         prev.map(u => u.id === userData.id ? { ...u, ...userData } : u)
       );
@@ -150,6 +159,8 @@ export const useUsers = () => {
 
   const deleteUser = async (id: string) => {
     try {
+      console.log('Deleting user with ID:', id);
+      
       const { error } = await supabase
         .from('users')
         .delete()
@@ -157,6 +168,7 @@ export const useUsers = () => {
       
       if (error) throw error;
       
+      console.log('User deleted successfully');
       setUsers(prev => prev.filter(u => u.id !== id));
       return true;
     } catch (err) {
