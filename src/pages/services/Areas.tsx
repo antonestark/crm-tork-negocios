@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { ServiceAreas } from "@/components/services/ServiceAreas";
@@ -62,7 +61,7 @@ const AreasPage = () => {
     try {
       // Check if area_types table exists
       const { error: checkError } = await supabase
-        .from('area_types' as any)
+        .from('area_types')
         .select('id', { count: 'exact', head: true });
       
       // If we get an error like "relation area_types does not exist", create the table
@@ -79,7 +78,7 @@ const AreasPage = () => {
       
       // Check if we need to seed default values
       const { data: existingTypes, error: countError } = await supabase
-        .from('area_types' as any)
+        .from('area_types')
         .select('id, name, code');
         
       if (countError) throw countError;
@@ -88,7 +87,7 @@ const AreasPage = () => {
       if (!existingTypes || existingTypes.length === 0) {
         console.log('Seeding default area types...');
         const { error: insertError } = await supabase
-          .from('area_types' as any)
+          .from('area_types')
           .insert(DEFAULT_AREA_TYPES);
           
         if (insertError) throw insertError;

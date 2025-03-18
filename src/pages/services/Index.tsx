@@ -22,7 +22,7 @@ interface ServiceStatisticsResult {
 }
 
 const ServicesPage = () => {
-  const { areas, loading: areasLoading, error: areasError } = useServiceAreasData();
+  const { areas, loading: areasLoading, error: areasError, refresh: refreshAreas } = useServiceAreasData();
   const { tasks, loading: tasksLoading, error: tasksError } = useServiceTasks();
   const { reports, loading: reportsLoading, error: reportsError, metrics } = useServiceReports();
   
@@ -90,6 +90,7 @@ const ServicesPage = () => {
               areas={areas} 
               loading={areasLoading} 
               error={areasError} 
+              onAreaUpdated={refreshAreas} 
             />
           </TabsContent>
           <TabsContent value="recent" className="space-y-4">

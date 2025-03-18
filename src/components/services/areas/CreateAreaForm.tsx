@@ -72,18 +72,19 @@ export const CreateAreaForm = ({
         try {
           setLoadingTypes(true);
           const { data, error } = await supabase
-            .from('area_types' as any)
+            .from('area_types')
             .select('id, name, code')
             .order('name');
             
           if (error) throw error;
           
-          // Add type assertion to ensure TypeScript knows the data structure
-          setAreaTypes(data ? (data as unknown as AreaType[]) : []);
+          // Use a proper type assertion
+          const typedData = data as unknown as AreaType[];
+          setAreaTypes(typedData || []);
           
           // If we have area types, set the first one as default
           if (data && data.length > 0 && !initialValues) {
-            form.setValue('type', (data[0] as any).code);
+            form.setValue('type', (typedData[0] as AreaType).code);
           }
         } catch (error) {
           console.error('Error fetching area types:', error);

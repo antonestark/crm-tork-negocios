@@ -134,14 +134,14 @@ export interface UserPermissionGroups {
   ];
 }
 
-// Add definitions for the area_types table
+// Update AreaTypes to match the structure in Supabase
 export interface AreaTypes {
   Row: {
     id: string;
     name: string;
     code: string;
-    created_at?: string | null;
-    updated_at?: string | null;
+    created_at: string | null;
+    updated_at: string | null;
   };
   Insert: {
     id?: string;

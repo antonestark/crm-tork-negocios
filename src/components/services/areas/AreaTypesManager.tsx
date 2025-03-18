@@ -27,16 +27,18 @@ export const AreaTypesManager = () => {
   const fetchAreaTypes = async () => {
     try {
       setLoading(true);
-      // Use a type assertion - this is why we're getting the error
+      
+      // Use a proper type-safe approach to fetch area_types
       const { data, error } = await supabase
-        .from('area_types' as any)
+        .from('area_types')
         .select('id, name, code')
         .order('name');
 
       if (error) throw error;
       
-      // Add type assertion to ensure TypeScript knows the data structure
-      setAreaTypes((data || []) as AreaType[]);
+      // Use a proper type assertion
+      const typedData = data as unknown as AreaType[];
+      setAreaTypes(typedData || []);
     } catch (error) {
       console.error('Error fetching area types:', error);
       toast.error('Erro ao carregar tipos de áreas');
@@ -55,7 +57,7 @@ export const AreaTypesManager = () => {
       setIsSubmitting(true);
       
       const { data, error } = await supabase
-        .from('area_types' as any)
+        .from('area_types')
         .insert([{ name: newType.name, code: newType.code }])
         .select();
 
@@ -77,7 +79,7 @@ export const AreaTypesManager = () => {
       setIsSubmitting(true);
       
       const { error } = await supabase
-        .from('area_types' as any)
+        .from('area_types')
         .update(data)
         .eq('id', id);
 
@@ -112,7 +114,7 @@ export const AreaTypesManager = () => {
       }
       
       const { error } = await supabase
-        .from('area_types' as any)
+        .from('area_types')
         .delete()
         .eq('id', id);
 
