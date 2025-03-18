@@ -6,6 +6,8 @@ import { EnhancedDepartmentsView } from '@/components/admin/departments/Enhanced
 import { PermissionGuard } from '@/components/admin/permissions/PermissionGuard';
 
 export default function DepartmentsPage() {
+  console.log('Rendering Departments Page'); // Debugging log
+  
   return (
     <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
       <div className="flex items-center justify-between space-y-2">

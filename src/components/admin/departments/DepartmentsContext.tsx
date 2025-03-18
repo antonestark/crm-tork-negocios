@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { Department } from '@/types/admin';
 import { useDepartments } from '@/hooks/use-departments';
+import { toast } from 'sonner';
 
 export interface DepartmentsContextType {
   departments: Department[];
@@ -137,6 +138,7 @@ export const DepartmentsProvider: React.FC<{ children: React.ReactNode }> = ({ c
           toast.success("Departamento atualizado", {
             description: "As alterações foram salvas com sucesso."
           });
+          setIsFormOpen(false);
         }
       } else {
         // Create new department
@@ -146,6 +148,7 @@ export const DepartmentsProvider: React.FC<{ children: React.ReactNode }> = ({ c
           toast.success("Departamento criado", {
             description: "O novo departamento foi criado com sucesso."
           });
+          setIsFormOpen(false);
         }
       }
       
@@ -208,6 +211,3 @@ export const useDepartmentsContext = () => {
   }
   return context;
 };
-
-// Add missing toast import
-import { toast } from 'sonner';

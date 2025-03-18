@@ -10,6 +10,8 @@ import { DepartmentPermissionsDialog } from './DepartmentPermissionsDialog';
 import { useDepartmentsContext } from './DepartmentsContext';
 
 export function DepartmentsContainer() {
+  console.log('Rendering DepartmentsContainer'); // Debugging log
+  
   const {
     filteredDepartments,
     loading,
@@ -36,6 +38,9 @@ export function DepartmentsContainer() {
     confirmDelete,
     handleSaveDepartment
   } = useDepartmentsContext();
+
+  // Log departments for debugging
+  console.log('Departments data:', filteredDepartments, 'Loading:', loading, 'Error:', error);
 
   return (
     <div className="flex h-[calc(100vh-220px)]">

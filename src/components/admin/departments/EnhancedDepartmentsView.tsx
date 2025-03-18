@@ -10,6 +10,7 @@ export function compareDepartmentIds(userId: number | null, departmentId: string
 }
 
 export function EnhancedDepartmentsView() {
+  console.log('Rendering EnhancedDepartmentsView'); // Debugging log
   return (
     <DepartmentsProvider>
       <DepartmentsContainer />
