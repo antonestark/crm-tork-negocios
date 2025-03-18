@@ -22,6 +22,24 @@ export async function fetchServices() {
   }
 }
 
+export async function fetchServiceAreas() {
+  try {
+    const { data, error } = await supabase
+      .from("service_areas")
+      .select("*")
+      .order("name", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching service areas:", error);
+    throw error;
+  }
+}
+
 export async function createService(serviceData: any) {
   try {
     const { data, error } = await supabase
