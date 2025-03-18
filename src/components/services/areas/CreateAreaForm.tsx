@@ -32,15 +32,21 @@ interface CreateAreaFormProps {
   onSubmit: (values: AreaSubmitData) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  initialValues?: AreaSubmitData;
 }
 
-export const CreateAreaForm = ({ onSubmit, onCancel, isSubmitting }: CreateAreaFormProps) => {
+export const CreateAreaForm = ({ 
+  onSubmit, 
+  onCancel, 
+  isSubmitting, 
+  initialValues 
+}: CreateAreaFormProps) => {
   const [areaTypes, setAreaTypes] = useState<AreaType[]>([]);
   const [loadingTypes, setLoadingTypes] = useState(true);
   
   const form = useForm<AreaFormValues>({
     resolver: zodResolver(areaFormSchema),
-    defaultValues: {
+    defaultValues: initialValues || {
       name: "",
       description: "",
       type: "",
@@ -48,34 +54,47 @@ export const CreateAreaForm = ({ onSubmit, onCancel, isSubmitting }: CreateAreaF
     }
   });
 
+  // Set form values if initialValues changes
+  useEffect(() => {
+    if (initialValues) {
+      form.reset(initialValues);
+    }
+  }, [initialValues, form]);
+
   // Fetch area types on component mount
   useEffect(() => {
-    const fetchAreaTypes = async () => {
-      try {
-        setLoadingTypes(true);
-        const { data, error } = await supabase
-          .from('area_types' as any)
-          .select('id, name, code')
-          .order('name');
+    // If areas data is loaded, set loading to false
+    if (areaTypes && areaTypes.length > 0) {
+      setLoadingTypes(false);
+    } else {
+      // Load area types
+      const fetchAreaTypes = async () => {
+        try {
+          setLoadingTypes(true);
+          const { data, error } = await supabase
+            .from('area_types' as any)
+            .select('id, name, code')
+            .order('name');
+            
+          if (error) throw error;
           
-        if (error) throw error;
-        
-        // Add type assertion to ensure TypeScript knows the data structure
-        setAreaTypes((data || []) as AreaType[]);
-        
-        // If we have area types, set the first one as default
-        if (data && data.length > 0) {
-          form.setValue('type', (data[0] as AreaType).code);
+          // Add type assertion to ensure TypeScript knows the data structure
+          setAreaTypes(data ? (data as unknown as AreaType[]) : []);
+          
+          // If we have area types, set the first one as default
+          if (data && data.length > 0 && !initialValues) {
+            form.setValue('type', (data[0] as any).code);
+          }
+        } catch (error) {
+          console.error('Error fetching area types:', error);
+        } finally {
+          setLoadingTypes(false);
         }
-      } catch (error) {
-        console.error('Error fetching area types:', error);
-      } finally {
-        setLoadingTypes(false);
-      }
-    };
-    
-    fetchAreaTypes();
-  }, [form]);
+      };
+      
+      fetchAreaTypes();
+    }
+  }, [form, initialValues, areaTypes.length]);
 
   const handleSubmit = async (values: AreaFormValues) => {
     await onSubmit({
@@ -176,10 +195,13 @@ export const CreateAreaForm = ({ onSubmit, onCancel, isSubmitting }: CreateAreaF
         
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
+            {initialValues ? 'Cancelar' : 'Cancelar'}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Criando...' : 'Criar Área'}
+            {isSubmitting 
+              ? (initialValues ? 'Atualizando...' : 'Criando...') 
+              : (initialValues ? 'Atualizar Área' : 'Criar Área')
+            }
           </Button>
         </div>
       </form>

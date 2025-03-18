@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { ServiceAreas } from "@/components/services/ServiceAreas";
@@ -203,7 +204,12 @@ const AreasPage = () => {
           />
         </div>
 
-        <ServiceAreas areas={areas} loading={loading || authLoading} error={error} />
+        <ServiceAreas 
+          areas={areas} 
+          loading={loading || authLoading} 
+          error={error} 
+          onAreaUpdated={refresh}
+        />
       </main>
     </div>
   );
