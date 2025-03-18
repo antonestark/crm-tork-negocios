@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServicesNav } from "@/components/services/ServicesNav";
@@ -45,6 +46,8 @@ const DemandsPage = () => {
     statusFilter, 
     addDemand 
   });
+  
+  console.log("Form open state in DemandsPage:", formOpen);
   
   const resetFilter = () => {
     setStatusFilter(null);

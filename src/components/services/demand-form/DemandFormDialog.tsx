@@ -4,7 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { DemandForm } from './DemandForm';
 import { DemandFormProps } from './types';
 
-export const DemandFormDialog: React.FC<DemandFormProps> = (props) => {
+export interface DemandFormDialogProps extends DemandFormProps {}
+
+export const DemandFormDialog: React.FC<DemandFormDialogProps> = (props) => {
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent className="sm:max-w-[625px]">
