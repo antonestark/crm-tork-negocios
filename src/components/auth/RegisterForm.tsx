@@ -110,7 +110,15 @@ export function RegisterForm() {
         }
       }
 
-      // Adiciona o usuário na tabela de users
+      // Adiciona o usuário na tabela de users com logs detalhados
+      console.log('Tentando inserir usuário na tabela users:', {
+        name: data.name,
+        email: data.email,
+        role: 'user',
+        active: true,
+        status: 'active'
+      });
+
       const { error: userInsertError } = await supabase
         .from('users')
         .insert({
@@ -124,13 +132,18 @@ export function RegisterForm() {
       if (userInsertError) {
         console.error('Erro ao inserir usuário na tabela users:', userInsertError);
         // Continue anyway since auth user was created
+      } else {
+        console.log('Usuário inserido com sucesso na tabela users');
       }
 
       console.log('Registro: Conta criada com sucesso para:', data.email);
       toast.success('Cadastro realizado com sucesso', {
-        description: 'Faça login para acessar sua conta'
+        description: 'Redirecionando para a página de administração de usuários'
       });
-      navigate('/login');
+      
+      // Alterando o redirecionamento para a página de usuários no painel admin
+      navigate('/admin/users');
+      
     } catch (err: any) {
       console.error('Erro no registro:', err);
       

@@ -69,25 +69,6 @@ export default function Login() {
         throw authError;
       }
 
-      // Verificar se o cliente existe, caso contrário criar um registro para ele
-      // Isso garante que a tabela clients tenha registros alinhados com auth.users
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('auth_id', authData.user?.id)
-        .maybeSingle();
-
-      if (!clientData && authData.user) {
-        // Se o cliente não existir, criar um novo com dados básicos
-        await supabase.from('clients').insert({
-          company_name: authData.user.user_metadata.name || authData.user.email,
-          email: authData.user.email,
-          auth_id: authData.user.id,
-          status: 'active'
-        });
-        console.log('Cliente criado na tabela clients para:', authData.user.email);
-      }
-
       // Caminho de sucesso
       console.log('Login realizado com sucesso para:', email);
       toast.success('Login realizado com sucesso');
