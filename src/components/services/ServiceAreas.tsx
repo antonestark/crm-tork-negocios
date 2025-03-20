@@ -96,11 +96,6 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
                     <span>{area.task_count} tarefas</span>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" asChild>
-                  <Link to={`/services/areas/${area.id}`}>
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
               </div>
             </CardContent>
           </Card>
