@@ -95,7 +95,7 @@ export const SubscriptionPlans = () => {
       if (plan.id === "free") {
         // For free plan, just update the user's subscription in the database
         const { error } = await supabase
-          .from("user_subscriptions")
+          .from('user_subscriptions')
           .upsert({
             user_id: userId,
             plan_id: plan.id,

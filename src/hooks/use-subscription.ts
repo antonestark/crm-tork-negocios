@@ -42,7 +42,7 @@ export const useSubscription = () => {
       // Fetch the subscription details
       const { data: subscriptionData, error: subscriptionError } = await supabase
         .from('user_subscriptions')
-        .select('*, plans:plan_id(name)')
+        .select('*, plans:plan_id(*)')
         .eq('user_id', userId)
         .single();
 

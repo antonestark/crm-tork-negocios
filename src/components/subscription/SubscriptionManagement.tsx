@@ -17,7 +17,9 @@ type UserSubscription = {
   current_period_end: string;
   max_scheduling: number;
   max_service_areas: number;
-  plan_name?: string;
+  plans?: {
+    name: string;
+  };
 };
 
 export function SubscriptionManagement() {
@@ -35,9 +37,9 @@ export function SubscriptionManagement() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("user_subscriptions")
-        .select("*, plans:plan_id(name)")
-        .eq("user_id", userId)
+        .from('user_subscriptions')
+        .select('*, plans:plan_id(*)')
+        .eq('user_id', userId)
         .single();
 
       if (error) {
@@ -46,10 +48,7 @@ export function SubscriptionManagement() {
       }
 
       if (data) {
-        setSubscription({
-          ...data,
-          plan_name: data.plans?.name
-        });
+        setSubscription(data);
       }
     } catch (err) {
       console.error("Unexpected error:", err);
@@ -67,9 +66,9 @@ export function SubscriptionManagement() {
     try {
       // For now, just update the status in the database
       const { error } = await supabase
-        .from("user_subscriptions")
+        .from('user_subscriptions')
         .update({ status: "canceled" })
-        .eq("id", subscription?.id);
+        .eq('id', subscription?.id);
 
       if (error) throw error;
       
@@ -124,7 +123,7 @@ export function SubscriptionManagement() {
           ) : (
             <AlertTriangle className="h-5 w-5 text-warning" />
           )}
-          Plano {subscription.plan_name || subscription.plan_id}
+          Plano {subscription.plans?.name || subscription.plan_id}
         </CardTitle>
         <CardDescription>
           {isActive 
