@@ -283,6 +283,7 @@ export interface Companies {
 }
 
 // Define the CompanyUsers interface to match the new table
+// Fixed by adjusting the Relationships array to match what Supabase expects
 export interface CompanyUsers {
   Row: {
     id: string;
@@ -314,13 +315,6 @@ export interface CompanyUsers {
       columns: ["company_id"];
       isOneToOne: false;
       referencedRelation: "companies";
-      referencedColumns: ["id"];
-    },
-    {
-      foreignKeyName: "company_users_user_id_fkey";
-      columns: ["user_id"];
-      isOneToOne: false;
-      referencedRelation: "users";
       referencedColumns: ["id"];
     }
   ];
