@@ -12,6 +12,8 @@ import Users from '@/pages/admin/Users';
 import Departments from '@/pages/admin/Departments';
 import Permissions from '@/pages/admin/Permissions';
 import Audit from '@/pages/admin/Audit';
+import TableAudit from '@/pages/admin/TableAudit';
+import Companies from '@/pages/admin/Companies';
 import AdminReports from '@/pages/admin/Reports';
 import AdminSettings from '@/pages/admin/Settings';
 import ServicesIndex from '@/pages/services/Index';
@@ -28,9 +30,6 @@ import { QueryClientProvider } from '@/providers/QueryClientProvider';
 // Route related imports
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { RequireAuth } from './components/auth/RequireAuth';
-
-// Pages
-import TableAudit from './pages/admin/TableAudit';
 
 function App() {
   return (
@@ -54,9 +53,10 @@ function App() {
             <Route path="/admin/departments" element={<RequireAuth><Departments /></RequireAuth>} />
             <Route path="/admin/permissions" element={<RequireAuth><Permissions /></RequireAuth>} />
             <Route path="/admin/audit" element={<RequireAuth><Audit /></RequireAuth>} />
+            <Route path="/admin/table-audit" element={<RequireAuth><TableAudit /></RequireAuth>} />
+            <Route path="/admin/companies" element={<RequireAuth><Companies /></RequireAuth>} />
             <Route path="/admin/reports" element={<RequireAuth><AdminReports /></RequireAuth>} />
             <Route path="/admin/settings" element={<RequireAuth><AdminSettings /></RequireAuth>} />
-            <Route path="/admin/table-audit" element={<RequireAuth><TableAudit /></RequireAuth>} />
             
             {/* Services routes */}
             <Route path="/services" element={<RequireAuth><ServicesIndex /></RequireAuth>} />

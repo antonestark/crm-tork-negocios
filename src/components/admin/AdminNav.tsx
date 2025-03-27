@@ -1,126 +1,90 @@
 
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { 
-  Users, ShieldCheck, Layers, LineChart, 
-  Settings, ClipboardList, Database
-} from 'lucide-react';
+  Users, 
+  Building2, 
+  Network, 
+  ShieldCheck, 
+  FileSearch, 
+  BarChart2, 
+  Settings, 
+  Database 
+} from "lucide-react";
+import { useLocation, Link } from "react-router-dom";
 
-export function AdminNav() {
+const navItems = [
+  {
+    title: "Visão Geral",
+    href: "/admin",
+    icon: <BarChart2 className="h-5 w-5 mr-2" />,
+  },
+  {
+    title: "Usuários",
+    href: "/admin/users",
+    icon: <Users className="h-5 w-5 mr-2" />,
+  },
+  {
+    title: "Empresas",
+    href: "/admin/companies",
+    icon: <Building2 className="h-5 w-5 mr-2" />,
+  },
+  {
+    title: "Departamentos",
+    href: "/admin/departments",
+    icon: <Network className="h-5 w-5 mr-2" />,
+  },
+  {
+    title: "Permissões",
+    href: "/admin/permissions",
+    icon: <ShieldCheck className="h-5 w-5 mr-2" />,
+  },
+  {
+    title: "Auditoria",
+    href: "/admin/audit",
+    icon: <FileSearch className="h-5 w-5 mr-2" />,
+  },
+  {
+    title: "Auditoria de Tabelas",
+    href: "/admin/table-audit",
+    icon: <Database className="h-5 w-5 mr-2" />,
+  },
+  {
+    title: "Relatórios",
+    href: "/admin/reports",
+    icon: <BarChart2 className="h-5 w-5 mr-2" />,
+  },
+  {
+    title: "Configurações",
+    href: "/admin/settings",
+    icon: <Settings className="h-5 w-5 mr-2" />,
+  },
+];
+
+interface AdminNavProps extends React.HTMLAttributes<HTMLElement> {}
+
+export function AdminNav({ className, ...props }: AdminNavProps) {
+  const location = useLocation();
+
   return (
-    <nav className="space-y-1">
-      <NavLink
-        to="/admin"
-        className={({ isActive }) =>
-          `flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`
-        }
-        end
-      >
-        <Layers className="mr-2 h-4 w-4" />
-        Dashboard
-      </NavLink>
-      
-      <NavLink
-        to="/admin/users"
-        className={({ isActive }) =>
-          `flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`
-        }
-      >
-        <Users className="mr-2 h-4 w-4" />
-        Usuários
-      </NavLink>
-      
-      <NavLink
-        to="/admin/departments"
-        className={({ isActive }) =>
-          `flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`
-        }
-      >
-        <Layers className="mr-2 h-4 w-4" />
-        Departamentos
-      </NavLink>
-      
-      <NavLink
-        to="/admin/permissions"
-        className={({ isActive }) =>
-          `flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`
-        }
-      >
-        <ShieldCheck className="mr-2 h-4 w-4" />
-        Permissões
-      </NavLink>
-      
-      <NavLink
-        to="/admin/audit"
-        className={({ isActive }) =>
-          `flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`
-        }
-      >
-        <ClipboardList className="mr-2 h-4 w-4" />
-        Logs de Auditoria
-      </NavLink>
-      
-      <NavLink
-        to="/admin/table-audit"
-        className={({ isActive }) =>
-          `flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`
-        }
-      >
-        <Database className="mr-2 h-4 w-4" />
-        Auditoria de Tabelas
-      </NavLink>
-      
-      <NavLink
-        to="/admin/reports"
-        className={({ isActive }) =>
-          `flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`
-        }
-      >
-        <LineChart className="mr-2 h-4 w-4" />
-        Relatórios
-      </NavLink>
-      
-      <NavLink
-        to="/admin/settings"
-        className={({ isActive }) =>
-          `flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`
-        }
-      >
-        <Settings className="mr-2 h-4 w-4" />
-        Configurações
-      </NavLink>
+    <nav className={cn("grid gap-1", className)} {...props}>
+      {navItems.map((item) => (
+        <Button
+          key={item.href}
+          variant={location.pathname === item.href ? "default" : "ghost"}
+          className={cn("justify-start", 
+            location.pathname === item.href 
+              ? "bg-primary text-primary-foreground" 
+              : "text-muted-foreground hover:text-foreground"
+          )}
+          asChild
+        >
+          <Link to={item.href}>
+            {item.icon}
+            {item.title}
+          </Link>
+        </Button>
+      ))}
     </nav>
   );
 }
