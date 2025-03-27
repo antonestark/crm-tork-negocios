@@ -1,4 +1,3 @@
-
 // This file augments the Database interface from the original types.ts file
 // without modifying the read-only file directly
 
@@ -245,6 +244,88 @@ export interface UserSubscriptions {
   ];
 }
 
+// Define the Companies interface to match the new table
+export interface Companies {
+  Row: {
+    id: string;
+    name: string;
+    address: string | null;
+    contact_email: string | null;
+    contact_phone: string | null;
+    status: string;
+    settings: Json;
+    created_at: string | null;
+    updated_at: string | null;
+  };
+  Insert: {
+    id?: string;
+    name: string;
+    address?: string | null;
+    contact_email?: string | null;
+    contact_phone?: string | null;
+    status?: string;
+    settings?: Json;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    name?: string;
+    address?: string | null;
+    contact_email?: string | null;
+    contact_phone?: string | null;
+    status?: string;
+    settings?: Json;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Relationships: [];
+}
+
+// Define the CompanyUsers interface to match the new table
+export interface CompanyUsers {
+  Row: {
+    id: string;
+    company_id: string;
+    user_id: string;
+    role: string;
+    created_at: string | null;
+    updated_at: string | null;
+  };
+  Insert: {
+    id?: string;
+    company_id: string;
+    user_id: string;
+    role?: string;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    company_id?: string;
+    user_id?: string;
+    role?: string;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Relationships: [
+    {
+      foreignKeyName: "company_users_company_id_fkey";
+      columns: ["company_id"];
+      isOneToOne: false;
+      referencedRelation: "companies";
+      referencedColumns: ["id"];
+    },
+    {
+      foreignKeyName: "company_users_user_id_fkey";
+      columns: ["user_id"];
+      isOneToOne: false;
+      referencedRelation: "users";
+      referencedColumns: ["id"];
+    }
+  ];
+}
+
 // Add definitions for the missing tables
 export interface ChatMessages {
   Row: {
@@ -395,6 +476,10 @@ declare global {
         // Add our new subscription tables
         plans: Plans;
         user_subscriptions: UserSubscriptions;
+        
+        // Add the new companies and company_users tables
+        companies: Companies;
+        company_users: CompanyUsers;
       };
       Views: OriginalDatabase['public']['Views'];
       Functions: OriginalDatabase['public']['Functions'];
