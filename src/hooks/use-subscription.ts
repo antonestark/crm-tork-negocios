@@ -42,7 +42,7 @@ export const useSubscription = () => {
       // Fetch the subscription details
       const { data: subscriptionData, error: subscriptionError } = await supabase
         .from('user_subscriptions')
-        .select('*, plans:plan_id(*)')
+        .select('*, plans(*)')
         .eq('user_id', userId)
         .single();
 
@@ -72,11 +72,19 @@ export const useSubscription = () => {
           .eq('responsible_id', userId)
       ]);
 
+      // Convert the status to our SubscriptionStatus type
+      const status: SubscriptionStatus = 
+        (subscriptionData.status === 'active' || 
+         subscriptionData.status === 'canceled' || 
+         subscriptionData.status === 'past_due') 
+          ? subscriptionData.status 
+          : 'none';
+
       const formattedSubscription: UserSubscription = {
         id: subscriptionData.id,
         planId: subscriptionData.plan_id,
         planName: subscriptionData.plans?.name || subscriptionData.plan_id,
-        status: subscriptionData.status as SubscriptionStatus,
+        status: status,
         currentPeriodEnd: subscriptionData.current_period_end,
         maxScheduling: subscriptionData.max_scheduling,
         maxServiceAreas: subscriptionData.max_service_areas,

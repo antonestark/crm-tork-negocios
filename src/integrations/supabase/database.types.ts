@@ -1,3 +1,4 @@
+
 // This file augments the Database interface from the original types.ts file
 // without modifying the read-only file directly
 
@@ -160,6 +161,90 @@ export interface AreaTypes {
   Relationships: [];
 }
 
+// Define our new Plan interface
+export interface Plans {
+  Row: {
+    id: string;
+    name: string;
+    description: string | null;
+    price: number;
+    interval: string;
+    max_scheduling: number;
+    max_service_areas: number;
+    created_at: string | null;
+    updated_at: string | null;
+  };
+  Insert: {
+    id: string;
+    name: string;
+    description?: string | null;
+    price: number;
+    interval: string;
+    max_scheduling?: number;
+    max_service_areas?: number;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    name?: string;
+    description?: string | null;
+    price?: number;
+    interval?: string;
+    max_scheduling?: number;
+    max_service_areas?: number;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Relationships: [];
+}
+
+// Define our new UserSubscriptions interface
+export interface UserSubscriptions {
+  Row: {
+    id: string;
+    user_id: string;
+    plan_id: string;
+    status: string;
+    current_period_end: string;
+    max_scheduling: number;
+    max_service_areas: number;
+    created_at: string | null;
+    updated_at: string | null;
+  };
+  Insert: {
+    id?: string;
+    user_id: string;
+    plan_id: string;
+    status?: string;
+    current_period_end: string;
+    max_scheduling?: number;
+    max_service_areas?: number;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    user_id?: string;
+    plan_id?: string;
+    status?: string;
+    current_period_end?: string;
+    max_scheduling?: number;
+    max_service_areas?: number;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Relationships: [
+    {
+      foreignKeyName: "user_subscriptions_plan_id_fkey";
+      columns: ["plan_id"];
+      isOneToOne: false;
+      referencedRelation: "plans";
+      referencedColumns: ["id"];
+    }
+  ];
+}
+
 // Add definitions for the missing tables
 export interface ChatMessages {
   Row: {
@@ -306,6 +391,10 @@ declare global {
         chats: Chats;
         documents: Documents;
         n8n_chat_histories: N8nChatHistories;
+        
+        // Add our new subscription tables
+        plans: Plans;
+        user_subscriptions: UserSubscriptions;
       };
       Views: OriginalDatabase['public']['Views'];
       Functions: OriginalDatabase['public']['Functions'];

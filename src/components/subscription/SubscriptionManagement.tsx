@@ -8,12 +8,13 @@ import { useAuthState } from "@/hooks/use-auth-state";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { SubscriptionStatus } from "@/hooks/use-subscription";
 
 type UserSubscription = {
   id: string;
   user_id: string;
   plan_id: string;
-  status: 'active' | 'canceled' | 'past_due';
+  status: string;
   current_period_end: string;
   max_scheduling: number;
   max_service_areas: number;
@@ -38,7 +39,7 @@ export function SubscriptionManagement() {
       setLoading(true);
       const { data, error } = await supabase
         .from('user_subscriptions')
-        .select('*, plans:plan_id(*)')
+        .select('*, plans(*)')
         .eq('user_id', userId)
         .single();
 
@@ -48,7 +49,7 @@ export function SubscriptionManagement() {
       }
 
       if (data) {
-        setSubscription(data);
+        setSubscription(data as UserSubscription);
       }
     } catch (err) {
       console.error("Unexpected error:", err);
