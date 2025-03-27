@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
-import { ArrowRight, Users } from "lucide-react";
+import { ArrowRight, Users, Lock } from "lucide-react";
 import { ServiceArea } from "@/hooks/use-service-areas-data";
 import { useState } from "react";
 import { EditAreaDialog } from "./areas/EditAreaDialog";
 import { AreaActionsMenu } from "./areas/AreaActionsMenu";
+import { useSubscription } from "@/hooks/use-subscription";
+import { toast } from "sonner";
 
 interface ServiceAreasProps {
   areas: ServiceArea[];
@@ -20,6 +22,7 @@ interface ServiceAreasProps {
 export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAreasProps) => {
   const [editingArea, setEditingArea] = useState<ServiceArea | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { subscription, loading: subscriptionLoading, checkCanCreateServiceArea } = useSubscription();
 
   const handleEdit = (area: ServiceArea) => {
     setEditingArea(area);
@@ -29,6 +32,24 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
   const handleUpdated = () => {
     onAreaUpdated();
     setEditingArea(null);
+  };
+
+  const checkSubscriptionLimit = () => {
+    if (subscriptionLoading) return true; // Allow while loading
+    
+    const canCreate = checkCanCreateServiceArea();
+    if (!canCreate) {
+      toast.error(
+        "Limite de áreas de serviço atingido. Atualize seu plano para criar mais áreas.",
+        {
+          action: {
+            label: "Ver Planos",
+            onClick: () => window.location.href = "/planos"
+          }
+        }
+      );
+    }
+    return canCreate;
   };
 
   if (loading) {
@@ -57,13 +78,26 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
       <Card>
         <CardContent className="flex flex-col items-center justify-center h-[200px]">
           <p className="text-muted-foreground">Nenhuma área de serviço encontrada</p>
-          <Button asChild className="mt-4">
+          <Button 
+            asChild 
+            className="mt-4"
+            onClick={() => {
+              if (!checkSubscriptionLimit()) {
+                return false; // Prevent navigation if limit reached
+              }
+            }}
+          >
             <Link to="/services/areas">Adicionar Área</Link>
           </Button>
         </CardContent>
       </Card>
     );
   }
+
+  const isLimitReached = subscription && 
+    subscription.status === 'active' && 
+    subscription.maxServiceAreas !== 999 && 
+    areas.length >= subscription.maxServiceAreas;
 
   return (
     <>
@@ -100,6 +134,21 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
             </CardContent>
           </Card>
         ))}
+        
+        {isLimitReached && (
+          <Card className="bg-muted/50 border-dashed">
+            <CardContent className="flex flex-col items-center justify-center h-[200px] text-center">
+              <Lock className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="font-medium mb-2">Limite de áreas atingido</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Seu plano atual permite até {subscription.maxServiceAreas} áreas de serviço.
+              </p>
+              <Button asChild variant="outline">
+                <Link to="/planos">Atualizar Plano</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <EditAreaDialog 

@@ -1,4 +1,5 @@
-import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, Home, Users, LayoutGrid, Target } from "lucide-react";
+
+import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, Home, Users, LayoutGrid, Target, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -89,6 +90,17 @@ export const Header = () => {
               Relatórios
             </Link>
           </Button>
+          <Button 
+            variant={isActive('/planos') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/planos">
+              <CreditCard className="h-4 w-4 mr-2" />
+              Planos
+            </Link>
+          </Button>
         </nav>
       </div>
       <div className="flex items-center space-x-4">
@@ -122,6 +134,12 @@ export const Header = () => {
               <Link to="/admin">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Painel Administrativo</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/planos">
+                <CreditCard className="mr-2 h-4 w-4" />
+                <span>Gerenciar Assinatura</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem className="text-danger">

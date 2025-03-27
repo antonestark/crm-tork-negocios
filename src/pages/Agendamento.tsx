@@ -7,6 +7,7 @@ import { AgendamentoList } from "@/components/agendamento/AgendamentoList";
 import { MetricasAgendamento } from "@/components/agendamento/MetricasAgendamento";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppointmentRegistration from "@/components/agendamento/AppointmentRegistration";
+import { SubscriptionBanner } from "@/components/agendamento/SubscriptionBanner";
 
 const Agendamento = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -29,6 +30,8 @@ const Agendamento = () => {
           selectedDate={selectedDate} 
           onDateSelect={handleDateChange} 
         />
+        
+        <SubscriptionBanner />
         
         <div className="mt-6">
           <MetricasAgendamento selectedDate={selectedDate} />

@@ -21,6 +21,7 @@ import Checklist from '@/pages/services/Checklist';
 import Maintenance from '@/pages/services/Maintenance';
 import ServiceReports from '@/pages/services/Reports';
 import NotFound from '@/pages/NotFound';
+import Planos from '@/pages/Planos';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { QueryClientProvider } from '@/providers/QueryClientProvider';
 
@@ -40,6 +41,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/planos" element={<Planos />} />
             
             {/* Protected routes */}
             <Route path="/clients" element={<RequireAuth><Clients /></RequireAuth>} />
