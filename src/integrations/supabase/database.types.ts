@@ -1,3 +1,4 @@
+
 // This file augments the Database interface from the original types.ts file
 // without modifying the read-only file directly
 
@@ -168,6 +169,7 @@ export interface Plans {
     description: string | null;
     price: number;
     interval: string;
+    features: Json;  // Added the missing features property
     max_scheduling: number;
     max_service_areas: number;
     created_at: string | null;
@@ -179,6 +181,7 @@ export interface Plans {
     description?: string | null;
     price: number;
     interval: string;
+    features?: Json;  // Added the missing features property
     max_scheduling?: number;
     max_service_areas?: number;
     created_at?: string | null;
@@ -190,6 +193,7 @@ export interface Plans {
     description?: string | null;
     price?: number;
     interval?: string;
+    features?: Json;  // Added the missing features property
     max_scheduling?: number;
     max_service_areas?: number;
     created_at?: string | null;
