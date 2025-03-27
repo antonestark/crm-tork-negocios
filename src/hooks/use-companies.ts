@@ -40,7 +40,15 @@ export const useCompanies = () => {
       
       if (error) throw error;
       
-      setCompanies(data || []);
+      // Transform the data to ensure it matches our Company type
+      const transformedData: Company[] = data?.map(item => ({
+        ...item,
+        settings: typeof item.settings === 'string' 
+          ? JSON.parse(item.settings) 
+          : item.settings as CompanySettings
+      })) || [];
+      
+      setCompanies(transformedData);
     } catch (err) {
       console.error('Error fetching companies:', err);
       setError(err as Error);
@@ -60,7 +68,15 @@ export const useCompanies = () => {
       
       if (error) throw error;
       
-      setCompanies(prev => [data, ...prev]);
+      // Transform the new data to match our Company type
+      const transformedData: Company = {
+        ...data,
+        settings: typeof data.settings === 'string'
+          ? JSON.parse(data.settings)
+          : data.settings as CompanySettings
+      };
+      
+      setCompanies(prev => [transformedData, ...prev]);
       return true;
     } catch (err) {
       console.error('Error adding company:', err);
@@ -116,4 +132,12 @@ export const useCompanies = () => {
     updateCompany,
     deleteCompany
   };
+};
+
+// Add missing CompanySettings type here for local use
+type CompanySettings = {
+  user_limit?: number;
+  connection_limit?: number;
+  api_token?: string;
+  [key: string]: any;
 };
