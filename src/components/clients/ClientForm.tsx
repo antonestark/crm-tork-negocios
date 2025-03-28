@@ -18,6 +18,9 @@ import {
   MetaFields
 } from './form';
 
+// Re-export the ClientFormValues type so it can be imported from this file
+export type { ClientFormValues };
+
 interface ClientFormProps {
   onSubmit: (values: ClientFormValues) => void;
   initialValues?: Partial<Client>;
