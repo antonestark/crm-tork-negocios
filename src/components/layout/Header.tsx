@@ -1,5 +1,5 @@
 
-import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, Home, Users, LayoutGrid, Target, CreditCard } from "lucide-react";
+import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, Dashboard, Users, LayoutGrid, Target, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -25,14 +25,14 @@ export const Header = () => {
         <h1 className="text-2xl font-semibold text-primary">Tork Negócios</h1>
         <nav className="hidden md:flex items-center space-x-4">
           <Button 
-            variant={isActive('/') ? "default" : "ghost"} 
+            variant={isActive('/dashboard') ? "default" : "ghost"} 
             size="sm" 
             className="flex items-center" 
             asChild
           >
-            <Link to="/">
-              <Home className="h-4 w-4 mr-2" />
-              Início
+            <Link to="/dashboard">
+              <Dashboard className="h-4 w-4 mr-2" />
+              Dashboard
             </Link>
           </Button>
           <Button 

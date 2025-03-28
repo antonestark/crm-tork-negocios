@@ -22,6 +22,7 @@ import Demands from '@/pages/services/Demands';
 import Checklist from '@/pages/services/Checklist';
 import Maintenance from '@/pages/services/Maintenance';
 import ServiceReports from '@/pages/services/Reports';
+import Dashboard from '@/pages/Dashboard';
 import NotFound from '@/pages/NotFound';
 import Planos from '@/pages/Planos';
 import { AuthProvider } from '@/components/auth/AuthProvider';
@@ -43,6 +44,7 @@ function App() {
             <Route path="/planos" element={<Planos />} />
             
             {/* Protected routes */}
+            <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
             <Route path="/clients" element={<RequireAuth><Clients /></RequireAuth>} />
             <Route path="/leads" element={<RequireAuth><Leads /></RequireAuth>} />
             <Route path="/agendamento" element={<RequireAuth><Agendamento /></RequireAuth>} />
