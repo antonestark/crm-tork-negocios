@@ -20,6 +20,7 @@ export function AuthHeader({ hideNavigation = false }: AuthHeaderProps) {
             <Link to="/" className="px-3 py-2 rounded hover:bg-gray-100">Home</Link>
             <Link to="/clients" className="px-3 py-2 rounded hover:bg-gray-100">Clientes</Link>
             <Link to="/services" className="px-3 py-2 rounded hover:bg-gray-100">Serviços</Link>
+            <Link to="/services/reports" className="px-3 py-2 rounded hover:bg-gray-100">Relatórios</Link>
             <Link to="/admin" className="px-3 py-2 rounded hover:bg-gray-100">Admin</Link>
           </nav>
         )}

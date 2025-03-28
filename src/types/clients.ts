@@ -1,3 +1,4 @@
+
 export type ClientStatus = 'active' | 'inactive' | 'pending'; // Added 'pending' based on ClientsTable usage
 
 export interface Client {
@@ -12,6 +13,7 @@ export interface Client {
   contract_start_date: string;
   contract_end_date: string;
   document?: string; // Novo: CNPJ/CPF/CAEPF
+  cnpj?: string; // Adicionado para compatibilidade com código existente
   birth_date?: string; // Novo: Data Nascimento (PF) - Consider using Date type if appropriate
   address?: string;
   email?: string;
