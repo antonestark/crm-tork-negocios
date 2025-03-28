@@ -22,11 +22,11 @@ export default function Index() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white overflow-x-hidden no-scrollbar">
       <AuthHeader hideNavigation={true} />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 px-4">
+      <section className="relative py-16 md:py-20 px-4 overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-20 -left-20 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl"></div>
@@ -37,10 +37,10 @@ export default function Index() {
         <div className="container mx-auto grid md:grid-cols-2 gap-8 items-center relative z-10">
           {/* Text Content */}
           <div className="space-y-6 animate-fade-in">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">
               Transforme Sua Comunicação Em Vendas com o Mark-10
             </h1>
-            <p className="text-lg md:text-xl mb-8 text-slate-300">
+            <p className="text-base sm:text-lg md:text-xl mb-8 text-slate-300">
               Atendimento automatizado com IA para garantir respostas rápidas. Sua equipe pode
               atender de qualquer lugar, sem perder a produtividade.
             </p>
@@ -48,7 +48,7 @@ export default function Index() {
               <Button 
                 size="lg" 
                 onClick={() => navigate('/demonstracao')} 
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-600/30 border-0"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-600/30 border-0 rounded-full"
               >
                 Agendar Demonstração
               </Button>
@@ -56,7 +56,7 @@ export default function Index() {
                 size="lg" 
                 variant="outline" 
                 onClick={() => navigate('/planos')} 
-                className="border-blue-400 text-blue-400 hover:bg-blue-400/10"
+                className="border-blue-400 text-blue-400 hover:bg-blue-400/10 rounded-full"
               >
                 Contratar Agora <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
@@ -67,15 +67,15 @@ export default function Index() {
           <div className="hidden md:flex justify-center animate-fade-in delay-100">
             <div className="relative w-full max-w-md">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur-xl opacity-30"></div>
-              <div className="relative bg-slate-800/80 border border-slate-700/50 backdrop-blur-sm rounded-xl p-8 shadow-2xl">
+              <div className="relative bg-slate-800/80 backdrop-blur-sm rounded-xl p-8 shadow-2xl">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="h-24 bg-slate-700/50 rounded-lg flex items-center justify-center border border-slate-600/50 backdrop-blur-sm">
+                  <div className="h-24 bg-slate-700/50 rounded-lg flex items-center justify-center backdrop-blur-sm">
                     <BarChart3 className="h-10 w-10 text-blue-400" />
                   </div>
-                  <div className="h-24 bg-slate-700/50 rounded-lg flex items-center justify-center border border-slate-600/50 backdrop-blur-sm">
+                  <div className="h-24 bg-slate-700/50 rounded-lg flex items-center justify-center backdrop-blur-sm">
                     <MessageSquare className="h-10 w-10 text-indigo-400" />
                   </div>
-                  <div className="col-span-2 h-32 bg-slate-700/50 rounded-lg flex items-center justify-center border border-slate-600/50 backdrop-blur-sm">
+                  <div className="col-span-2 h-32 bg-slate-700/50 rounded-lg flex items-center justify-center backdrop-blur-sm">
                     <div className="flex flex-col items-center">
                       <RocketIcon className="h-12 w-12 text-purple-400 mb-2" />
                       <span className="text-gray-300 text-sm">Interface IA</span>
@@ -89,15 +89,15 @@ export default function Index() {
       </section>
 
       {/* Benefícios Section */}
-      <section className="py-20 px-4 relative">
+      <section className="py-16 md:py-20 px-4 relative">
         <div className="absolute inset-0 bg-slate-800/50 backdrop-blur-sm"></div>
         <div className="container mx-auto text-center relative z-10">
-          <h2 className="text-3xl font-bold mb-12 text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-8 md:mb-12 text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
             Benefícios Revolucionários
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">
             {/* Benefício 1: Eficiência */}
-            <div className="flex flex-col items-center p-6 bg-slate-800/60 rounded-xl border border-slate-700/50 backdrop-blur-sm transition-all duration-300 hover:bg-slate-700/70 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10">
+            <div className="flex flex-col items-center p-6 bg-slate-800/60 rounded-xl backdrop-blur-sm transition-all duration-300 hover:bg-slate-700/70 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10">
               <div className="w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-blue-500/20">
                 <RocketIcon className="h-8 w-8" />
               </div>
@@ -108,7 +108,7 @@ export default function Index() {
               </p>
             </div>
             {/* Benefício 2: Análise */}
-            <div className="flex flex-col items-center p-6 bg-slate-800/60 rounded-xl border border-slate-700/50 backdrop-blur-sm transition-all duration-300 hover:bg-slate-700/70 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/10">
+            <div className="flex flex-col items-center p-6 bg-slate-800/60 rounded-xl backdrop-blur-sm transition-all duration-300 hover:bg-slate-700/70 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/10">
               <div className="w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-purple-500/20">
                 <BarChart3 className="h-8 w-8" />
               </div>
@@ -119,7 +119,7 @@ export default function Index() {
               </p>
             </div>
             {/* Benefício 3: Atendimento */}
-            <div className="flex flex-col items-center p-6 bg-slate-800/60 rounded-xl border border-slate-700/50 backdrop-blur-sm transition-all duration-300 hover:bg-slate-700/70 hover:-translate-y-1 hover:shadow-lg hover:shadow-cyan-500/10">
+            <div className="flex flex-col items-center p-6 bg-slate-800/60 rounded-xl backdrop-blur-sm transition-all duration-300 hover:bg-slate-700/70 hover:-translate-y-1 hover:shadow-lg hover:shadow-cyan-500/10">
               <div className="w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-cyan-500/20">
                 <Heart className="h-8 w-8" />
               </div>
@@ -134,15 +134,15 @@ export default function Index() {
       </section>
 
       {/* Funcionalidades Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-slate-800 to-slate-900 relative">
+      <section className="py-16 md:py-20 px-4 bg-gradient-to-b from-slate-800 to-slate-900 relative">
         <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-transparent to-slate-800/80"></div>
-        <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
+        <div className="container mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Text Content & List */}
           <div className="animate-fade-in">
-            <h2 className="text-3xl font-bold mb-8 text-center md:text-left bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-center md:text-left bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
               Funcionalidades Que Fazem A Diferença
             </h2>
-            <ul className="space-y-5 text-slate-300">
+            <ul className="space-y-4 sm:space-y-5 text-slate-300">
               {[
                 "Gestão Centralizada", 
                 "Integração com Inteligência Artificial",
@@ -165,7 +165,7 @@ export default function Index() {
           <div className="hidden md:flex justify-center animate-fade-in delay-200">
             <div className="relative w-full max-w-md">
               <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 rounded-3xl blur-2xl"></div>
-              <div className="relative bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm rounded-xl overflow-hidden shadow-2xl">
+              <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-xl overflow-hidden shadow-2xl">
                 <div className="p-1 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
                 <div className="p-8 space-y-4">
                   <div className="flex items-center space-x-3">
@@ -174,7 +174,7 @@ export default function Index() {
                     <div className="w-4 h-4 rounded-full bg-green-500"></div>
                     <div className="ml-2 text-xs text-slate-400">Mark-10 Interface</div>
                   </div>
-                  <div className="h-48 bg-slate-900/50 rounded-lg border border-slate-700/50 flex items-center justify-center">
+                  <div className="h-48 bg-slate-900/50 rounded-lg flex items-center justify-center">
                     <div className="text-center">
                       <RocketIcon className="h-10 w-10 text-blue-400 mx-auto mb-3" />
                       <p className="text-sm text-slate-300">Plataforma Integrada de Comunicação</p>
@@ -189,21 +189,21 @@ export default function Index() {
       </section>
       
       {/* Depoimentos Section */}
-      <section className="py-20 px-4 relative overflow-hidden">
+      <section className="py-16 md:py-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"></div>
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
         
         <div className="container mx-auto text-center relative z-10">
-          <h2 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
             Veja O Que Dizem Nossos Clientes
           </h2>
-          <p className="text-slate-400 mb-12 max-w-2xl mx-auto">
+          <p className="text-slate-400 mb-8 md:mb-12 max-w-2xl mx-auto">
             Milhares de empresas já transformaram sua comunicação com o Mark-10. Confira como nossa plataforma tem revolucionado o atendimento.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
             {/* Depoimento 1 */}
-            <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700/50 backdrop-blur-sm text-left transition-all duration-300 hover:bg-slate-700/50 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10">
+            <div className="bg-slate-800/50 p-6 rounded-xl backdrop-blur-sm text-left transition-all duration-300 hover:bg-slate-700/50 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10">
               <div className="flex text-yellow-400 mb-3">
                 {[...Array(5)].map((_, i) => (
                   <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 24 24">
@@ -225,7 +225,7 @@ export default function Index() {
               </div>
             </div>
             {/* Depoimento 2 */}
-            <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700/50 backdrop-blur-sm text-left transition-all duration-300 hover:bg-slate-700/50 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/10">
+            <div className="bg-slate-800/50 p-6 rounded-xl backdrop-blur-sm text-left transition-all duration-300 hover:bg-slate-700/50 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/10">
               <div className="flex text-yellow-400 mb-3">
                 {[...Array(5)].map((_, i) => (
                   <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 24 24">
@@ -251,20 +251,20 @@ export default function Index() {
       </section>
 
       {/* Planos Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-950 relative">
+      <section className="py-16 md:py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-950 relative">
         <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-transparent to-slate-900/70"></div>
         <div className="container mx-auto text-center relative z-10">
-          <h2 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
             Planos Perfeitos Para Suas Necessidades
           </h2>
-          <p className="text-slate-400 mb-12 max-w-xl mx-auto">
+          <p className="text-slate-400 mb-8 md:mb-12 max-w-xl mx-auto">
             Escolha o plano que mais se adapta ao seu negócio e comece a transformar sua comunicação hoje mesmo.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
             {/* Plano Básico */}
-            <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:bg-slate-700/70 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 flex flex-col">
+            <div className="bg-slate-800/60 rounded-xl overflow-hidden transition-all duration-300 hover:bg-slate-700/70 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 flex flex-col">
               <div className="p-1 bg-gradient-to-r from-blue-400/50 to-blue-500/50"></div>
-              <div className="p-8 flex flex-col h-full">
+              <div className="p-6 md:p-8 flex flex-col h-full">
                 <h3 className="text-sm font-semibold text-blue-400 mb-2 tracking-wider">PLANO BÁSICO</h3>
                 <p className="text-4xl font-bold mb-1 text-white">R$99<span className="text-2xl">,90</span><span className="text-lg font-normal text-slate-400">/Mês</span></p>
                 <ul className="space-y-3 text-slate-300 my-6 text-left flex-grow">
@@ -283,7 +283,7 @@ export default function Index() {
                 </ul>
                 <Button 
                   variant="outline" 
-                  className="w-full border-blue-400 text-blue-400 hover:bg-blue-400/10 mt-auto" 
+                  className="w-full border-blue-400 text-blue-400 hover:bg-blue-400/10 mt-auto rounded-full" 
                   onClick={() => navigate('/planos/basico')}
                 >
                   ESCOLHER PLANO <ChevronRight className="h-4 w-4 ml-1" />
@@ -292,11 +292,11 @@ export default function Index() {
             </div>
 
             {/* Plano Standard (Destaque) */}
-            <div className="bg-gradient-to-b from-slate-800/60 to-slate-800/90 rounded-xl border border-blue-500/50 backdrop-blur-sm overflow-hidden relative transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/20 flex flex-col">
+            <div className="bg-gradient-to-b from-slate-800/60 to-slate-800/90 rounded-xl backdrop-blur-sm overflow-hidden relative transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/20 flex flex-col">
               <div className="absolute top-0 left-0 w-full h-full bg-blue-500/5"></div>
               <div className="p-1 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
               <span className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">MAIS POPULAR</span>
-              <div className="p-8 relative z-10 flex flex-col h-full">
+              <div className="p-6 md:p-8 relative z-10 flex flex-col h-full">
                 <h3 className="text-sm font-semibold text-blue-400 mb-2 tracking-wider mt-4">PLANO STANDARD</h3>
                 <p className="text-4xl font-bold mb-1 text-white">R$159<span className="text-2xl">,90</span><span className="text-lg font-normal text-slate-400">/Mês</span></p>
                 <ul className="space-y-3 text-slate-300 my-6 text-left flex-grow">
@@ -314,7 +314,7 @@ export default function Index() {
                   ))}
                 </ul>
                 <Button 
-                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white mt-auto shadow-lg shadow-blue-500/20 border-0" 
+                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white mt-auto shadow-lg shadow-blue-500/20 border-0 rounded-full" 
                   onClick={() => navigate('/planos/standard')}
                 >
                   ESCOLHER PLANO <ChevronRight className="h-4 w-4 ml-1" />
@@ -323,9 +323,9 @@ export default function Index() {
             </div>
 
             {/* Plano Pro */}
-            <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:bg-slate-700/70 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 flex flex-col">
+            <div className="bg-slate-800/60 rounded-xl overflow-hidden transition-all duration-300 hover:bg-slate-700/70 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 flex flex-col">
               <div className="p-1 bg-gradient-to-r from-indigo-400/50 to-indigo-500/50"></div>
-              <div className="p-8 flex flex-col h-full">
+              <div className="p-6 md:p-8 flex flex-col h-full">
                 <h3 className="text-sm font-semibold text-indigo-400 mb-2 tracking-wider">PLANO PRO</h3>
                 <p className="text-4xl font-bold mb-1 text-white">R$269<span className="text-2xl">,90</span><span className="text-lg font-normal text-slate-400">/Mês</span></p>
                 <ul className="space-y-3 text-slate-300 my-6 text-left flex-grow">
@@ -344,7 +344,7 @@ export default function Index() {
                 </ul>
                 <Button 
                   variant="outline" 
-                  className="w-full border-indigo-400 text-indigo-400 hover:bg-indigo-400/10 mt-auto" 
+                  className="w-full border-indigo-400 text-indigo-400 hover:bg-indigo-400/10 mt-auto rounded-full" 
                   onClick={() => navigate('/planos/pro')}
                 >
                   ESCOLHER PLANO <ChevronRight className="h-4 w-4 ml-1" />
@@ -356,10 +356,10 @@ export default function Index() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-slate-950 to-slate-900 relative">
+      <section className="py-16 md:py-20 px-4 bg-gradient-to-b from-slate-950 to-slate-900 relative">
         <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-transparent to-slate-950/70"></div>
         <div className="container mx-auto max-w-3xl relative z-10">
-          <h2 className="text-3xl font-bold mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-8 md:mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
             Perguntas Frequentes
           </h2>
           <Accordion type="single" collapsible className="w-full">
