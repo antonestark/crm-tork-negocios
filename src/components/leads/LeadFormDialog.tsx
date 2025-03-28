@@ -188,7 +188,7 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Não atribuído</SelectItem>
+                        <SelectItem value="unassigned">Não atribuído</SelectItem>
                         {users.map(user => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name}
