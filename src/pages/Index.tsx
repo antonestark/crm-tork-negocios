@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AuthHeader } from '@/components/layout/AuthHeader';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
-      <AuthHeader />
+      <AuthHeader hideNavigation={true} />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-900 to-indigo-900 text-white py-20 px-4">
