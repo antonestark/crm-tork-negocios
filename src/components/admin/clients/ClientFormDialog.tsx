@@ -17,9 +17,10 @@ interface ClientFormDialogProps {
   onSave: (clientData: ClientCreate) => void;
 }
 
-// Define a type for the form fields
+// Define a type for the form fields that includes all relevant Client fields
 interface ClientFormFields {
   company_name: string;
+  razao_social?: string;
   trading_name: string;
   responsible: string;
   room: string;
@@ -27,12 +28,15 @@ interface ClientFormFields {
   status: string;
   contract_start_date: string;
   contract_end_date: string;
-  cnpj: string;
+  document?: string;
+  cnpj?: string; // Make sure this is included
+  birth_date?: string;
   address: string;
   email: string;
   phone: string;
   monthly_value: number;
   notes: string;
+  tags?: string[];
 }
 
 export const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
@@ -45,6 +49,7 @@ export const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ClientFormFields>({
     defaultValues: client ? {
       company_name: client.company_name || '',
+      razao_social: client.razao_social || '',
       trading_name: client.trading_name || '',
       responsible: client.responsible || '',
       room: client.room || '',
@@ -52,14 +57,18 @@ export const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
       status: client.status || 'active',
       contract_start_date: client.contract_start_date ? new Date(client.contract_start_date).toISOString().split('T')[0] : '',
       contract_end_date: client.contract_end_date ? new Date(client.contract_end_date).toISOString().split('T')[0] : '',
-      cnpj: client.cnpj || '',
+      document: client.document || '',
+      cnpj: client.cnpj || '', // Ensure this is included
+      birth_date: client.birth_date || '',
       address: client.address || '',
       email: client.email || '',
       phone: client.phone || '',
       monthly_value: client.monthly_value || 0,
       notes: client.notes || '',
+      tags: client.tags || [],
     } : {
       company_name: '',
+      razao_social: '',
       trading_name: '',
       responsible: '',
       room: '',
@@ -67,12 +76,15 @@ export const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
       status: 'active',
       contract_start_date: '',
       contract_end_date: '',
+      document: '',
       cnpj: '',
+      birth_date: '',
       address: '',
       email: '',
       phone: '',
       monthly_value: 0,
       notes: '',
+      tags: [],
     }
   });
 
@@ -107,6 +119,14 @@ export const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
           </div>
           
           <div className="space-y-2">
+            <Label htmlFor="razao_social">Razão Social</Label>
+            <Input 
+              id="razao_social" 
+              {...register('razao_social')}
+            />
+          </div>
+          
+          <div className="space-y-2">
             <Label htmlFor="trading_name">Nome Fantasia</Label>
             <Input 
               id="trading_name" 
@@ -134,13 +154,23 @@ export const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
+              <Label htmlFor="document">Documento (CPF/CAEPF)</Label>
+              <Input 
+                id="document" 
+                {...register('document')}
+              />
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="cnpj">CNPJ</Label>
               <Input 
                 id="cnpj" 
                 {...register('cnpj')}
               />
             </div>
-            
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select
@@ -153,8 +183,18 @@ export const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
                 <SelectContent>
                   <SelectItem value="active">Ativo</SelectItem>
                   <SelectItem value="inactive">Inativo</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="birth_date">Data de Nascimento</Label>
+              <Input 
+                id="birth_date" 
+                type="date"
+                {...register('birth_date')}
+              />
             </div>
           </div>
           

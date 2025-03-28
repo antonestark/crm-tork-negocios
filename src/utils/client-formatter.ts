@@ -13,6 +13,7 @@ export function formatClientFromDatabase(clientData: any): Client | null {
   return {
     id: clientData.id || '',
     company_name: clientData.company_name || '',
+    razao_social: clientData.razao_social || '',
     trading_name: clientData.trading_name || '',
     responsible: clientData.responsible || '',
     room: clientData.room || '',
@@ -20,12 +21,15 @@ export function formatClientFromDatabase(clientData: any): Client | null {
     status: clientData.status || 'active',
     contract_start_date: clientData.contract_start_date || '',
     contract_end_date: clientData.contract_end_date || '',
+    document: clientData.document || '',
     cnpj: clientData.cnpj || '',
+    birth_date: clientData.birth_date || '',
     address: clientData.address || '',
     email: clientData.email || '',
     phone: clientData.phone || '',
     monthly_value: clientData.monthly_value || 0,
     notes: clientData.notes || '',
+    tags: clientData.tags || [],
     created_at: clientData.created_at || '',
     updated_at: clientData.updated_at || ''
   };

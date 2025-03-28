@@ -1,3 +1,4 @@
+
 // This file contains adapters for converting data from the Supabase database to the app's types
 
 import { User, Department, Permission, PermissionGroup, ActivityLog } from "@/types/admin";
@@ -37,6 +38,7 @@ export const clientAdapter = (data: any[]): Client[] => {
     contract_start_date: item.contract_start_date || '',
     contract_end_date: item.contract_end_date || '',
     document: item.document || '', // CNPJ/CPF/CAEPF
+    cnpj: item.cnpj || '', // Ensure this matches with Client interface
     birth_date: item.birth_date || '',
     address: item.address || '',
     email: item.email || '',
