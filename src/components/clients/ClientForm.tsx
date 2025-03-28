@@ -1,4 +1,5 @@
-import React from 'react'; // Remove useState import if no longer needed elsewhere
+
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -13,9 +14,13 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import InputMask from 'react-input-mask'; // Import InputMask
+import InputMask from 'react-input-mask';
 import { Button } from "@/components/ui/button"
-import { Client } from '@/types/clients'; // Import Client type
+import { Client } from '@/types/clients';
+
+// Define CPF and CNPJ masks
+const CPF_MASK = '999.999.999-99';
+const CNPJ_MASK = '99.999.999/9999-99';
 
 // 1. Define your schema for input validation
 const clientFormSchema = z.object({
@@ -24,24 +29,23 @@ const clientFormSchema = z.object({
   }),
   razao_social: z.string().optional(),
   document: z.string().optional(),
-  birth_date: z.string().optional(), // Pode ser ajustado para Date se usar um Datepicker
+  birth_date: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
   status: z.string().optional(),
-  tags: z.array(z.string()).optional(), // Keep only the array definition
+  tags: z.array(z.string()).optional(),
 });
 
-export type ClientFormValues = z.infer<typeof clientFormSchema>; // Export the type
+export type ClientFormValues = z.infer<typeof clientFormSchema>;
 
 interface ClientFormProps {
   onSubmit: (values: ClientFormValues) => void;
-  initialValues?: Partial<Client>; // Use Partial<Client> for initial values
+  initialValues?: Partial<Client>;
 }
 
-// Removed CPF_MASK and CNPJ_MASK constants
-
 export const ClientForm: React.FC<ClientFormProps> = ({ onSubmit, initialValues }) => {
-  // Removed state for dynamic document mask
+  // State to track document type
+  const [documentMask, setDocumentMask] = useState<string>(CPF_MASK);
 
   // 2. Define your form.
   const form = useForm<ClientFormValues>({
@@ -53,11 +57,27 @@ export const ClientForm: React.FC<ClientFormProps> = ({ onSubmit, initialValues 
       birth_date: initialValues?.birth_date || "",
       email: initialValues?.email || "",
       phone: initialValues?.phone || "",
-      tags: initialValues?.tags || [], // Default to empty array
+      tags: initialValues?.tags || [],
       status: initialValues?.status || "",
     },
     mode: "onChange",
   });
+
+  // Determine document type and set appropriate mask
+  const handleDocumentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove all non-digit characters for comparison
+    const value = event.target.value.replace(/\D/g, '');
+    
+    // Set mask based on length
+    if (value.length > 11) {
+      setDocumentMask(CNPJ_MASK);
+    } else {
+      setDocumentMask(CPF_MASK);
+    }
+    
+    // Update form value
+    form.setValue('document', event.target.value);
+  };
 
   // 3. Helper function to handle form submission.
   const handleSubmit = (values: ClientFormValues) => {
@@ -100,8 +120,19 @@ export const ClientForm: React.FC<ClientFormProps> = ({ onSubmit, initialValues 
             <FormItem>
               <FormLabel>CNPJ / CPF / CAEPF</FormLabel>
               <FormControl>
-                {/* Reverted to simple Input */}
-                <Input placeholder="CNPJ, CPF ou CAEPF" {...field} />
+                <InputMask
+                  mask={documentMask}
+                  value={field.value}
+                  onChange={handleDocumentChange}
+                  onBlur={field.onBlur}
+                >
+                  {(inputProps: any) => 
+                    <Input 
+                      {...inputProps} 
+                      placeholder={documentMask === CPF_MASK ? "000.000.000-00" : "00.000.000/0000-00"} 
+                    />
+                  }
+                </InputMask>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -114,7 +145,6 @@ export const ClientForm: React.FC<ClientFormProps> = ({ onSubmit, initialValues 
             <FormItem>
               <FormLabel>Data de Nascimento</FormLabel>
               <FormControl>
-                {/* Use InputMask for date */}
                 <InputMask
                   mask="99/99/9999"
                   value={field.value}
@@ -148,7 +178,6 @@ export const ClientForm: React.FC<ClientFormProps> = ({ onSubmit, initialValues 
             <FormItem>
               <FormLabel>Telefone</FormLabel>
               <FormControl>
-                 {/* Use InputMask for phone */}
                  <InputMask
                   mask="(99) 99999-9999"
                   value={field.value}
@@ -169,7 +198,6 @@ export const ClientForm: React.FC<ClientFormProps> = ({ onSubmit, initialValues 
             <FormItem>
               <FormLabel>Tags</FormLabel>
               <FormControl>
-                {/* Input still takes a string, convert array to string for display/edit */}
                 <Input 
                   placeholder="Tags (separadas por vírgula)" 
                   {...field} 
