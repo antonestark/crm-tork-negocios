@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import {
   Card,
@@ -6,8 +5,8 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -15,8 +14,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,63 +23,82 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { toast } from "sonner"
-import { MoreVertical, Edit, Trash2, FileText, Copy, Loader2, Search } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { MoreVertical, Edit, Trash2, FileText, Copy, Loader2, Search } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { clientAdapter } from '@/integrations/supabase/adapters';
 import { Badge } from "@/components/ui/badge";
 import { Client } from '@/types/clients';
+import { ClientForm } from './ClientForm';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import React from 'react'; // Import React
+import { ClientFormValues } from './ClientForm'; // Import the form values type
 
 export function ClientsTable() {
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [tagFilter, setTagFilter] = useState(''); // Novo estado para o filtro de tags
+  const [open, setOpen] = React.useState(false); // Dialog state
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   useEffect(() => {
     fetchClients();
-    
+
     // Set up a realtime subscription
     const subscription = supabase
       .channel('clients_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'clients' 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'clients'
       }, () => {
         fetchClients();
       })
       .subscribe();
-      
+
     return () => {
       subscription.unsubscribe();
     };
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, tagFilter]); // Adicionado tagFilter como dependência
 
   const fetchClients = async () => {
     setIsLoading(true);
     try {
       let query = supabase
         .from('clients')
-        .select('*');
-      
+        .select('id, company_name, razao_social, trading_name, responsible, room, meeting_room_credits, status, contract_start_date, contract_end_date, document, birth_date, address, email, phone, monthly_value, notes, tags, created_at, updated_at');
+
       if (searchTerm) {
-        query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`);
+        query = query.or(`company_name.ilike.%${searchTerm}%,razao_social.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`);
       }
-      
+
+      if (tagFilter) {
+        const tagList = tagFilter.split(',').map(tag => tag.trim());
+        query = query.contains('tags', tagList); // Filtrar por tags (usando contains)
+      }
+
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
       }
-      
+
       query = query.order('created_at', { ascending: false });
-      
+
       const { data, error } = await query;
-      
+
       if (error) {
         throw error;
       }
-      
+
       // Usar o adaptador para converter os dados
       const adaptedClients = clientAdapter(data || []);
       setClients(adaptedClients);
@@ -119,6 +137,26 @@ export function ClientsTable() {
     toast.success('Informações copiadas para a área de transferência');
   };
 
+  // Update handleSubmit to use ClientFormValues
+  const handleSubmit = (values: ClientFormValues) => { 
+    // TODO: Implementar a lógica para criar/atualizar o cliente no Supabase
+    // A conversão de `tags` (string separada por vírgula) para array já é feita no ClientForm onChange
+    console.log("Form values:", values); 
+    setOpen(false);
+    setSelectedClient(null); // Reset selected client after submit
+    toast.success('Cliente criado/atualizado com sucesso!');
+  };
+
+  // Helper to prepare initial values for the form, converting tags array to string
+  const prepareInitialValues = (client: Client | null): ClientFormValues | undefined => {
+    if (!client) return undefined;
+    return {
+      ...client,
+      tags: client.tags || [], // Ensure tags is an array for the form state
+    };
+  };
+
+
   return (
     <Card>
       <CardHeader>
@@ -128,7 +166,7 @@ export function ClientsTable() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3 items-end"> {/* Alterado para 3 colunas */}
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -139,6 +177,32 @@ export function ClientsTable() {
               className="pl-8"
             />
           </div>
+           {/* Filtro por Tags (Temporário - Input Simples) */}
+          <Input
+            type="search"
+            placeholder="Filtrar por tags (separadas por vírgula)"
+            value={tagFilter}
+            onChange={(e) => setTagFilter(e.target.value)}
+            className="pl-3"
+          />
+           <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>Novo Cliente</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[625px]">
+              <DialogHeader>
+                <DialogTitle>{selectedClient ? "Editar Cliente" : "Criar Novo Cliente"}</DialogTitle>
+                <DialogDescription>
+                  {selectedClient ? "Edite os dados do cliente selecionado." : "Adicione um novo cliente à sua lista."}
+                </DialogDescription>
+              </DialogHeader>
+              <ClientForm 
+                onSubmit={handleSubmit} 
+                // Pass prepared initial values
+                initialValues={prepareInitialValues(selectedClient)} 
+              />
+            </DialogContent>
+          </Dialog>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -159,9 +223,13 @@ export function ClientsTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[200px]">Nome</TableHead>
+                <TableHead className="w-[150px]">Nome</TableHead>
+                <TableHead className="w-[150px]">Razão Social</TableHead>
+                <TableHead className="w-[120px]">Documento</TableHead>
+                <TableHead className="w-[100px]">Data Nasc.</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Telefone</TableHead>
+                <TableHead>Tags</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -169,7 +237,7 @@ export function ClientsTable() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     <div className="flex justify-center">
                       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
@@ -177,14 +245,26 @@ export function ClientsTable() {
                 </TableRow>
               ) : clients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">Nenhum cliente encontrado.</TableCell>
+                  <TableCell colSpan={9} className="text-center py-8">Nenhum cliente encontrado.</TableCell>
                 </TableRow>
               ) : (
                 clients.map((client) => (
                   <TableRow key={client.id}>
                     <TableCell className="font-medium">{client.company_name}</TableCell>
+                    <TableCell>{client.razao_social || ''}</TableCell>
+                    <TableCell>{client.document || ''}</TableCell>
+                    <TableCell>{client.birth_date || ''}</TableCell>
                     <TableCell>{client.email || ''}</TableCell>
                     <TableCell>{client.phone || ''}</TableCell>
+                     <TableCell>
+                      {client.tags && client.tags.length > 0 ? (
+                        client.tags.map((tag, index) => (
+                          <Badge key={index} className="mr-1">{tag}</Badge>
+                        ))
+                      ) : (
+                        ''
+                      )}
+                    </TableCell>
                     <TableCell>{getStatusBadge(client.status)}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -196,7 +276,10 @@ export function ClientsTable() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                              setSelectedClient(client);
+                              setOpen(true);
+                            }}>
                             <Edit className="mr-2 h-4 w-4" /> Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleCopyInfo(client)}>
@@ -206,7 +289,10 @@ export function ClientsTable() {
                             <FileText className="mr-2 h-4 w-4" /> Ver Detalhes
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem className="text-red-600" onClick={() => {
+                              // TODO: Implement delete client logic
+                              toast.success('Cliente excluído com sucesso!');
+                            }}>
                             <Trash2 className="mr-2 h-4 w-4" /> Excluir
                           </DropdownMenuItem>
                         </DropdownMenuContent>

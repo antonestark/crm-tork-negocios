@@ -28,6 +28,7 @@ export const clientAdapter = (data: any[]): Client[] => {
   return data.map(item => ({
     id: item.id,
     company_name: item.company_name || '',
+    razao_social: item.razao_social || '',
     trading_name: item.trading_name || '',
     responsible: item.responsible || '',
     room: item.room || '',
@@ -35,12 +36,14 @@ export const clientAdapter = (data: any[]): Client[] => {
     status: item.status || 'active',
     contract_start_date: item.contract_start_date || '',
     contract_end_date: item.contract_end_date || '',
-    cnpj: item.cnpj || '',
+    document: item.document || '', // CNPJ/CPF/CAEPF
+    birth_date: item.birth_date || '',
     address: item.address || '',
     email: item.email || '',
     phone: item.phone || '',
     monthly_value: item.monthly_value || 0,
     notes: item.notes || '',
+    tags: item.tags || [],
     created_at: item.created_at || '',
     updated_at: item.updated_at || ''
   }));
