@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { UserNav } from '@/components/auth/UserNav';
-import { Dashboard, Users, Target, Calendar, LayoutGrid, FileText, CreditCard } from "lucide-react";
+import { LayoutDashboard, Users, Target, Calendar, LayoutGrid, FileText, CreditCard } from "lucide-react";
 
 interface AuthHeaderProps {
   hideNavigation?: boolean;
@@ -19,7 +19,7 @@ export function AuthHeader({ hideNavigation = false }: AuthHeaderProps) {
         {!hideNavigation && (
           <nav className="hidden md:flex space-x-4">
             <Link to="/dashboard" className="px-3 py-2 rounded hover:bg-gray-100 flex items-center">
-              <Dashboard className="h-4 w-4 mr-2" /> 
+              <LayoutDashboard className="h-4 w-4 mr-2" /> 
               Dashboard
             </Link>
             <Link to="/clients" className="px-3 py-2 rounded hover:bg-gray-100 flex items-center">

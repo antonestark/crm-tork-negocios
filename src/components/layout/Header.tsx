@@ -1,5 +1,4 @@
-
-import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, Dashboard, Users, LayoutGrid, Target, CreditCard } from "lucide-react";
+import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, LayoutDashboard, Users, LayoutGrid, Target, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -31,7 +30,7 @@ export const Header = () => {
             asChild
           >
             <Link to="/dashboard">
-              <Dashboard className="h-4 w-4 mr-2" />
+              <LayoutDashboard className="h-4 w-4 mr-2" />
               Dashboard
             </Link>
           </Button>
