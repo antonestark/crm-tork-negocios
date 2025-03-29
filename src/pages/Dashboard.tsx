@@ -17,15 +17,18 @@ import { TaskPanel } from '@/components/dashboard/TaskPanel';
 import { BookingCalendar } from '@/components/dashboard/Calendar/BookingCalendar';
 import { useLeads } from '@/hooks/use-leads';
 import { useDemands } from '@/hooks/use-demands';
+import useUsers from '@/hooks/users';
 import { useServiceChecklist } from '@/hooks/use-service-checklist';
 import { useServiceReports } from '@/hooks/use-service-reports';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LeadsOverview } from '@/components/dashboard/LeadsOverview';
 import { DemandsOverview } from '@/components/dashboard/DemandsOverview';
+import { DemandsTab } from '@/components/dashboard/DemandsTab';
 
 const Dashboard = () => {
   const { leads, loading: leadsLoading } = useLeads();
   const { demands, loading: demandsLoading } = useDemands();
+  const { users, loading: usersLoading } = useUsers();
   const { items: checklistItems, loading: checklistLoading } = useServiceChecklist();
   const { metrics, loading: metricsLoading } = useServiceReports();
   
@@ -40,7 +43,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="container mx-auto py-6 px-4">
+      <main className="py-6 px-4">
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
@@ -120,6 +123,7 @@ const Dashboard = () => {
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="tasks">Tarefas</TabsTrigger>
               <TabsTrigger value="calendar">Calendário</TabsTrigger>
+              <TabsTrigger value="demands">Demandas</TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="space-y-4">
@@ -145,6 +149,14 @@ const Dashboard = () => {
                   <BookingCalendar />
                 </CardContent>
               </Card>
+            </TabsContent>
+            
+            <TabsContent value="demands" className="space-y-4">
+              <DemandsTab 
+                demands={demands} 
+                users={users} 
+                loading={demandsLoading || usersLoading} 
+              />
             </TabsContent>
           </Tabs>
         </div>
