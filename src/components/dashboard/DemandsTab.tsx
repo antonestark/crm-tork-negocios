@@ -27,16 +27,15 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, RefreshCw } from 'lucide-react';
-import { Demand } from '@/types/demands'; // Importa o tipo global
+import { Demand } from '@/types/demands';
 import { User } from '@/types/admin';
 
-// Define um tipo local que reflete a estrutura real recebida (com area_id)
-// Ou podemos tentar importar o tipo do hook useDemands se ele for exportado
+// Using the ReceivedDemand type as defined in the file
 interface ReceivedDemand {
   id: string;
   title: string;
   description?: string;
-  area_id?: string; // Espera area_id como string
+  area_id?: string;
   priority?: string;
   assigned_to?: string; 
   requested_by?: string;
@@ -44,13 +43,12 @@ interface ReceivedDemand {
   status?: string;      
   created_at: string;  
   updated_at: string;
-  // Não espera 'area' como objeto
   assigned_user?: { name: string } | null; 
   requester?: { name: string } | null;
 }
 
 interface DemandsTabProps {
-  demands: ReceivedDemand[]; // Usa o tipo local
+  demands: ReceivedDemand[];
   users: User[];
   loading: boolean;
 }
@@ -135,10 +133,10 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
   };
 
   return (
-    <Card className="bg-slate-800/60 backdrop-blur-sm border-0 shadow-lg">
+    <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-white">Demandas Pendentes</CardTitle>
+          <CardTitle className="text-white bg-gradient-to-r from-indigo-400 to-blue-300 bg-clip-text text-transparent">Demandas Pendentes</CardTitle>
           <div className="flex items-center space-x-2">
             {/* Filtro de Data */}
             <Popover>
@@ -146,7 +144,7 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className={`bg-slate-700/50 border-slate-600 hover:bg-slate-700 ${selectedDate ? 'text-blue-400' : 'text-slate-300'}`}
+                  className={`bg-slate-800/70 border-blue-900/50 hover:bg-slate-800 hover:border-blue-500/50 ${selectedDate ? 'text-blue-400' : 'text-slate-300'} transition-colors`}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDate ? (
@@ -156,13 +154,19 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700">
+              <PopoverContent className="w-auto p-0 bg-slate-800 border-blue-900/50">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   initialFocus
                   className="bg-slate-800 text-white"
+                  classNames={{
+                    day_today: "bg-blue-900/30 text-white",
+                    day_selected: "bg-blue-500 text-white font-bold hover:bg-blue-600",
+                    day_range_middle: "bg-blue-900/20",
+                    day: "hover:bg-slate-700 focus:bg-slate-700 focus:text-white"
+                  }}
                 />
               </PopoverContent>
             </Popover>
@@ -172,13 +176,13 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
               value={selectedUserId} 
               onValueChange={setSelectedUserId}
             >
-              <SelectTrigger className="w-[180px] bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-700">
+              <SelectTrigger className="w-[180px] bg-slate-800/70 border-blue-900/50 text-slate-300 hover:bg-slate-800 hover:border-blue-500/50 transition-colors">
                 <SelectValue placeholder="Filtrar por Pessoa" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                <SelectItem value="all">Todos</SelectItem>
+              <SelectContent className="bg-slate-800 border-blue-900/50 text-white">
+                <SelectItem value="all" className="focus:bg-blue-900/30">Todos</SelectItem>
                 {safeUsers.map(user => (
-                  <SelectItem key={user.id} value={user.id}>
+                  <SelectItem key={user.id} value={user.id} className="focus:bg-blue-900/30">
                     {user.first_name || ''} {user.last_name || ''}
                   </SelectItem>
                 ))}
@@ -191,7 +195,7 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
               size="icon"
               onClick={resetFilters}
               disabled={!selectedDate && !selectedUserId}
-              className="text-slate-300 hover:bg-slate-700/50"
+              className="text-slate-300 hover:bg-slate-800/70 hover:text-blue-400 transition-colors"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -201,62 +205,64 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
       <CardContent>
         {loading ? (
           <div className="space-y-2">
-            <Skeleton className="h-10 w-full bg-slate-700/50" />
-            <Skeleton className="h-10 w-full bg-slate-700/50" />
-            <Skeleton className="h-10 w-full bg-slate-700/50" />
+            <Skeleton className="h-10 w-full bg-slate-800/70" />
+            <Skeleton className="h-10 w-full bg-slate-800/70" />
+            <Skeleton className="h-10 w-full bg-slate-800/70" />
           </div>
         ) : filteredDemands.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
+          <div className="text-center py-8 text-slate-400 bg-slate-800/20 rounded-lg border border-blue-900/20">
             Nenhuma demanda pendente encontrada com os filtros selecionados.
           </div>
         ) : (
-          <Table>
-            <TableHeader className="bg-slate-800/70">
-              <TableRow className="border-slate-700 hover:bg-slate-700/30">
-                <TableHead className="text-slate-300">Título</TableHead>
-                <TableHead className="text-slate-300">Responsável</TableHead>
-                <TableHead className="text-slate-300">Área</TableHead>
-                <TableHead className="text-slate-300">Prioridade</TableHead>
-                <TableHead className="text-slate-300">Data de Criação</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredDemands.map(demand => (
-                <TableRow key={demand.id || 'unknown'} className="border-slate-700/50 hover:bg-slate-700/30">
-                  <TableCell className="font-medium text-white">{demand.title || 'Sem título'}</TableCell>
-                  <TableCell className="text-slate-300">{getUserFullName(demand.assigned_to)}</TableCell>
-                  <TableCell className="text-slate-300">{getAreaDisplay(demand.area_id)}</TableCell>
-                  <TableCell>
-                    {(() => {
-                      const priority = demand.priority || 'low';
-                      return (
-                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          priority === 'high' ? 'bg-red-900/50 text-red-200 border border-red-700' :
-                          priority === 'medium' ? 'bg-yellow-900/50 text-yellow-200 border border-yellow-700' :
-                          'bg-green-900/50 text-green-200 border border-green-700'
-                        }`}>
-                          {priority === 'high' ? 'Alta' :
-                           priority === 'medium' ? 'Média' : 'Baixa'}
-                        </div>
-                      );
-                    })()}
-                  </TableCell>
-                  <TableCell className="text-slate-300">
-                    {(() => {
-                      try {
-                        if (!demand.created_at) return 'Data não disponível';
-                        const date = new Date(demand.created_at);
-                        if (isNaN(date.getTime())) return 'Data inválida';
-                        return format(date, 'dd/MM/yyyy', { locale: ptBR });
-                      } catch (e) {
-                        return 'Erro ao processar data';
-                      }
-                    })()}
-                  </TableCell>
+          <div className="rounded-lg overflow-hidden border border-blue-900/30">
+            <Table>
+              <TableHeader className="bg-slate-800/90">
+                <TableRow className="border-blue-900/30 hover:bg-slate-700/50">
+                  <TableHead className="text-slate-300">Título</TableHead>
+                  <TableHead className="text-slate-300">Responsável</TableHead>
+                  <TableHead className="text-slate-300">Área</TableHead>
+                  <TableHead className="text-slate-300">Prioridade</TableHead>
+                  <TableHead className="text-slate-300">Data de Criação</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredDemands.map(demand => (
+                  <TableRow key={demand.id || 'unknown'} className="border-blue-900/20 bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
+                    <TableCell className="font-medium text-white">{demand.title || 'Sem título'}</TableCell>
+                    <TableCell className="text-slate-300">{getUserFullName(demand.assigned_to)}</TableCell>
+                    <TableCell className="text-slate-300">{getAreaDisplay(demand.area_id)}</TableCell>
+                    <TableCell>
+                      {(() => {
+                        const priority = demand.priority || 'low';
+                        return (
+                          <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            priority === 'high' ? 'bg-rose-900/30 text-rose-300 border border-rose-700/50' :
+                            priority === 'medium' ? 'bg-amber-900/30 text-amber-300 border border-amber-700/50' :
+                            'bg-emerald-900/30 text-emerald-300 border border-emerald-700/50'
+                          }`}>
+                            {priority === 'high' ? 'Alta' :
+                             priority === 'medium' ? 'Média' : 'Baixa'}
+                          </div>
+                        );
+                      })()}
+                    </TableCell>
+                    <TableCell className="text-slate-300">
+                      {(() => {
+                        try {
+                          if (!demand.created_at) return 'Data não disponível';
+                          const date = new Date(demand.created_at);
+                          if (isNaN(date.getTime())) return 'Data inválida';
+                          return format(date, 'dd/MM/yyyy', { locale: ptBR });
+                        } catch (e) {
+                          return 'Erro ao processar data';
+                        }
+                      })()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>
