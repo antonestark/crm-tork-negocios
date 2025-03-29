@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Activity,
   CheckCircle, 
   FileCheck, 
-  Skeleton, 
   Users 
 } from 'lucide-react';
 
@@ -107,3 +107,4 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
     </div>
   );
 };
+
