@@ -1,59 +1,153 @@
-import React from 'react';
-import { UserNav } from '@/components/layout/UserNav';
-import { useLocation } from 'react-router-dom';
 
-interface Link {
-  href: string;
-  label: string;
-}
+import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, LayoutDashboard, Users, LayoutGrid, Target, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link, useLocation } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export const Header = () => {
   const location = useLocation();
-  const currentPath = location.pathname;
-
-  const links: Link[] = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/leads', label: 'Leads' },
-    { href: '/demands', label: 'Demandas' },
-    { href: '/services', label: 'Serviços' },
-  ];
-
+  
+  const isActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  }
+  
   return (
-    <header className="w-full px-6 py-4 bg-slate-900/90 backdrop-blur-lg border-b border-blue-900/40 flex items-center justify-between animate-fade-in shadow-[0_0_20px_rgba(56,189,248,0.2)]">
-      <div className="relative z-10">
-        {/* Neon glow effect on the logo */}
-        <a href="/" className="font-bold text-xl bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]">
-          NextGenUX
-        </a>
-      </div>
-      
-      <div className="flex items-center gap-4">
-        {/* Keep existing nav items but apply the futuristic styling */}
-        <nav className="hidden md:flex items-center space-x-6">
-          {links.map((link) => (
-            <a 
-              key={link.href} 
-              href={link.href} 
-              className="text-slate-300 hover:text-cyan-400 transition-colors relative group"
-            >
-              {link.href === currentPath && (
-                <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"></span>
-              )}
-              <span className="relative z-10">{link.label}</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-blue-500/0 opacity-0 group-hover:opacity-10 rounded-md transition-opacity"></span>
-            </a>
-          ))}
+    <header className="w-full px-6 py-4 bg-white border-b flex items-center justify-between animate-fade-in">
+      <div className="flex items-center space-x-6">
+        <h1 className="text-2xl font-semibold text-primary">Tork Negócios</h1>
+        <nav className="hidden md:flex items-center space-x-4">
+          <Button 
+            variant={isActive('/dashboard') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/dashboard">
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              Dashboard
+            </Link>
+          </Button>
+          <Button 
+            variant={isActive('/clients') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/clients">
+              <Users className="h-4 w-4 mr-2" />
+              Clientes
+            </Link>
+          </Button>
+          <Button 
+            variant={isActive('/leads') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/leads">
+              <Target className="h-4 w-4 mr-2" />
+              Leads
+            </Link>
+          </Button>
+          <Button 
+            variant={isActive('/agendamento') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/agendamento">
+              <Calendar className="h-4 w-4 mr-2" />
+              Agenda
+            </Link>
+          </Button>
+          <Button 
+            variant={isActive('/services') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/services">
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              Serviços
+            </Link>
+          </Button>
+          <Button 
+            variant={isActive('/services/reports') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/services/reports">
+              <FileText className="h-4 w-4 mr-2" />
+              Relatórios
+            </Link>
+          </Button>
+          <Button 
+            variant={isActive('/planos') ? "default" : "ghost"} 
+            size="sm" 
+            className="flex items-center" 
+            asChild
+          >
+            <Link to="/planos">
+              <CreditCard className="h-4 w-4 mr-2" />
+              Planos
+            </Link>
+          </Button>
         </nav>
-        
-        {/* Apply futuristic styling to user nav */}
-        <UserNav className="z-10" />
       </div>
-      
-      {/* Add subtle animated background effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent"></div>
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50"></div>
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-70"></div>
+      <div className="flex items-center space-x-4">
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          <span className="absolute -top-1 -right-1 bg-danger text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
+            3
+          </span>
+        </Button>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="https://github.com/shadcn.png" alt="Avatar" />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">Carlos Silva</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  carlos@tork.com.br
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/admin">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Painel Administrativo</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/planos">
+                <CreditCard className="mr-2 h-4 w-4" />
+                <span>Gerenciar Assinatura</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-danger">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sair</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
