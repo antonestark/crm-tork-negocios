@@ -46,10 +46,8 @@ export const Header = () => {
           ))}
         </nav>
         
-        {/* Apply futuristic styling to user nav but without passing the className prop */}
-        <div className="z-10">
-          <UserNav />
-        </div>
+        {/* Apply futuristic styling to user nav */}
+        <UserNav className="z-10" />
       </div>
       
       {/* Add subtle animated background effects */}
