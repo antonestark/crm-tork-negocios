@@ -79,7 +79,7 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
       if (demand.status !== 'open') return false;
 
       // Filtrar por pessoa responsável (se selecionada)
-      if (selectedUserId && (!demand.assigned_to || demand.assigned_to !== selectedUserId)) return false;
+      if (selectedUserId && selectedUserId !== 'all' && (!demand.assigned_to || demand.assigned_to !== selectedUserId)) return false;
 
       // Filtrar por data (se selecionada)
       if (selectedDate && demand.created_at) {
@@ -135,10 +135,10 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="bg-slate-800/60 backdrop-blur-sm border-0 shadow-lg">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Demandas Pendentes</CardTitle>
+          <CardTitle className="text-white">Demandas Pendentes</CardTitle>
           <div className="flex items-center space-x-2">
             {/* Filtro de Data */}
             <Popover>
@@ -146,7 +146,7 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className={selectedDate ? 'text-primary' : ''}
+                  className={`bg-slate-700/50 border-slate-600 hover:bg-slate-700 ${selectedDate ? 'text-blue-400' : 'text-slate-300'}`}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDate ? (
@@ -156,12 +156,13 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   initialFocus
+                  className="bg-slate-800 text-white"
                 />
               </PopoverContent>
             </Popover>
@@ -171,10 +172,10 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
               value={selectedUserId} 
               onValueChange={setSelectedUserId}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-700">
                 <SelectValue placeholder="Filtrar por Pessoa" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-slate-800 border-slate-700 text-white">
                 <SelectItem value="all">Todos</SelectItem>
                 {safeUsers.map(user => (
                   <SelectItem key={user.id} value={user.id}>
@@ -190,6 +191,7 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
               size="icon"
               onClick={resetFilters}
               disabled={!selectedDate && !selectedUserId}
+              className="text-slate-300 hover:bg-slate-700/50"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -199,39 +201,39 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
       <CardContent>
         {loading ? (
           <div className="space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full bg-slate-700/50" />
+            <Skeleton className="h-10 w-full bg-slate-700/50" />
+            <Skeleton className="h-10 w-full bg-slate-700/50" />
           </div>
         ) : filteredDemands.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-slate-400">
             Nenhuma demanda pendente encontrada com os filtros selecionados.
           </div>
         ) : (
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Título</TableHead>
-                <TableHead>Responsável</TableHead>
-                <TableHead>Área</TableHead>
-                <TableHead>Prioridade</TableHead>
-                <TableHead>Data de Criação</TableHead>
+            <TableHeader className="bg-slate-800/70">
+              <TableRow className="border-slate-700 hover:bg-slate-700/30">
+                <TableHead className="text-slate-300">Título</TableHead>
+                <TableHead className="text-slate-300">Responsável</TableHead>
+                <TableHead className="text-slate-300">Área</TableHead>
+                <TableHead className="text-slate-300">Prioridade</TableHead>
+                <TableHead className="text-slate-300">Data de Criação</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredDemands.map(demand => (
-                <TableRow key={demand.id || 'unknown'}>
-                  <TableCell className="font-medium">{demand.title || 'Sem título'}</TableCell>
-                  <TableCell>{getUserFullName(demand.assigned_to)}</TableCell>
-                  <TableCell>{getAreaDisplay(demand.area_id)}</TableCell> {/* Ajustado para usar area_id */}
+                <TableRow key={demand.id || 'unknown'} className="border-slate-700/50 hover:bg-slate-700/30">
+                  <TableCell className="font-medium text-white">{demand.title || 'Sem título'}</TableCell>
+                  <TableCell className="text-slate-300">{getUserFullName(demand.assigned_to)}</TableCell>
+                  <TableCell className="text-slate-300">{getAreaDisplay(demand.area_id)}</TableCell>
                   <TableCell>
                     {(() => {
                       const priority = demand.priority || 'low';
                       return (
                         <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          priority === 'high' ? 'bg-red-100 text-red-800' :
-                          priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-green-100 text-green-800'
+                          priority === 'high' ? 'bg-red-900/50 text-red-200 border border-red-700' :
+                          priority === 'medium' ? 'bg-yellow-900/50 text-yellow-200 border border-yellow-700' :
+                          'bg-green-900/50 text-green-200 border border-green-700'
                         }`}>
                           {priority === 'high' ? 'Alta' :
                            priority === 'medium' ? 'Média' : 'Baixa'}
@@ -239,7 +241,7 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
                       );
                     })()}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-slate-300">
                     {(() => {
                       try {
                         if (!demand.created_at) return 'Data não disponível';

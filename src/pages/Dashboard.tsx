@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,7 +41,7 @@ const Dashboard = () => {
   const completionRate = totalTasksValue > 0 ? Math.round((metrics.completed / totalTasksValue) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white overflow-x-hidden no-scrollbar">
       <Header />
       <main className="py-6 px-4">
         <div className="flex flex-col gap-6 relative z-10">
@@ -153,7 +154,7 @@ const Dashboard = () => {
                 Calendário
               </TabsTrigger>
               <TabsTrigger 
-                value="demands" // Adicionado
+                value="demands" 
                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/20 data-[state=active]:to-indigo-500/20 data-[state=active]:text-white text-slate-400"
               >
                 Demandas 
@@ -191,7 +192,7 @@ const Dashboard = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="demands" className="space-y-4"> // Adicionado
+            <TabsContent value="demands" className="space-y-4">
               <DemandsTab 
                 demands={demands} 
                 users={users} 

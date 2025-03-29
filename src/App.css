@@ -1,3 +1,4 @@
+
 #root {
   padding: 2rem;
 }
@@ -36,4 +37,14 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* No scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
