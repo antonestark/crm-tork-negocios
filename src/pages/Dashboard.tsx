@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,15 +16,18 @@ import { TaskPanel } from '@/components/dashboard/TaskPanel';
 import { BookingCalendar } from '@/components/dashboard/Calendar/BookingCalendar';
 import { useLeads } from '@/hooks/use-leads';
 import { useDemands } from '@/hooks/use-demands';
+import useUsers from '@/hooks/users'; // Adicionado
 import { useServiceChecklist } from '@/hooks/use-service-checklist';
 import { useServiceReports } from '@/hooks/use-service-reports';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LeadsOverview } from '@/components/dashboard/LeadsOverview';
 import { DemandsOverview } from '@/components/dashboard/DemandsOverview';
+import { DemandsTab } from '@/components/dashboard/DemandsTab'; // Adicionado
 
 const Dashboard = () => {
   const { leads, loading: leadsLoading } = useLeads();
   const { demands, loading: demandsLoading } = useDemands();
+  const { users, loading: usersLoading } = useUsers(); // Adicionado
   const { items: checklistItems, loading: checklistLoading } = useServiceChecklist();
   const { metrics, loading: metricsLoading } = useServiceReports();
   
@@ -40,7 +42,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white overflow-x-hidden">
       <Header />
-      <main className="container mx-auto py-6 px-4">
+      <main className="py-6 px-4">
         <div className="flex flex-col gap-6 relative z-10">
           {/* Dashboard Header with Gradient Title */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -150,6 +152,12 @@ const Dashboard = () => {
               >
                 Calendário
               </TabsTrigger>
+              <TabsTrigger 
+                value="demands" // Adicionado
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/20 data-[state=active]:to-indigo-500/20 data-[state=active]:text-white text-slate-400"
+              >
+                Demandas 
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="space-y-4">
@@ -181,6 +189,14 @@ const Dashboard = () => {
                   <BookingCalendar />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="demands" className="space-y-4"> // Adicionado
+              <DemandsTab 
+                demands={demands} 
+                users={users} 
+                loading={demandsLoading || usersLoading} 
+              />
             </TabsContent>
           </Tabs>
         </div>
