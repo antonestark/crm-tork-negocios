@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { UserNav } from '@/components/layout/UserNav';
+import { UserNav } from '@/components/auth/UserNav';
 import { useLocation } from 'react-router-dom';
 
 interface Link {
