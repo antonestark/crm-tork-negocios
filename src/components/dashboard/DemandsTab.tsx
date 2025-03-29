@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -174,7 +175,7 @@ export const DemandsTab: React.FC<DemandsTabProps> = ({
                 <SelectValue placeholder="Filtrar por Pessoa" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 {safeUsers.map(user => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.first_name || ''} {user.last_name || ''}
