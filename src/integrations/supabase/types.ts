@@ -559,6 +559,7 @@ export type Database = {
           completed_date: string | null
           created_at: string | null
           description: string | null
+          frequency: string | null
           id: string
           scheduled_date: string
           status: string | null
@@ -571,6 +572,7 @@ export type Database = {
           completed_date?: string | null
           created_at?: string | null
           description?: string | null
+          frequency?: string | null
           id?: string
           scheduled_date: string
           status?: string | null
@@ -583,6 +585,7 @@ export type Database = {
           completed_date?: string | null
           created_at?: string | null
           description?: string | null
+          frequency?: string | null
           id?: string
           scheduled_date?: string
           status?: string | null

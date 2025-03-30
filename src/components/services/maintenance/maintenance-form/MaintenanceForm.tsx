@@ -6,7 +6,14 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { format } from "date-fns";
 import { maintenanceFormSchema, MaintenanceFormProps, MaintenanceFormValues } from "./types";
-import { TitleField, DescriptionField, TypeField, AreaField, ScheduledDateField } from "./FormFields";
+import { 
+  TitleField, 
+  DescriptionField, 
+  TypeField, 
+  AreaField, 
+  ScheduledDateField,
+  FrequencyField 
+} from "./FormFields";
 import { FormButtons } from "./FormButtons";
 
 export const MaintenanceForm = ({ onSubmit, areas, setOpen }: MaintenanceFormProps) => {
@@ -19,7 +26,8 @@ export const MaintenanceForm = ({ onSubmit, areas, setOpen }: MaintenanceFormPro
       title: "",
       description: "",
       type: "preventive",
-      status: "pending"
+      status: "pending",
+      frequency: "monthly"
     }
   });
 
@@ -40,7 +48,8 @@ export const MaintenanceForm = ({ onSubmit, areas, setOpen }: MaintenanceFormPro
         type: values.type,
         area_id: values.area_id || null,
         status: values.status || "pending",
-        scheduled_date: formattedDate
+        scheduled_date: formattedDate,
+        frequency: values.frequency || "monthly"
       };
 
       await onSubmit(maintenanceData);
@@ -60,6 +69,7 @@ export const MaintenanceForm = ({ onSubmit, areas, setOpen }: MaintenanceFormPro
         <TitleField form={form} />
         <DescriptionField form={form} />
         <TypeField form={form} />
+        <FrequencyField form={form} />
         <AreaField form={form} areas={areas} areasLoading={areasLoading} />
         <ScheduledDateField form={form} />
         <FormButtons isSubmitting={isSubmitting} />

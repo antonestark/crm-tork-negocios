@@ -74,6 +74,33 @@ export const TypeField = ({ form }: FormFieldProps) => (
   />
 );
 
+export const FrequencyField = ({ form }: FormFieldProps) => (
+  <FormField
+    control={form.control}
+    name="frequency"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Frequência</FormLabel>
+        <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <FormControl>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione a frequência" />
+            </SelectTrigger>
+          </FormControl>
+          <SelectContent>
+            <SelectItem value="weekly">Semanal</SelectItem>
+            <SelectItem value="monthly">Mensal</SelectItem>
+            <SelectItem value="quarterly">Trimestral</SelectItem>
+            <SelectItem value="semiannual">Semestral</SelectItem>
+            <SelectItem value="annual">Anual</SelectItem>
+          </SelectContent>
+        </Select>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+);
+
 export const AreaField = ({ form, areas, areasLoading }: AreaFieldProps) => (
   <FormField
     control={form.control}

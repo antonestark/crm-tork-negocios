@@ -30,6 +30,23 @@ export const MaintenanceList = ({ maintenances, loading }: MaintenanceListProps)
     }
   };
 
+  const getFrequencyText = (frequency: string) => {
+    switch (frequency) {
+      case "weekly":
+        return "Semanal";
+      case "monthly":
+        return "Mensal";
+      case "quarterly":
+        return "Trimestral";
+      case "semiannual":
+        return "Semestral";
+      case "annual":
+        return "Anual";
+      default:
+        return "Mensal";
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-2">
@@ -47,6 +64,7 @@ export const MaintenanceList = ({ maintenances, loading }: MaintenanceListProps)
           <TableHead>Título</TableHead>
           <TableHead>Área</TableHead>
           <TableHead>Tipo</TableHead>
+          <TableHead>Frequência</TableHead>
           <TableHead>Data Programada</TableHead>
           <TableHead>Responsável</TableHead>
           <TableHead>Status</TableHead>
@@ -62,6 +80,7 @@ export const MaintenanceList = ({ maintenances, loading }: MaintenanceListProps)
                 {maintenance.type === 'preventive' ? 'Preventiva' : 
                   maintenance.type === 'corrective' ? 'Corretiva' : 'Programada'}
               </TableCell>
+              <TableCell>{getFrequencyText(maintenance.frequency)}</TableCell>
               <TableCell>
                 {maintenance.scheduled_date ? 
                   format(new Date(maintenance.scheduled_date), 'dd/MM/yyyy') : 
@@ -77,7 +96,7 @@ export const MaintenanceList = ({ maintenances, loading }: MaintenanceListProps)
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+            <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
               Nenhuma manutenção encontrada
             </TableCell>
           </TableRow>

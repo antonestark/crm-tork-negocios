@@ -8,7 +8,8 @@ export const maintenanceFormSchema = z.object({
   type: z.string(),
   area_id: z.string().uuid().optional(),
   scheduled_date: z.date().optional(),
-  status: z.string().default("pending")
+  status: z.string().default("pending"),
+  frequency: z.string().default("monthly")
 });
 
 export type MaintenanceFormValues = z.infer<typeof maintenanceFormSchema>;
