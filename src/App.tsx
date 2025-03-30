@@ -27,6 +27,7 @@ import NotFound from '@/pages/NotFound';
 import Planos from '@/pages/Planos';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { QueryClientProvider } from '@/providers/QueryClientProvider';
+import { Toaster } from "@/components/ui/sonner";
 
 // Route related imports
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -72,6 +73,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        <Toaster position="top-right" />
       </AuthProvider>
     </QueryClientProvider>
   );

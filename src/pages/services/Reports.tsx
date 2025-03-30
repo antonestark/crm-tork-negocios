@@ -1,5 +1,5 @@
 
-import { Header } from "@/components/layout/Header";
+import { BaseLayout } from "@/components/layout/BaseLayout";
 import { ServicesMetrics } from "@/components/services/ServicesMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServicesNav } from "@/components/services/ServicesNav";
@@ -10,24 +10,34 @@ const ReportsPage = () => {
   const { metrics, loading } = useServiceReports();
   
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto py-6 px-4">
-        <ServicesNav />
-        <h2 className="text-3xl font-bold tracking-tight mb-6">Relatórios</h2>
-        <ServicesMetrics metrics={metrics} loading={loading} />
-        <div className="mt-6 grid gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Desempenho por Área</CardTitle>
+    <BaseLayout>
+      <div className="py-6 px-4 max-w-7xl mx-auto">
+        <div className="animate-fade-in">
+          <ServicesNav />
+        </div>
+        
+        <div className="flex items-center justify-between mb-6 animate-fade-in delay-100">
+          <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] pb-1">
+            Relatórios
+          </h2>
+        </div>
+        
+        <div className="animate-fade-in delay-200">
+          <ServicesMetrics metrics={metrics} loading={loading} />
+        </div>
+        
+        <div className="mt-6 animate-fade-in delay-300">
+          <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden group hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300">
+            <CardHeader className="border-b border-blue-900/40">
+              <CardTitle className="text-slate-100">Desempenho por Área</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <AreaMetrics />
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </div>
+    </BaseLayout>
   );
 };
 

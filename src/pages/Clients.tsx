@@ -1,18 +1,41 @@
 
 import { ClientsTable } from "@/components/clients/ClientsTable";
-import { Header } from "@/components/layout/Header";
+import { BaseLayout } from "@/components/layout/BaseLayout";
+import { Button } from "@/components/ui/button";
+import { Plus, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const Clients = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto py-6 px-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Clientes</h1>
+    <BaseLayout>
+      <div className="py-6 px-4 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 animate-fade-in">
+          <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] pb-1">
+            Clientes
+          </h2>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+              <Input 
+                placeholder="Buscar cliente..." 
+                className="pl-8 bg-slate-900/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500"
+              />
+            </div>
+            <Button 
+              className="group border border-blue-500/50 text-blue-400 hover:border-blue-400 hover:bg-blue-950/30 rounded-full transition-all duration-300 relative overflow-hidden"
+            >
+              <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+              <span className="relative z-10">Novo Cliente</span>
+              <span className="absolute inset-0 w-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 transition-all duration-300 group-hover:w-full"></span>
+            </Button>
+          </div>
         </div>
-        <ClientsTable />
-      </main>
-    </div>
+        
+        <div className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg shadow-lg overflow-hidden animate-fade-in">
+          <ClientsTable />
+        </div>
+      </div>
+    </BaseLayout>
   );
 };
 

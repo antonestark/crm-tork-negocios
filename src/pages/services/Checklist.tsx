@@ -1,5 +1,5 @@
 
-import { Header } from "@/components/layout/Header";
+import { BaseLayout } from "@/components/layout/BaseLayout";
 import { Card } from "@/components/ui/card";
 import { 
   Tabs, 
@@ -12,37 +12,62 @@ import { ChecklistItems } from "@/components/services/ChecklistItems";
 
 const ChecklistPage = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto py-6 px-4">
-        <ServicesNav />
-        <h2 className="text-3xl font-bold tracking-tight mb-6">Checklist Diário</h2>
-        <Card className="p-6">
+    <BaseLayout>
+      <div className="py-6 px-4 max-w-7xl mx-auto">
+        <div className="animate-fade-in">
+          <ServicesNav />
+        </div>
+        
+        <div className="flex items-center justify-between mb-6 animate-fade-in delay-100">
+          <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] pb-1">
+            Checklist Diário
+          </h2>
+        </div>
+        
+        <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg p-6 animate-fade-in delay-200">
           <Tabs defaultValue="morning">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="morning">Manhã</TabsTrigger>
-              <TabsTrigger value="afternoon">Tarde</TabsTrigger>
-              <TabsTrigger value="evening">Noite</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 bg-slate-900/70 p-1 border border-blue-900/40 rounded-lg overflow-hidden">
+              <TabsTrigger 
+                value="morning"
+                className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-950 data-[state=active]:to-indigo-950 data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 text-slate-400 transition-all duration-300"
+              >
+                <span className="relative z-10">Manhã</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="afternoon"
+                className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-950 data-[state=active]:to-indigo-950 data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 text-slate-400 transition-all duration-300"
+              >
+                <span className="relative z-10">Tarde</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="evening"
+                className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-950 data-[state=active]:to-indigo-950 data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 text-slate-400 transition-all duration-300"
+              >
+                <span className="relative z-10">Noite</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="morning">
-              <div className="mt-4">
+              <div className="mt-4 bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
                 <ChecklistItems period="morning" />
               </div>
             </TabsContent>
             <TabsContent value="afternoon">
-              <div className="mt-4">
+              <div className="mt-4 bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
                 <ChecklistItems period="afternoon" />
               </div>
             </TabsContent>
             <TabsContent value="evening">
-              <div className="mt-4">
+              <div className="mt-4 bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
                 <ChecklistItems period="evening" />
               </div>
             </TabsContent>
           </Tabs>
         </Card>
-      </main>
-    </div>
+      </div>
+    </BaseLayout>
   );
 };
 

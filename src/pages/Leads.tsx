@@ -1,128 +1,35 @@
 
-import React, { useState, useEffect } from 'react';
-import { Header } from '@/components/layout/Header';
-import { useLeads } from '@/hooks/use-leads';
+import React from 'react';
 import { LeadsKanban } from '@/components/leads/LeadsKanban';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { BaseLayout } from "@/components/layout/BaseLayout";
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
-const LeadsPage = () => {
-  const { 
-    leads, 
-    loading, 
-    error,
-    fetchLeads,
-    addLead,
-    updateLead,
-    updateLeadStatus,
-    deleteLead
-  } = useLeads();
-  
-  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
-  const [usersError, setUsersError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    fetchUsers();
-    // Log the number of leads for debugging
-    console.log("Initial leads count:", leads.length);
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      setLoadingUsers(true);
-      setUsersError(null);
-      console.log("Fetching users...");
-      
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, name')
-        .order('name');
-      
-      if (error) {
-        console.error('Error fetching users:', error);
-        setUsersError(error);
-        throw error;
-      }
-      
-      console.log("Users data:", data);
-      setUsers(data || []);
-    } catch (err) {
-      console.error('Error fetching users:', err);
-      setUsersError(err as Error);
-      toast.error('Erro ao carregar usuários');
-    } finally {
-      setLoadingUsers(false);
-    }
-  };
-
-  const handleRefresh = () => {
-    console.log("Refreshing leads data...");
-    fetchLeads();
-    fetchUsers();
-  };
+const Leads = () => {
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto py-6 px-4">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold tracking-tight">Gestão de Leads</h2>
+    <BaseLayout>
+      <div className="py-6 px-4 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-6 animate-fade-in">
+          <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] pb-1">
+            Leads
+          </h2>
+          <Button 
+            className="group border border-blue-500/50 text-blue-400 hover:border-blue-400 hover:bg-blue-950/30 rounded-full transition-all duration-300 relative overflow-hidden"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+            <span className="relative z-10">Novo Lead</span>
+            <span className="absolute inset-0 w-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 transition-all duration-300 group-hover:w-full"></span>
+          </Button>
         </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm h-[calc(100vh-200px)]">
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Erro ao carregar leads</AlertTitle>
-              <AlertDescription>
-                {error.message}
-                <div className="mt-2">
-                  <button 
-                    onClick={handleRefresh}
-                    className="text-sm underline hover:text-primary"
-                  >
-                    Tentar novamente
-                  </button>
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          {usersError && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Erro ao carregar usuários</AlertTitle>
-              <AlertDescription>
-                {usersError.message}
-                <div className="mt-2">
-                  <button 
-                    onClick={fetchUsers}
-                    className="text-sm underline hover:text-primary"
-                  >
-                    Tentar novamente
-                  </button>
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          <LeadsKanban 
-            leads={leads}
-            users={users}
-            loading={loading || loadingUsers}
-            onAddLead={addLead}
-            onUpdateLead={updateLead}
-            onUpdateLeadStatus={updateLeadStatus}
-            onDeleteLead={deleteLead}
-            onRefresh={handleRefresh}
-          />
+        <div className="animate-fade-in">
+          <LeadsKanban onOpenDialog={() => setIsDialogOpen(true)} />
         </div>
-      </main>
-    </div>
+      </div>
+    </BaseLayout>
   );
 };
 
-export default LeadsPage;
+export default Leads;
