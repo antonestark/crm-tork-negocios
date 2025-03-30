@@ -4,9 +4,27 @@ import { LeadsKanban } from '@/components/leads/LeadsKanban';
 import { BaseLayout } from "@/components/layout/BaseLayout";
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { useLeads } from '@/hooks/use-leads';
 
 const Leads = () => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const { 
+    leads, 
+    loading, 
+    error,
+    fetchLeads, 
+    addLead, 
+    updateLead, 
+    updateLeadStatus, 
+    deleteLead 
+  } = useLeads();
+
+  // Mock users array for the leads form dropdown
+  // In a real application, you would fetch this from an API
+  const users = [
+    { id: '1', name: 'Admin User' },
+    { id: '2', name: 'Support Team' }
+  ];
 
   return (
     <BaseLayout>
@@ -25,7 +43,16 @@ const Leads = () => {
           </Button>
         </div>
         <div className="animate-fade-in">
-          <LeadsKanban onOpenDialog={() => setIsDialogOpen(true)} />
+          <LeadsKanban 
+            leads={leads || []} 
+            users={users}
+            loading={loading}
+            onAddLead={addLead}
+            onUpdateLead={updateLead}
+            onUpdateLeadStatus={updateLeadStatus}
+            onDeleteLead={deleteLead}
+            onRefresh={fetchLeads}
+          />
         </div>
       </div>
     </BaseLayout>
