@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { ArrowRight, Users, Lock } from "lucide-react";
 import { ServiceArea } from "@/hooks/use-service-areas-data";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { EditAreaDialog } from "./areas/EditAreaDialog";
 import { AreaActionsMenu } from "./areas/AreaActionsMenu";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -24,17 +24,28 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { subscription, loading: subscriptionLoading, checkCanCreateServiceArea } = useSubscription();
 
-  const handleEdit = (area: ServiceArea) => {
+  const handleEdit = useCallback((area: ServiceArea) => {
     setEditingArea(area);
     setIsEditDialogOpen(true);
-  };
+  }, []);
 
-  const handleUpdated = () => {
+  const handleUpdated = useCallback(() => {
     onAreaUpdated();
-    setEditingArea(null);
-  };
+  }, [onAreaUpdated]);
 
-  const checkSubscriptionLimit = () => {
+  const handleDialogOpenChange = useCallback((open: boolean) => {
+    setIsEditDialogOpen(open);
+    
+    // If dialog is closing, reset the editing area after a short delay
+    // This ensures animations complete before state updates
+    if (!open) {
+      setTimeout(() => {
+        setEditingArea(null);
+      }, 300);
+    }
+  }, []);
+
+  const checkSubscriptionLimit = useCallback(() => {
     if (subscriptionLoading) return true; // Allow while loading
     
     const canCreate = checkCanCreateServiceArea();
@@ -50,7 +61,7 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
       );
     }
     return canCreate;
-  };
+  }, [subscriptionLoading, checkCanCreateServiceArea]);
 
   if (loading) {
     return (
@@ -154,7 +165,7 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
       <EditAreaDialog 
         area={editingArea}
         open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
+        onOpenChange={handleDialogOpenChange}
         onUpdated={handleUpdated}
       />
     </>

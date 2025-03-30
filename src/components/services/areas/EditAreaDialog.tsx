@@ -18,16 +18,22 @@ export function EditAreaDialog({ area, open, onOpenChange, onUpdated }: EditArea
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formValues, setFormValues] = useState<AreaSubmitData | null>(null);
   
+  // Reset form values when area changes or dialog opens/closes
   useEffect(() => {
-    if (area) {
+    if (area && open) {
       setFormValues({
         name: area.name,
         description: area.description || "",
         status: area.status as 'active' | 'inactive',
         type: area.type || ""
       });
+    } else if (!open) {
+      // Clean up form values when dialog closes
+      setTimeout(() => {
+        setFormValues(null);
+      }, 300); // Small delay to ensure dialog animation completes
     }
-  }, [area]);
+  }, [area, open]);
 
   const handleSubmit = async (values: AreaSubmitData) => {
     try {
@@ -49,22 +55,60 @@ export function EditAreaDialog({ area, open, onOpenChange, onUpdated }: EditArea
       
       toast.success("Área atualizada com sucesso");
       onUpdated();
-      onOpenChange(false);
+      
+      // Properly close the dialog with a clean state
+      handleClose();
     } catch (error) {
       console.error("Error updating area:", error);
       toast.error("Erro ao atualizar área");
-    } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
+    handleClose();
+  };
+
+  const handleClose = () => {
+    // First update the state
+    setIsSubmitting(false);
+    
+    // Then close the dialog through the parent component
     onOpenChange(false);
   };
 
+  // Ensure we clean up when component unmounts
+  useEffect(() => {
+    return () => {
+      setFormValues(null);
+      setIsSubmitting(false);
+    };
+  }, []);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog 
+      open={open} 
+      onOpenChange={(newOpen) => {
+        if (!isSubmitting) {
+          onOpenChange(newOpen);
+        }
+      }}
+    >
+      <DialogContent 
+        className="sm:max-w-md" 
+        onInteractOutside={(e) => {
+          // Prevent interaction outside when submitting
+          if (isSubmitting) {
+            e.preventDefault();
+          }
+        }}
+        onEscapeKeyDown={(e) => {
+          // Prevent escape key closing when submitting
+          if (isSubmitting) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Editar Área</DialogTitle>
         </DialogHeader>
