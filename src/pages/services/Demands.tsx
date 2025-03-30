@@ -1,5 +1,4 @@
-
-import { Header } from "@/components/layout/Header";
+import { BaseLayout } from "@/components/layout/BaseLayout"; // Import BaseLayout
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { useState } from "react";
@@ -24,18 +23,20 @@ const convertDemands = (demands: HookDemand[]): TypeDemand[] => {
     status: demand.status,
     created_at: demand.created_at,
     updated_at: demand.updated_at,
-    area: { name: demand.area },
-    assigned_user: demand.assigned_to ? { name: demand.assigned_user_name } : null,
-    requester: demand.requested_by ? { name: demand.requester_name } : null
+    // Ensure area is an object, handle potential null/undefined from hook if necessary
+    area: demand.area ? { name: demand.area } : { name: 'N/A' }, 
+    assigned_user: demand.assigned_to ? { name: demand.assigned_user_name || 'N/A' } : null,
+    requester: demand.requested_by ? { name: demand.requester_name || 'N/A' } : null
   }));
 };
+
 
 const DemandsPage = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const { demands: hookDemands, loading, addDemand, fetchDemands } = useDemands();
   
   // Convert the demands to the right type for the component
-  const demands = convertDemands(hookDemands);
+  const demands = convertDemands(hookDemands || []); // Ensure hookDemands is an array
   
   const { 
     formOpen, 
@@ -60,37 +61,46 @@ const DemandsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto py-6 px-4">
-        <ServicesNav />
+    // Use BaseLayout
+    <BaseLayout> 
+      {/* Removed outer div and Header */}
+      {/* Removed container, mx-auto, py-6, px-4 from main */}
+      <main className="py-6"> 
+        <div className="px-4"> {/* Added padding to inner elements */}
+          <ServicesNav />
+        </div>
         
-        <DemandsHeader 
-          openDemandForm={openDemandForm}
-          resetFilter={resetFilter}
-          applyFilter={applyFilter}
-        />
+        <div className="px-4 mt-6"> {/* Added padding and margin */}
+          <DemandsHeader 
+            openDemandForm={openDemandForm}
+            resetFilter={resetFilter}
+            applyFilter={applyFilter}
+          />
+        </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Lista de Demandas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DemandsList 
-              demands={demands} 
-              loading={loading} 
-            />
-          </CardContent>
-        </Card>
+        <div className="px-4 mt-6"> {/* Added padding and margin */}
+          <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden"> {/* Apply consistent card style */}
+            <CardHeader>
+              <CardTitle>Lista de Demandas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DemandsList 
+                demands={demands} 
+                loading={loading} 
+              />
+            </CardContent>
+          </Card>
+        </div>
         
+        {/* Keep Dialog logic, trigger is now in DemandsHeader */}
         <DemandFormDialog 
           open={formOpen}
           onOpenChange={handleFormClose}
           onSubmit={addDemand}
-          demand={null}
+          demand={null} // Assuming this dialog is only for creating new demands from here
         />
       </main>
-    </div>
+    </BaseLayout>
   );
 };
 

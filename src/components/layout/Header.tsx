@@ -1,5 +1,4 @@
-
-import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, LayoutDashboard, Users, LayoutGrid, Target, CreditCard } from "lucide-react";
+import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, LayoutDashboard, Users, LayoutGrid, Target, CreditCard, ChevronDown } from "lucide-react"; // Added ChevronDown
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -16,6 +15,11 @@ export const Header = () => {
   const location = useLocation();
   
   const isActive = (path: string) => {
+    // Check for exact match or if the current path starts with the given path + '/'
+    // Also handle the base '/services' path specifically for the trigger button styling
+    if (path === '/services') {
+      return location.pathname.startsWith('/services');
+    }
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   }
   
@@ -68,28 +72,34 @@ export const Header = () => {
               Agenda
             </Link>
           </Button>
-          <Button 
-            variant={isActive('/services') ? "default" : "ghost"} 
-            size="sm" 
-            className={`flex items-center ${isActive('/services') ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-slate-300'}`}
-            asChild
-          >
-            <Link to="/services">
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Serviços
-            </Link>
-          </Button>
-          <Button 
-            variant={isActive('/services/reports') ? "default" : "ghost"} 
-            size="sm" 
-            className={`flex items-center ${isActive('/services/reports') ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-slate-300'}`}
-            asChild
-          >
-            <Link to="/services/reports">
-              <FileText className="h-4 w-4 mr-2" />
-              Relatórios
-            </Link>
-          </Button>
+          {/* Services Dropdown Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant={isActive('/services') ? "default" : "ghost"} 
+                size="sm" 
+                className={`flex items-center ${isActive('/services') ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-slate-300'}`}
+              >
+                <LayoutGrid className="h-4 w-4 mr-2" />
+                Serviços
+                <ChevronDown className="h-4 w-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 bg-slate-900 border border-blue-900/40 shadow-lg shadow-blue-900/20" align="start">
+              {/* Submenu Items */}
+              <DropdownMenuItem asChild className="text-slate-300 focus:bg-blue-900/40 focus:text-blue-100">
+                <Link to="/services/demands">Demandas</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="text-slate-300 focus:bg-blue-900/40 focus:text-blue-100">
+                <Link to="/services/areas">Áreas</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="text-slate-300 focus:bg-blue-900/40 focus:text-blue-100">
+                <Link to="/services/maintenance">Manutenção</Link>
+              </DropdownMenuItem>
+              {/* Removed Reports link from dropdown */}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/* Removed Reports Button */}
           <Button 
             variant={isActive('/planos') ? "default" : "ghost"} 
             size="sm" 

@@ -1,9 +1,9 @@
-import { Header } from "@/components/layout/Header";
+import { BaseLayout } from "@/components/layout/BaseLayout"; // Import BaseLayout
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Removed DialogTrigger as it's handled in MaintenanceHeader
 
 import { MaintenanceHeader } from "@/components/services/maintenance/MaintenanceHeader";
 import { MaintenanceMetrics } from "@/components/services/maintenance/MaintenanceMetrics";
@@ -94,24 +94,35 @@ const MaintenancePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto py-6 px-4">
-        <ServicesNav />
+    // Use BaseLayout
+    <BaseLayout> 
+      {/* Removed outer div and Header */}
+      {/* Removed container, mx-auto, py-6, px-4 from main */}
+      <main className="py-6"> 
+        <div className="px-4"> {/* Added padding to inner elements */}
+          <ServicesNav />
+        </div>
         
-        <MaintenanceHeader openDialog={() => setOpen(true)} />
+        <div className="px-4 mt-6"> {/* Added padding and margin */}
+          <MaintenanceHeader openDialog={() => setOpen(true)} />
+        </div>
         
-        <MaintenanceMetrics maintenances={maintenances} />
+        <div className="px-4 mt-6"> {/* Added padding and margin */}
+          <MaintenanceMetrics maintenances={maintenances} />
+        </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Próximas Manutenções</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MaintenanceList maintenances={maintenances} loading={loading} />
-          </CardContent>
-        </Card>
+        <div className="px-4 mt-6"> {/* Added padding and margin */}
+          <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden"> {/* Apply consistent card style */}
+            <CardHeader>
+              <CardTitle>Próximas Manutenções</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MaintenanceList maintenances={maintenances} loading={loading} />
+            </CardContent>
+          </Card>
+        </div>
         
+        {/* Keep Dialog logic, but trigger is now in MaintenanceHeader */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent>
             <DialogHeader>
@@ -125,7 +136,7 @@ const MaintenancePage = () => {
           </DialogContent>
         </Dialog>
       </main>
-    </div>
+    </BaseLayout>
   );
 };
 

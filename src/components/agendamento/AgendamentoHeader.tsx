@@ -49,16 +49,17 @@ export const AgendamentoHeader = ({ selectedDate, onDateSelect }: AgendamentoHea
         </p>
       </div>
       <div className="flex flex-col sm:flex-row gap-2">
-        <Button className="flex items-center" size="sm" onClick={handleNewBooking}>
+        {/* Apply green style */}
+        <Button className="flex items-center bg-green-600 text-white hover:bg-green-700" size="sm" onClick={handleNewBooking}>
           <CalendarIcon className="mr-2 h-4 w-4" />
           Novo Agendamento
         </Button>
         
         <Popover>
           <PopoverTrigger asChild>
+            {/* Apply green style, remove variant="outline" */}
             <Button
-              variant="outline"
-              className="justify-start text-left font-normal"
+              className="justify-start text-left font-normal bg-green-600 text-white hover:bg-green-700"
               size="sm"
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
@@ -77,10 +78,12 @@ export const AgendamentoHeader = ({ selectedDate, onDateSelect }: AgendamentoHea
         </Popover>
 
         <div className="flex gap-1">
+          {/* Apply green style when not active (variant="outline") */}
           <Button
             variant={view === "day" ? "default" : "outline"}
             size="sm"
             onClick={() => setView("day")}
+            className={view !== "day" ? "bg-green-600 text-white hover:bg-green-700" : ""}
           >
             <List className="h-4 w-4" />
           </Button>
@@ -88,6 +91,7 @@ export const AgendamentoHeader = ({ selectedDate, onDateSelect }: AgendamentoHea
             variant={view === "week" ? "default" : "outline"}
             size="sm"
             onClick={() => setView("week")}
+            className={view !== "week" ? "bg-green-600 text-white hover:bg-green-700" : ""}
           >
             <Grid2X2 className="h-4 w-4" />
           </Button>
@@ -95,6 +99,7 @@ export const AgendamentoHeader = ({ selectedDate, onDateSelect }: AgendamentoHea
             variant={view === "month" ? "default" : "outline"}
             size="sm"
             onClick={() => setView("month")}
+            className={view !== "month" ? "bg-green-600 text-white hover:bg-green-700" : ""}
           >
             <CalendarIcon className="h-4 w-4" />
           </Button>

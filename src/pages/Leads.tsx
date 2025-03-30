@@ -28,8 +28,9 @@ const Leads = () => {
 
   return (
     <BaseLayout>
-      <div className="py-6 px-4 max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6 animate-fade-in">
+      {/* Removed px-4, max-w-7xl, mx-auto */}
+      <div className="py-6"> 
+        <div className="flex justify-between items-center mb-6 animate-fade-in px-4"> {/* Added px-4 here */}
           <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] pb-1">
             Leads
           </h2>
@@ -42,7 +43,8 @@ const Leads = () => {
             <span className="absolute inset-0 w-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 transition-all duration-300 group-hover:w-full"></span>
           </Button>
         </div>
-        <div className="animate-fade-in">
+        {/* Added px-4 here */}
+        <div className="animate-fade-in px-4"> 
           <LeadsKanban 
             leads={leads || []} 
             users={users}

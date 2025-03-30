@@ -35,8 +35,10 @@ const Dashboard = () => {
       </div>
       
       <Header />
-      <main className="py-6 px-4 relative z-10">
-        <div className="flex flex-col gap-6 max-w-7xl mx-auto">
+      {/* Removed px-4 from main */}
+      <main className="py-6 relative z-10"> 
+        {/* Removed max-w-7xl, mx-auto and added px-4 to inner div */}
+        <div className="flex flex-col gap-6 px-4"> 
           {/* Dashboard Header with Gradient Title */}
           <DashboardHeader />
 

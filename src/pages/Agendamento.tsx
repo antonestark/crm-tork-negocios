@@ -24,23 +24,22 @@ const Agendamento = () => {
 
   return (
     <BaseLayout>
-      <div className="py-6 px-4 max-w-7xl mx-auto">
-        <div className="animate-fade-in">
+      {/* Removed px-4, max-w-7xl, mx-auto */}
+      <div className="py-6"> 
+        <div className="animate-fade-in px-4"> {/* Added px-4 */}
           <AgendamentoHeader 
             selectedDate={selectedDate} 
             onDateSelect={handleDateChange} 
           />
         </div>
         
-        <div className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg p-4 my-6 animate-fade-in">
-          <SubscriptionBanner />
-        </div>
+        {/* Subscription Banner Removed */}
         
-        <div className="mt-6 animate-fade-in delay-100">
+        <div className="mt-6 animate-fade-in delay-100 px-4"> {/* Added px-4 */}
           <MetricasAgendamento selectedDate={selectedDate} />
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6 animate-fade-in delay-200">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6 animate-fade-in delay-200 px-4"> {/* Added px-4 */}
           <TabsList className="bg-slate-900/70 backdrop-blur-md p-1 border border-blue-900/40 rounded-lg overflow-hidden">
             <TabsTrigger 
               value="calendar" 

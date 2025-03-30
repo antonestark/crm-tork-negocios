@@ -185,27 +185,11 @@ export function ClientsTable() {
             onChange={(e) => setTagFilter(e.target.value)}
             className="pl-3"
           />
-           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>Novo Cliente</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]">
-              <DialogHeader>
-                <DialogTitle>{selectedClient ? "Editar Cliente" : "Criar Novo Cliente"}</DialogTitle>
-                <DialogDescription>
-                  {selectedClient ? "Edite os dados do cliente selecionado." : "Adicione um novo cliente à sua lista."}
-                </DialogDescription>
-              </DialogHeader>
-              <ClientForm 
-                onSubmit={handleSubmit} 
-                // Pass prepared initial values
-                initialValues={prepareInitialValues(selectedClient)} 
-              />
-            </DialogContent>
-          </Dialog>
+          {/* Dialog removed, will be added to Clients.tsx */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
+              {/* Apply green background and white text */}
+              <Button className="bg-green-600 text-white hover:bg-green-700">
                 Filtrar por Status
               </Button>
             </DropdownMenuTrigger>

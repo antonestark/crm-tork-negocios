@@ -211,7 +211,12 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
           )}
         />
         
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {/* Apply green style */}
+        <Button 
+          type="submit" 
+          className="w-full bg-green-600 text-white hover:bg-green-700" 
+          disabled={isSubmitting}
+        >
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
