@@ -41,18 +41,19 @@ export const AppointmentRegistration: React.FC<AppointmentRegistrationProps> = (
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Registrar Novo Agendamento</CardTitle>
-      </CardHeader>
-      <CardContent>
+    // Remove the Card wrapper, as the parent page already provides a styled container
+    // <Card className="w-full max-w-2xl mx-auto">
+    //   <CardHeader>
+    //     <CardTitle>Registrar Novo Agendamento</CardTitle>
+    //   </CardHeader>
+    //   <CardContent>
         <AppointmentFormFields
           initialValues={{ date: initialDate }}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
         />
-      </CardContent>
-    </Card>
+    //   </CardContent>
+    // </Card>
   );
 };
 

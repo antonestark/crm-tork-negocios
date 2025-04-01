@@ -3,6 +3,7 @@ import React from 'react';
 import { LeadCard } from './LeadCard';
 import { Lead } from '@/types/admin';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge'; // Import Badge for count
 
 interface LeadColumnProps {
   title: string;
@@ -27,49 +28,38 @@ export const LeadColumn: React.FC<LeadColumnProps> = ({
   onDragOver,
   onDrop
 }) => {
-  // Determine background color based on status
-  const getColumnColor = () => {
-    switch (status) {
-      case 'qualificado':
-        return 'bg-green-50 border-green-200';
-      case 'não qualificado':
-        return 'bg-red-50 border-red-200';
-      default:
-        return 'bg-blue-50 border-blue-200';
-    }
-  };
+  // Removed color functions
 
-  // Determine header color based on status
-  const getHeaderColor = () => {
-    switch (status) {
-      case 'qualificado':
-        return 'bg-green-100 text-green-800';
-      case 'não qualificado':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-blue-100 text-blue-800';
-    }
-  };
+  // Define border colors based on status
+  const statusBorderColor = 
+    status === 'qualificado' ? 'border-green-500' :
+    status === 'não qualificado' ? 'border-red-500' :
+    'border-slate-500'; // Neutral color
 
   return (
+    // Apply dark theme styles + conditional top border color
     <div 
       className={cn(
-        'flex flex-col rounded-lg w-full border',
-        getColumnColor(),
+        'flex flex-col rounded-lg w-full border bg-slate-800/60 backdrop-blur-sm border-blue-900/40 shadow-lg', 
+        'border-t-4', // Add top border thickness
+        statusBorderColor, // Apply conditional color
         className
       )}
       onDragOver={onDragOver}
       onDrop={onDrop}
       data-status={status}
     >
-      <div className={cn('px-4 py-3 rounded-t-lg font-medium flex justify-between items-center', getHeaderColor())}>
+      {/* Header - Removed rounded-t-lg as border is now on parent */}
+      <div className={cn('px-4 py-3 font-medium flex justify-between items-center border-b border-blue-900/40 text-slate-100')}>
         <div>{title}</div>
-        <div className="px-2 py-1 rounded-full text-xs font-semibold bg-white">{count}</div>
+        {/* Use Badge for count */}
+        <Badge variant="secondary">{count}</Badge> 
       </div>
       
-      <div className="p-3 flex-1 overflow-y-auto max-h-[calc(100vh-220px)]">
+      {/* Apply padding to content area */}
+      <div className="p-4 flex-1 overflow-y-auto max-h-[calc(100vh-220px)] no-scrollbar"> 
         {leads.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">
+          <div className="text-center py-8 text-slate-400 text-sm"> {/* Adjusted text color */}
             Nenhum lead nesta coluna
           </div>
         ) : (

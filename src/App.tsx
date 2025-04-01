@@ -56,8 +56,8 @@ function App() {
             <Route path="/admin/departments" element={<RequireAuth><Departments /></RequireAuth>} />
             <Route path="/admin/permissions" element={<RequireAuth><Permissions /></RequireAuth>} />
             <Route path="/admin/audit" element={<RequireAuth><Audit /></RequireAuth>} />
-            <Route path="/admin/table-audit" element={<RequireAuth><TableAudit /></RequireAuth>} />
-            <Route path="/admin/companies" element={<RequireAuth><Companies /></RequireAuth>} />
+            {/* Removed /admin/table-audit route */}
+            {/* Removed /admin/companies route */}
             <Route path="/admin/reports" element={<RequireAuth><AdminReports /></RequireAuth>} />
             <Route path="/admin/settings" element={<RequireAuth><AdminSettings /></RequireAuth>} />
             

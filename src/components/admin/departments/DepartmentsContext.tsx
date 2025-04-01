@@ -142,21 +142,28 @@ export const DepartmentsProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
       } else {
         // Create new department
-        success = await addDepartment(data as Department);
+        // Pass 'data' directly as addDepartment expects Partial<Department>
+        success = await addDepartment(data); 
         
         if (success) {
           toast.success("Departamento criado", {
             description: "O novo departamento foi criado com sucesso."
           });
           setIsFormOpen(false);
+        } else {
+           // Add specific error toast if addDepartment returns false
+           toast.error("Erro ao Criar", {
+             description: "Não foi possível criar o departamento. Verifique os dados ou tente novamente."
+           });
         }
       }
       
-      if (!success) {
-        toast.error("Erro", {
-          description: "Ocorreu um erro ao salvar o departamento."
-        });
-      }
+      // This generic error might still be useful for unexpected issues
+      // if (!success) {
+      //   toast.error("Erro", {
+      //     description: "Ocorreu um erro ao salvar o departamento."
+      //   });
+      // }
     } catch (error) {
       console.error('Error saving department:', error);
       toast.error("Erro", {

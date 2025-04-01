@@ -56,9 +56,10 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nome*</FormLabel>
+                <FormLabel className="text-slate-300">Nome*</FormLabel> {/* Style Label */}
                 <FormControl>
-                  <Input placeholder="Nome do cliente" {...field} />
+                  {/* Style Input */}
+                  <Input placeholder="Nome do cliente" {...field} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -70,11 +71,12 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
             name="customer_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>ID do Cliente (opcional)</FormLabel>
+                <FormLabel className="text-slate-300">ID do Cliente (opcional)</FormLabel> {/* Style Label */}
                 <FormControl>
-                  <Input placeholder="Será gerado automaticamente se vazio" {...field} />
+                  {/* Style Input */}
+                  <Input placeholder="Será gerado automaticamente se vazio" {...field} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                 </FormControl>
-                <FormDescription className="text-xs">
+                <FormDescription className="text-xs text-slate-400"> {/* Style Description */}
                   Deixe em branco para gerar automaticamente
                 </FormDescription>
                 <FormMessage />
@@ -89,9 +91,10 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Telefone*</FormLabel>
+                <FormLabel className="text-slate-300">Telefone*</FormLabel> {/* Style Label */}
                 <FormControl>
-                  <Input placeholder="(00) 00000-0000" {...field} />
+                  {/* Style Input */}
+                  <Input placeholder="(00) 00000-0000" {...field} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -103,9 +106,10 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email*</FormLabel>
+                <FormLabel className="text-slate-300">Email*</FormLabel> {/* Style Label */}
                 <FormControl>
-                  <Input placeholder="email@exemplo.com" type="email" {...field} />
+                  {/* Style Input */}
+                  <Input placeholder="email@exemplo.com" type="email" {...field} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -119,8 +123,10 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
             name="date"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Data*</FormLabel>
+                <FormLabel className="text-slate-300">Data*</FormLabel> {/* Style Label */}
+                {/* Style DatePicker Trigger Button using className */}
                 <DatePicker 
+                  className="bg-slate-800/50 border-blue-900/40 text-slate-300 hover:bg-slate-800/70 hover:text-slate-100 data-[state=open]:ring-2 data-[state=open]:ring-blue-500" // Apply styles via className
                   date={field.value} 
                   setDate={(date) => {
                     if (date) field.onChange(date);
@@ -136,9 +142,10 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
             name="start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Horário Início*</FormLabel>
+                <FormLabel className="text-slate-300">Horário Início*</FormLabel> {/* Style Label */}
                 <FormControl>
-                  <Input placeholder="09:00" {...field} />
+                  {/* Style Input */}
+                  <Input placeholder="09:00" {...field} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -150,9 +157,10 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
             name="end_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Horário Fim*</FormLabel>
+                <FormLabel className="text-slate-300">Horário Fim*</FormLabel> {/* Style Label */}
                 <FormControl>
-                  <Input placeholder="10:00" {...field} />
+                  {/* Style Input */}
+                  <Input placeholder="10:00" {...field} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -162,14 +170,15 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
         
         <FormField
           control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição*</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Descreva o propósito do agendamento"
-                  className="min-h-[80px]"
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-300">Descrição*</FormLabel> {/* Style Label */}
+                <FormControl>
+                  {/* Style Textarea */}
+                  <Textarea 
+                    placeholder="Descreva o propósito do agendamento"
+                    className="min-h-[80px] bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500"
                   {...field}
                 />
               </FormControl>
@@ -180,12 +189,13 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
         
         <FormField
           control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Localização (opcional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Local do agendamento" {...field} value={field.value || ''} />
+            name="location"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-300">Localização (opcional)</FormLabel> {/* Style Label */}
+                <FormControl>
+                  {/* Style Input */}
+                  <Input placeholder="Local do agendamento" {...field} value={field.value || ''} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -194,14 +204,15 @@ export const AppointmentFormFields: React.FC<AppointmentFormFieldsProps> = ({
         
         <FormField
           control={form.control}
-          name="observations"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Observações (opcional)</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Observações adicionais"
-                  className="min-h-[80px]"
+            name="observations"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-300">Observações (opcional)</FormLabel> {/* Style Label */}
+                <FormControl>
+                  {/* Style Textarea */}
+                  <Textarea 
+                    placeholder="Observações adicionais"
+                    className="min-h-[80px] bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500"
                   {...field}
                   value={field.value || ''}
                 />

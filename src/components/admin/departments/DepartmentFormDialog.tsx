@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Import useEffect
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -8,14 +7,28 @@ import { Textarea } from '@/components/ui/textarea';
 import { Department, User } from '@/types/admin';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod'; // Import zodResolver
+import * as z from 'zod'; // Import zod
+
+// Define Zod schema for validation
+const departmentFormSchema = z.object({
+  name: z.string().min(1, { message: "O nome do departamento é obrigatório." }),
+  description: z.string().optional(),
+  // Add other fields if they become editable
+  // parent_id: z.string().nullable().optional(), 
+  // manager_id: z.string().nullable().optional(),
+});
+
+// Infer the type from the schema
+type DepartmentFormValues = z.infer<typeof departmentFormSchema>;
 
 export interface DepartmentFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (formData: Department) => Promise<void> | void;
+  onSave: (formData: Partial<Department>) => Promise<boolean | void>; // Adjust onSave return type if needed
   department?: Department | null;
-  departments?: Department[];
-  users?: User[];
+  departments?: Department[]; // Keep for potential parent selection later
+  users?: User[]; // Keep for potential manager selection later
   isEditing?: boolean;
 }
 
@@ -30,25 +43,53 @@ const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const form = useForm({
+  const form = useForm<DepartmentFormValues>({
+    resolver: zodResolver(departmentFormSchema), // Use zodResolver
     defaultValues: {
-      name: department?.name || '',
-      description: department?.description || '',
-      parent_id: department?.parent_id || null,
-      manager_id: department?.manager_id || null,
+      name: '', // Initialize all fields
+      description: '',
+      // parent_id: null,
+      // manager_id: null,
+      ...(department ? { // Spread existing department data if editing
+          name: department.name,
+          description: department.description || '',
+          // parent_id: department.parent_id,
+          // manager_id: department.manager_id,
+        } : {}) 
     }
   });
 
-  const handleSubmit = async (data: any) => {
+  // Reset form when department changes (for editing) or dialog opens/closes
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: department?.name || '',
+        description: department?.description || '',
+        // parent_id: department?.parent_id || null,
+        // manager_id: department?.manager_id || null,
+      });
+    } else {
+       // Optionally reset fully when closing if desired
+       // form.reset({ name: '', description: '', parent_id: null, manager_id: null });
+    }
+  }, [department, open, form]);
+
+
+  const handleSubmit = async (data: DepartmentFormValues) => {
     setIsSubmitting(true);
     
     try {
-      // Casting formData to Department as required by onSave
-      await onSave(data as Department);
-      onOpenChange(false);
-      form.reset();
+      // Pass only the validated data to onSave
+      // Ensure onSave in context expects Partial<Department> or DepartmentFormValues
+      await onSave(data); 
+      // No need to cast 'as Department' if onSave expects Partial or the form values type
+      
+      // onSave should handle closing the dialog on success
+      // onOpenChange(false); // Let the context handle closing
+      // form.reset(); // Reset is handled by useEffect now
     } catch (error) {
       console.error('Error submitting department form:', error);
+      // Toast error should be handled in the context's onSave function
     } finally {
       setIsSubmitting(false);
     }
@@ -56,9 +97,9 @@ const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] bg-slate-900 border border-blue-900/40 text-slate-100"> {/* Dark theme */}
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Departamento' : 'Criar Departamento'}</DialogTitle>
+          <DialogTitle className="text-slate-100">{isEditing ? 'Editar Departamento' : 'Criar Departamento'}</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -68,9 +109,13 @@ const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome</FormLabel>
+                  <FormLabel className="text-slate-300">Nome*</FormLabel> {/* Dark theme */}
                   <FormControl>
-                    <Input placeholder="Nome do departamento" {...field} />
+                    <Input 
+                      placeholder="Nome do departamento" 
+                      {...field} 
+                      className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" // Dark theme
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -82,20 +127,27 @@ const DepartmentFormDialog: React.FC<DepartmentFormDialogProps> = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descrição</FormLabel>
+                  <FormLabel className="text-slate-300">Descrição</FormLabel> {/* Dark theme */}
                   <FormControl>
-                    <Textarea placeholder="Descrição do departamento" {...field} rows={3} />
+                    <Textarea 
+                      placeholder="Descrição do departamento" 
+                      {...field} 
+                      rows={3} 
+                      className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" // Dark theme
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
+            {/* TODO: Add fields for parent_id and manager_id if needed */}
+            
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} className="bg-green-600 text-white hover:bg-green-700"> {/* Style submit */}
                 {isSubmitting ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar'}
               </Button>
             </DialogFooter>

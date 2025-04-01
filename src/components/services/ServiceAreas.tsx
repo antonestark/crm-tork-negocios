@@ -36,12 +36,9 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
   const handleDialogOpenChange = useCallback((open: boolean) => {
     setIsEditDialogOpen(open);
     
-    // If dialog is closing, reset the editing area after a short delay
-    // This ensures animations complete before state updates
+    // If dialog is closing, reset the editing area immediately
     if (!open) {
-      setTimeout(() => {
-        setEditingArea(null);
-      }, 300);
+      setEditingArea(null); 
     }
   }, []);
 

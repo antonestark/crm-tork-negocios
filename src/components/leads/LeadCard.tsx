@@ -16,7 +16,8 @@ interface LeadCardProps {
 
 export const LeadCard: React.FC<LeadCardProps> = ({ lead, onEdit, onDelete }) => {
   return (
-    <Card className="mb-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow">
+    // Add transition classes
+    <Card className="mb-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow transition-all duration-300 ease-in-out"> 
       <CardHeader className="pb-2 pt-3">
         <div className="flex justify-between items-start">
           <h3 className="font-semibold text-lg leading-none">{lead.name}</h3>

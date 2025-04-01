@@ -64,9 +64,11 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px]">
+      {/* Apply dark theme styles to DialogContent */}
+      <DialogContent className="sm:max-w-[525px] bg-slate-900 border border-blue-900/40 text-slate-100">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Lead' : 'Novo Lead'}</DialogTitle>
+          {/* Apply dark theme styles to DialogTitle */}
+          <DialogTitle className="text-slate-100">{isEditing ? 'Editar Lead' : 'Novo Lead'}</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -76,9 +78,10 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome*</FormLabel>
+                  <FormLabel className="text-slate-300">Nome*</FormLabel> {/* Style Label */}
                   <FormControl>
-                    <Input placeholder="Nome do contato" {...field} />
+                    {/* Style Input */}
+                    <Input placeholder="Nome do contato" {...field} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -91,9 +94,10 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-slate-300">Email</FormLabel> {/* Style Label */}
                     <FormControl>
-                      <Input placeholder="Email" type="email" {...field} value={field.value || ''} />
+                      {/* Style Input */}
+                      <Input placeholder="Email" type="email" {...field} value={field.value || ''} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -105,9 +109,10 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telefone</FormLabel>
+                    <FormLabel className="text-slate-300">Telefone</FormLabel> {/* Style Label */}
                     <FormControl>
-                      <Input placeholder="Telefone" {...field} value={field.value || ''} />
+                      {/* Style Input */}
+                      <Input placeholder="Telefone" {...field} value={field.value || ''} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -121,9 +126,10 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
                 name="company"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Empresa</FormLabel>
+                    <FormLabel className="text-slate-300">Empresa</FormLabel> {/* Style Label */}
                     <FormControl>
-                      <Input placeholder="Empresa" {...field} value={field.value || ''} />
+                      {/* Style Input */}
+                      <Input placeholder="Empresa" {...field} value={field.value || ''} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -135,9 +141,10 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
                 name="source"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Origem</FormLabel>
+                    <FormLabel className="text-slate-300">Origem</FormLabel> {/* Style Label */}
                     <FormControl>
-                      <Input placeholder="Origem do lead" {...field} value={field.value || ''} />
+                      {/* Style Input */}
+                      <Input placeholder="Origem do lead" {...field} value={field.value || ''} className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -151,17 +158,19 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel className="text-slate-300">Status</FormLabel> {/* Style Label */}
                     <Select 
                       onValueChange={field.onChange} 
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        {/* Style SelectTrigger */}
+                        <SelectTrigger className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus:ring-blue-500">
                           <SelectValue placeholder="Selecione um status" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      {/* Style SelectContent */}
+                      <SelectContent className="bg-slate-900 border-blue-900/40 text-slate-100"> 
                         <SelectItem value="qualificado">Qualificado</SelectItem>
                         <SelectItem value="neutro">Neutro</SelectItem>
                         <SelectItem value="não qualificado">Não Qualificado</SelectItem>
@@ -177,17 +186,19 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
                 name="assigned_to"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Responsável</FormLabel>
+                    <FormLabel className="text-slate-300">Responsável</FormLabel> {/* Style Label */}
                     <Select 
                       onValueChange={field.onChange} 
                       defaultValue={field.value || undefined}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        {/* Style SelectTrigger */}
+                        <SelectTrigger className="bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus:ring-blue-500">
                           <SelectValue placeholder="Selecione um responsável" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      {/* Style SelectContent */}
+                      <SelectContent className="bg-slate-900 border-blue-900/40 text-slate-100"> 
                         <SelectItem value="unassigned">Não atribuído</SelectItem>
                         {users.map(user => (
                           <SelectItem key={user.id} value={user.id}>
@@ -204,14 +215,15 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
             
             <FormField
               control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observações</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Observações adicionais sobre o lead"
-                      className="min-h-[80px]"
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-300">Observações</FormLabel> {/* Style Label */}
+                    <FormControl>
+                      {/* Style Textarea */}
+                      <Textarea 
+                        placeholder="Observações adicionais sobre o lead"
+                        className="min-h-[80px] bg-slate-800/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500"
                       {...field}
                       value={field.value || ''}
                     />
@@ -222,7 +234,8 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
             />
             
             <DialogFooter>
-              <Button type="submit">{isEditing ? 'Salvar Alterações' : 'Criar Lead'}</Button>
+              {/* Style Submit Button */}
+              <Button type="submit" className="bg-green-600 text-white hover:bg-green-700">{isEditing ? 'Salvar Alterações' : 'Criar Lead'}</Button>
             </DialogFooter>
           </form>
         </Form>

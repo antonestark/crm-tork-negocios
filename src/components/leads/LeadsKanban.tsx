@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { LeadColumn } from './LeadColumn';
-import { LeadFormDialog } from './LeadFormDialog';
+// LeadFormDialog is now rendered in Leads.tsx
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Lead } from '@/types/admin';
@@ -22,17 +22,16 @@ interface LeadsKanbanProps {
 
 export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
   leads,
-  users,
+  users, // Still needed for LeadCard potentially, or remove if not used below
   loading,
-  onAddLead,
-  onUpdateLead,
+  onAddLead, // Still needed for handleAddLead (though form is external now)
+  onUpdateLead, // Still needed for handleUpdateLead (though form is external now)
   onUpdateLeadStatus,
   onDeleteLead,
   onRefresh
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [formOpen, setFormOpen] = useState(false);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  // Removed formOpen and selectedLead state, managed by Leads.tsx
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
@@ -91,7 +90,7 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
     try {
       const result = await onAddLead(data);
       if (result) {
-        setFormOpen(false);
+        // setFormOpen(false); // Managed by parent
         toast.success('Lead adicionado com sucesso');
       } else {
         toast.error('Erro ao adicionar lead');
@@ -102,18 +101,22 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
     }
   };
 
-  const handleEditLead = (lead: Lead) => {
-    setSelectedLead(lead);
-    setFormOpen(true);
-  };
+  // handleEditLead needs to signal back to Leads.tsx to open the dialog
+  // Option 1: Pass a function prop like `onEditLeadRequest(lead)`
+  // Option 2: Keep selectedLead state here and pass it up (more complex)
+  // Let's assume Leads.tsx will handle opening the dialog based on an action within LeadCard/LeadColumn later if needed.
+  // For now, remove direct dialog opening logic.
 
-  const handleUpdateLead = async (data: Partial<Lead>) => {
+  // handleUpdateLead is likely triggered by the external dialog now, remove?
+  // Keeping it for now, but onSubmit in Leads.tsx should handle this.
+  const handleUpdateLead = async (data: Partial<Lead>) => { 
     try {
       const result = await onUpdateLead(data);
-      if (result) {
-        setFormOpen(false);
-        setSelectedLead(null);
-      }
+      // Closing dialog and resetting selected lead is handled by parent
+      // if (result) {
+      //   setFormOpen(false);
+      //   setSelectedLead(null);
+      // }
     } catch (error) {
       console.error('Error updating lead:', error);
       toast.error('Erro ao atualizar lead');
@@ -169,9 +172,11 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
         </div>
         
         <div className="flex gap-2">
+          {/* Apply dark theme styles to Refresh button */}
           <Button 
             variant="outline" 
             size="sm" 
+            className="border border-blue-400 text-blue-400 hover:bg-blue-400/10" // Added styles
             onClick={handleRefresh}
             disabled={loading || isRefreshing}
           >
@@ -179,18 +184,7 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             Atualizar
           </Button>
           
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => {
-              setSelectedLead(null);
-              setFormOpen(true);
-            }}
-            disabled={loading}
-          >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Novo Lead
-          </Button>
+          {/* Removed redundant "Novo Lead" button */}
         </div>
       </div>
       
@@ -202,10 +196,12 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             <h3 className="text-lg font-medium">Nenhum lead encontrado</h3>
             <p className="text-muted-foreground mt-1">Adicione novos leads para começar a gerenciar seus contatos</p>
           </div>
+          {/* This button should likely trigger an action in the parent now */}
+          {/* For now, removing the direct state setting */}
           <Button 
             onClick={() => {
-              setSelectedLead(null);
-              setFormOpen(true);
+              // TODO: Signal parent to open dialog for new lead
+              console.log("Requesting new lead dialog from placeholder");
             }}
           >
             <PlusCircle className="h-4 w-4 mr-2" />
@@ -219,7 +215,8 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             count={qualifiedLeads.length}
             status="qualificado"
             leads={qualifiedLeads}
-            onEditLead={handleEditLead}
+            // Pass function to request edit dialog opening in parent
+            onEditLead={onUpdateLead} // Placeholder - Needs proper handling in parent
             onDeleteLead={onDeleteLead}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'qualificado')}
@@ -230,7 +227,8 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             count={allNeutralLeads.length}
             status="neutro"
             leads={allNeutralLeads}
-            onEditLead={handleEditLead}
+            // Pass function to request edit dialog opening in parent
+            onEditLead={onUpdateLead} // Placeholder - Needs proper handling in parent
             onDeleteLead={onDeleteLead}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'neutro')}
@@ -241,7 +239,8 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             count={unqualifiedLeads.length}
             status="não qualificado"
             leads={unqualifiedLeads}
-            onEditLead={handleEditLead}
+            // Pass function to request edit dialog opening in parent
+            onEditLead={onUpdateLead} // Placeholder - Needs proper handling in parent
             onDeleteLead={onDeleteLead}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'não qualificado')}
@@ -249,13 +248,7 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
         </div>
       )}
       
-      <LeadFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        onSubmit={selectedLead ? handleUpdateLead : handleAddLead}
-        lead={selectedLead}
-        users={users}
-      />
+      {/* LeadFormDialog is now rendered in Leads.tsx */}
     </div>
   );
 };

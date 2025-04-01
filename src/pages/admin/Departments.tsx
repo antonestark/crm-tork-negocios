@@ -1,28 +1,26 @@
-
 import React from 'react';
 import { AdminNav } from '@/components/admin/AdminNav';
-import { Separator } from '@/components/ui/separator';
 import { EnhancedDepartmentsView } from '@/components/admin/departments/EnhancedDepartmentsView';
 import { PermissionGuard } from '@/components/admin/permissions/PermissionGuard';
 import { Building } from 'lucide-react';
+import { BaseLayout } from '@/components/layout/BaseLayout'; // Import BaseLayout
 
 export default function DepartmentsPage() {
-  console.log('Rendering Departments Page');
-  
   return (
-    <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Departamentos</h2>
-          <p className="text-muted-foreground">
-            Gerencie os departamentos da organização e suas permissões de visualização.
-          </p>
+    // Use BaseLayout
+    <BaseLayout>
+      {/* Removed old header and separator */}
+      
+      {/* Adjusted layout: Flex container for nav and main content */}
+      {/* Added py-6 from BaseLayout standard, removed p-8 from original root div */}
+      <div className="flex h-full py-6">
+        {/* Admin Navigation */}
+        <div className="w-64 mr-8 px-4"> {/* Added padding */}
+          <AdminNav />
         </div>
-      </div>
-      <Separator />
-      <div className="flex h-full">
-        <AdminNav />
-        <div className="w-full p-4">
+        
+        {/* Main Content Area */}
+        <div className="flex-1 px-4"> {/* Added padding */}
           <PermissionGuard 
             permissionCode="admin:departments:view"
             fallback={
@@ -38,6 +36,6 @@ export default function DepartmentsPage() {
           </PermissionGuard>
         </div>
       </div>
-    </div>
+    </BaseLayout>
   );
 }
