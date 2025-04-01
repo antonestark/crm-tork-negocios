@@ -24,7 +24,6 @@ const navItems = [
     href: "/admin/users",
       icon: <Users className="h-5 w-5 mr-2" />,
   },
-  // Removed Companies link
   {
     title: "Departamentos",
     href: "/admin/departments",
@@ -40,7 +39,11 @@ const navItems = [
     href: "/admin/audit",
     icon: <FileSearch className="h-5 w-5 mr-2" />,
   },
-  // Removed Table Audit link
+  {
+    title: "Auditoria de Tabelas",
+    href: "/admin/table-audit",
+    icon: <Database className="h-5 w-5 mr-2" />,
+  },
   {
     title: "Relatórios",
     href: "/admin/reports",

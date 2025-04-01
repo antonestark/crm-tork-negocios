@@ -13,7 +13,6 @@ import Departments from '@/pages/admin/Departments';
 import Permissions from '@/pages/admin/Permissions';
 import Audit from '@/pages/admin/Audit';
 import TableAudit from '@/pages/admin/TableAudit';
-import Companies from '@/pages/admin/Companies';
 import AdminReports from '@/pages/admin/Reports';
 import AdminSettings from '@/pages/admin/Settings';
 import ServicesIndex from '@/pages/services/Index';
@@ -56,8 +55,7 @@ function App() {
             <Route path="/admin/departments" element={<RequireAuth><Departments /></RequireAuth>} />
             <Route path="/admin/permissions" element={<RequireAuth><Permissions /></RequireAuth>} />
             <Route path="/admin/audit" element={<RequireAuth><Audit /></RequireAuth>} />
-            {/* Removed /admin/table-audit route */}
-            {/* Removed /admin/companies route */}
+            <Route path="/admin/table-audit" element={<RequireAuth><TableAudit /></RequireAuth>} />
             <Route path="/admin/reports" element={<RequireAuth><AdminReports /></RequireAuth>} />
             <Route path="/admin/settings" element={<RequireAuth><AdminSettings /></RequireAuth>} />
             
