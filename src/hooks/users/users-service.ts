@@ -1,5 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { userAdapter } from '@/integrations/supabase/adapters';
+import { formatUserFromDatabase } from '@/utils/user-formatter';
 import { toast } from 'sonner';
 import { User } from '@/types/admin';
 import { UserCreate, UserRole } from './types';
@@ -8,7 +10,7 @@ export async function fetchUsersFromAPI() {
   try {
     console.log('Fetching users from database...');
     
-    // Consulta simplificada sem relacionamentos
+    // Use a simpler approach without joins to avoid potential issues
     const { data, error } = await supabase
       .from('users')
       .select('*');
@@ -18,10 +20,12 @@ export async function fetchUsersFromAPI() {
       throw error;
     }
     
-    console.log('Users data fetched successfully:', data);
-    return userAdapter(data || []);
+    console.log('Raw users data:', data);
+    const adaptedUsers = userAdapter(data || []);
+    console.log('Adapted users data:', adaptedUsers);
+    return adaptedUsers;
   } catch (err) {
-    console.error('Error fetching users:', err);
+    console.error('Error in fetchUsersFromAPI:', err);
     toast.error('Falha ao carregar usuários');
     throw err;
   }

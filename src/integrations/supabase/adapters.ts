@@ -4,14 +4,26 @@ import { User, Department, Permission, PermissionGroup, ActivityLog } from "@/ty
 import { Client } from "@/types/clients";
 
 export const userAdapter = (data: any[]): User[] => {
-  console.log('Adaptando dados do usuário:', data);
+  console.log('Adaptando dados do usuário, total de registros:', data?.length);
+  
+  if (!Array.isArray(data)) {
+    console.error('userAdapter recebeu dados não esperados:', typeof data, data);
+    return [];
+  }
   
   return data.map(item => {
+    if (!item) {
+      console.error('Item inválido encontrado no array de dados');
+      return null;
+    }
+
     // Garantir que temos um nome, mesmo que seja vazio
     const fullName = item.name || '';
     const nameParts = fullName.split(' ');
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || '';
+    
+    console.log(`Processando usuário: ${firstName} ${lastName} (${item.email})`);
     
     return {
       id: item.id,
@@ -31,7 +43,7 @@ export const userAdapter = (data: any[]): User[] => {
       updated_at: item.updated_at,
       department: null, // Sem informações de departamento por enquanto
     };
-  });
+  }).filter(Boolean); // Remove null items
 };
 
 export const clientAdapter = (data: any[]): Client[] => {

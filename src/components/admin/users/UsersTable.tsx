@@ -6,7 +6,7 @@ import { useUsers, UserCreate } from '@/hooks/users';
 import { DataTable } from '@/components/admin/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit, Trash2, UserPlus } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, UserPlus, RefreshCw } from 'lucide-react';
 import { UserFormDialog } from './UserFormDialog';
 import { toast } from 'sonner';
 
@@ -22,6 +22,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
   const { users, loading, addUser, updateUser, deleteUser, fetchUsers } = useUsers();
   const [openUserFormDialog, setOpenUserFormDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Para debugging - mostrar os usuários quando carregados
   useEffect(() => {
@@ -30,12 +31,25 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
 
   // Forçar nova busca quando o componente é montado
   useEffect(() => {
+    console.log('UsersTable montado, buscando usuários...');
     fetchUsers();
   }, [fetchUsers]);
 
+  // Função para atualizar manualmente a lista de usuários
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchUsers();
+      toast.success('Lista de usuários atualizada');
+    } catch (error) {
+      toast.error('Erro ao atualizar lista de usuários');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Apply filters
   const filteredUsers = users.filter(user => {
-    console.log('Filtrando usuário:', user);
     // Filter by status
     if (filters.status !== 'all' && user.status !== filters.status) {
       return false;
@@ -162,11 +176,17 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Usuários ({users.length})</h2>
-        <Button onClick={handleOpenNewUserDialog}>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Novo Usuário
-        </Button>
+        <h2 className="text-xl font-bold">Usuários ({filteredUsers.length})</h2>
+        <div className="flex space-x-2">
+          <Button onClick={handleRefresh} variant="outline" disabled={refreshing}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+          <Button onClick={handleOpenNewUserDialog}>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Novo Usuário
+          </Button>
+        </div>
       </div>
 
       <DataTable

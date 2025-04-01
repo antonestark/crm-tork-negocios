@@ -21,12 +21,15 @@ export const useUsers = (): UseUsersReturn => {
     try {
       console.log('Iniciando busca de usuários...');
       setLoading(true);
+      setError(null);
       const adaptedData = await fetchUsersFromAPI();
       console.log('Dados adaptados recebidos:', adaptedData);
       setUsers(adaptedData);
+      return adaptedData;
     } catch (err) {
       console.error('Erro ao buscar usuários:', err);
       setError(err as Error);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -57,7 +60,7 @@ export const useUsers = (): UseUsersReturn => {
   const addUser = async (userData: UserCreate) => {
     try {
       const newUser = await addUserToAPI(userData);
-      setUsers(prev => [...prev, newUser]);
+      await fetchUsers(); // Re-fetch all users instead of trying to merge
       return true;
     } catch (err) {
       console.error('Erro ao adicionar usuário:', err);
@@ -66,21 +69,29 @@ export const useUsers = (): UseUsersReturn => {
   };
 
   const updateUser = async (userData: User) => {
-    const success = await updateUserInAPI(userData);
-    if (success) {
-      setUsers(prev => 
-        prev.map(u => u.id === userData.id ? { ...u, ...userData } : u)
-      );
+    try {
+      const success = await updateUserInAPI(userData);
+      if (success) {
+        await fetchUsers(); // Re-fetch all users
+      }
+      return success;
+    } catch (err) {
+      console.error('Erro ao atualizar usuário:', err);
+      return false;
     }
-    return success;
   };
 
   const deleteUser = async (id: string) => {
-    const success = await deleteUserFromAPI(id);
-    if (success) {
-      setUsers(prev => prev.filter(u => u.id !== id));
+    try {
+      const success = await deleteUserFromAPI(id);
+      if (success) {
+        await fetchUsers(); // Re-fetch all users
+      }
+      return success;
+    } catch (err) {
+      console.error('Erro ao excluir usuário:', err);
+      return false;
     }
-    return success;
   };
 
   return {
