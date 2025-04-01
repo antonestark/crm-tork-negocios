@@ -11,7 +11,14 @@ export async function fetchUsersFromAPI() {
     
     const { data, error } = await supabase
       .from('users')
-      .select('*');
+      .select(`
+        *,
+        department:department_id(
+          id,
+          name,
+          description
+        )
+      `);
     
     if (error) throw error;
     
@@ -42,6 +49,7 @@ export async function addUserToAPI(userData: UserCreate) {
       phone: userData.phone || null,
       role: role,
       status: userData.status || 'active',
+      active: userData.active !== false,
     };
     
     console.log('Adding new user with data:', userDataForDb);
@@ -133,6 +141,7 @@ export async function updateUserInAPI(userData: User) {
       phone: userData.phone,
       role: role,
       status: userData.status,
+      active: userData.active !== false,
     };
     
     console.log('Updating user with data:', updateData);
@@ -145,6 +154,7 @@ export async function updateUserInAPI(userData: User) {
     if (error) throw error;
     
     console.log('User updated successfully');
+    toast.success('Usuário atualizado com sucesso');
     return true;
   } catch (err) {
     console.error('Error updating user:', err);
@@ -165,6 +175,7 @@ export async function deleteUserFromAPI(id: string) {
     if (error) throw error;
     
     console.log('User deleted successfully');
+    toast.success('Usuário excluído com sucesso');
     return true;
   } catch (err) {
     console.error('Error deleting user:', err);
