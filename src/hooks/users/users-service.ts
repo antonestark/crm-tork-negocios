@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { userAdapter } from '@/integrations/supabase/adapters';
 import { toast } from 'sonner';
@@ -9,16 +8,10 @@ export async function fetchUsersFromAPI() {
   try {
     console.log('Fetching users from database...');
     
+    // Simplificando a consulta para evitar o erro de relacionamento
     const { data, error } = await supabase
       .from('users')
-      .select(`
-        *,
-        department:department_id(
-          id,
-          name,
-          description
-        )
-      `);
+      .select('*');
     
     if (error) throw error;
     
