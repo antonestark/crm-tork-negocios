@@ -25,7 +25,7 @@ export const useUsers = (): UseUsersReturn => {
       const adaptedData = await fetchUsersFromAPI();
       console.log('Dados adaptados recebidos:', adaptedData);
       setUsers(adaptedData);
-      return adaptedData;
+      return adaptedData; // This return type is causing the error
     } catch (err) {
       console.error('Erro ao buscar usuários:', err);
       setError(err as Error);

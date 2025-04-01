@@ -15,7 +15,7 @@ export interface UseUsersReturn {
   users: User[];
   loading: boolean;
   error: Error | null;
-  fetchUsers: () => Promise<void>;
+  fetchUsers: () => Promise<User[]>; // Updated return type to match implementation
   addUser: (userData: UserCreate) => Promise<boolean>;
   updateUser: (userData: User) => Promise<boolean>;
   deleteUser: (id: string) => Promise<boolean>;
