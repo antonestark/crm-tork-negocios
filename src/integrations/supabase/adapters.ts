@@ -1,28 +1,37 @@
-
 // This file contains adapters for converting data from the Supabase database to the app's types
 
 import { User, Department, Permission, PermissionGroup, ActivityLog } from "@/types/admin";
 import { Client } from "@/types/clients";
 
 export const userAdapter = (data: any[]): User[] => {
-  return data.map(item => ({
-    id: item.id,
-    first_name: item.name?.split(' ')[0] || '',
-    last_name: item.name?.split(' ').slice(1).join(' ') || '',
-    profile_image_url: item.profile_image_url || null,
-    role: item.role,
-    department_id: item.department_id,
-    phone: item.phone || null,
-    email: item.email || '', 
-    active: item.active || false,
-    status: item.status || 'inactive',
-    last_login: item.last_login,
-    settings: item.settings || {},
-    metadata: item.metadata || {},
-    created_at: item.created_at,
-    updated_at: item.updated_at,
-    department: item.department ? departmentAdapter([item.department])[0] : null,
-  }));
+  console.log('Adaptando dados do usuário:', data);
+  
+  return data.map(item => {
+    // Garantir que temos um nome, mesmo que seja vazio
+    const fullName = item.name || '';
+    const nameParts = fullName.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    
+    return {
+      id: item.id,
+      first_name: firstName,
+      last_name: lastName,
+      profile_image_url: item.profile_image_url || null,
+      role: item.role || 'user',
+      department_id: item.department_id,
+      phone: item.phone || null,
+      email: item.email || '', 
+      active: item.active !== false,
+      status: item.status || 'inactive',
+      last_login: item.last_login,
+      settings: item.settings || {},
+      metadata: item.metadata || {},
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      department: null, // Sem informações de departamento por enquanto
+    };
+  });
 };
 
 export const clientAdapter = (data: any[]): Client[] => {

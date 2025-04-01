@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
 import { UserCreate, UseUsersReturn } from './types';
@@ -17,6 +17,21 @@ export const useUsers = (): UseUsersReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  const fetchUsers = useCallback(async () => {
+    try {
+      console.log('Iniciando busca de usuários...');
+      setLoading(true);
+      const adaptedData = await fetchUsersFromAPI();
+      console.log('Dados adaptados recebidos:', adaptedData);
+      setUsers(adaptedData);
+    } catch (err) {
+      console.error('Erro ao buscar usuários:', err);
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchUsers();
     
@@ -27,27 +42,17 @@ export const useUsers = (): UseUsersReturn => {
         event: '*', 
         schema: 'public', 
         table: 'users' 
-      }, () => {
+      }, (payload) => {
+        console.log('Mudança detectada na tabela users:', payload);
         fetchUsers();
       })
       .subscribe();
       
     return () => {
+      console.log('Cancelando inscrição de tempo real');
       subscription.unsubscribe();
     };
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const adaptedData = await fetchUsersFromAPI();
-      setUsers(adaptedData);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchUsers]);
 
   const addUser = async (userData: UserCreate) => {
     try {
@@ -55,6 +60,7 @@ export const useUsers = (): UseUsersReturn => {
       setUsers(prev => [...prev, newUser]);
       return true;
     } catch (err) {
+      console.error('Erro ao adicionar usuário:', err);
       return false;
     }
   };

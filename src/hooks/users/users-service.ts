@@ -8,12 +8,15 @@ export async function fetchUsersFromAPI() {
   try {
     console.log('Fetching users from database...');
     
-    // Simplificando a consulta para evitar o erro de relacionamento
+    // Consulta simplificada sem relacionamentos
     const { data, error } = await supabase
       .from('users')
       .select('*');
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
     
     console.log('Users data fetched successfully:', data);
     return userAdapter(data || []);

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '@/types/admin';
 import { ensureDepartmentFormat } from './UsersTable.helper';
 import { useUsers, UserCreate } from '@/hooks/users';
@@ -19,12 +19,23 @@ interface UsersTableProps {
 }
 
 export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
-  const { users, loading, addUser, updateUser, deleteUser } = useUsers();
+  const { users, loading, addUser, updateUser, deleteUser, fetchUsers } = useUsers();
   const [openUserFormDialog, setOpenUserFormDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
+  // Para debugging - mostrar os usuários quando carregados
+  useEffect(() => {
+    console.log('Usuários carregados na tabela:', users);
+  }, [users]);
+
+  // Forçar nova busca quando o componente é montado
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
   // Apply filters
   const filteredUsers = users.filter(user => {
+    console.log('Filtrando usuário:', user);
     // Filter by status
     if (filters.status !== 'all' && user.status !== filters.status) {
       return false;
@@ -71,12 +82,14 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
         ...userData,
       });
       if (success) {
+        setOpenUserFormDialog(false);
         toast.success('Usuário atualizado com sucesso');
       }
     } else {
       // Add new user - ensure email is provided
       const success = await addUser(userData);
       if (success) {
+        setOpenUserFormDialog(false);
         toast.success('Usuário adicionado com sucesso');
       }
     }
@@ -149,7 +162,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Usuários</h2>
+        <h2 className="text-xl font-bold">Usuários ({users.length})</h2>
         <Button onClick={handleOpenNewUserDialog}>
           <UserPlus className="h-4 w-4 mr-2" />
           Novo Usuário
