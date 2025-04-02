@@ -42,8 +42,8 @@ export const useDepartments = () => {
       const { data, error } = await supabase
         .from('departments')
         .select(`
-          *,
-          manager:users(id, name)
+          *
+          // Removed manager:users(id, name) - Causes error due to missing FK
         `)
         .order('name');
       

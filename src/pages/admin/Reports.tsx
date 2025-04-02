@@ -1,7 +1,7 @@
-
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { AdminNav } from '@/components/admin/AdminNav';
+// import { AdminNav } from '@/components/admin/AdminNav'; // Remover importação redundante
+import { AdminLayout } from '@/components/admin/AdminLayout'; // Importar AdminLayout
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -11,26 +11,30 @@ const AdminReportsPage = () => {
   }, []);
 
   return (
-    <div className="container mx-auto py-6">
+    // Usar AdminLayout como container principal e passar a prop 'title'
+    <AdminLayout title="Relatórios"> 
       <Helmet>
         <title>Relatórios Administrativos</title>
       </Helmet>
-      <AdminNav />
-      <div className="mt-6">
-        <h1 className="text-2xl font-bold mb-6">Relatórios Administrativos</h1>
+      {/* Remover AdminNav explícito */}
+      {/* Remover container div e classes de espaçamento */}
+      <div className="space-y-6"> {/* Adicionar espaçamento interno se necessário */}
+        <h1 className="text-2xl font-bold text-slate-100">Relatórios Administrativos</h1> {/* Estilo título */}
         
         <Tabs defaultValue="usage" className="w-full">
-          <TabsList>
-            <TabsTrigger value="usage">Utilização</TabsTrigger>
-            <TabsTrigger value="departments">Departamentos</TabsTrigger>
-            <TabsTrigger value="activity">Atividade</TabsTrigger>
-            <TabsTrigger value="security">Segurança</TabsTrigger>
+          {/* Estilizar TabsList e TabsTrigger */}
+          <TabsList className="bg-slate-800/60 border border-blue-900/40 text-slate-400">
+            <TabsTrigger value="usage" className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100">Utilização</TabsTrigger>
+            <TabsTrigger value="departments" className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100">Departamentos</TabsTrigger>
+            <TabsTrigger value="activity" className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100">Atividade</TabsTrigger>
+            <TabsTrigger value="security" className="data-[state=active]:bg-slate-700 data-[state=active]:text-slate-100">Segurança</TabsTrigger>
           </TabsList>
           
+          {/* Estilizar Cards */}
           <TabsContent value="usage" className="mt-6">
-            <Card>
+            <Card className="bg-slate-900/50 border border-blue-900/40 text-slate-300">
               <CardHeader>
-                <CardTitle>Métricas de Utilização</CardTitle>
+                <CardTitle className="text-slate-100">Métricas de Utilização</CardTitle>
               </CardHeader>
               <CardContent>
                 <p>Implementação em breve...</p>
@@ -39,9 +43,9 @@ const AdminReportsPage = () => {
           </TabsContent>
           
           <TabsContent value="departments" className="mt-6">
-            <Card>
+            <Card className="bg-slate-900/50 border border-blue-900/40 text-slate-300">
               <CardHeader>
-                <CardTitle>Estatísticas por Departamento</CardTitle>
+                <CardTitle className="text-slate-100">Estatísticas por Departamento</CardTitle>
               </CardHeader>
               <CardContent>
                 <p>Implementação em breve...</p>
@@ -50,9 +54,9 @@ const AdminReportsPage = () => {
           </TabsContent>
           
           <TabsContent value="activity" className="mt-6">
-            <Card>
+            <Card className="bg-slate-900/50 border border-blue-900/40 text-slate-300">
               <CardHeader>
-                <CardTitle>Relatórios de Atividade</CardTitle>
+                <CardTitle className="text-slate-100">Relatórios de Atividade</CardTitle>
               </CardHeader>
               <CardContent>
                 <p>Implementação em breve...</p>
@@ -61,9 +65,9 @@ const AdminReportsPage = () => {
           </TabsContent>
           
           <TabsContent value="security" className="mt-6">
-            <Card>
+            <Card className="bg-slate-900/50 border border-blue-900/40 text-slate-300">
               <CardHeader>
-                <CardTitle>Análise de Segurança</CardTitle>
+                <CardTitle className="text-slate-100">Análise de Segurança</CardTitle>
               </CardHeader>
               <CardContent>
                 <p>Implementação em breve...</p>
@@ -72,7 +76,7 @@ const AdminReportsPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
