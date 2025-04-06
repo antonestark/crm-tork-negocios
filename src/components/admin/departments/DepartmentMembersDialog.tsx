@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Department } from '@/types/admin';
-import DepartmentMembersList, { UserDepartmentRoleMember } from './DepartmentMembersList';
+import { Department, UserDepartmentRoleMember } from '@/types/admin';
+import DepartmentMembersList from './DepartmentMembersList';
 import AddDepartmentMemberForm from './AddDepartmentMemberForm';
 import { 
   fetchDepartmentMembers, 

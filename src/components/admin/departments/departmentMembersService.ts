@@ -8,7 +8,7 @@ export const fetchDepartmentMembers = async (departmentId: string): Promise<User
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('department_id', departmentId);
+      .eq('department_id', Number(departmentId));
 
     if (error) {
       console.error('Error fetching department members:', error);
@@ -26,8 +26,8 @@ export const fetchDepartmentMembers = async (departmentId: string): Promise<User
       updated_at: user.updated_at,
       user: {
         id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
+        first_name: user.name ? user.name.split(' ')[0] : '',
+        last_name: user.name ? user.name.split(' ').slice(1).join(' ') : '',
         email: user.email,
         profile_image_url: user.profile_image_url,
         role: user.role,
@@ -53,7 +53,22 @@ export const fetchAvailableUsers = async (): Promise<User[]> => {
       return [];
     }
 
-    return data;
+    // Convert database user format to application User format
+    return data.map(user => ({
+      id: user.id,
+      first_name: user.name ? user.name.split(' ')[0] : '',
+      last_name: user.name ? user.name.split(' ').slice(1).join(' ') : '',
+      email: user.email,
+      profile_image_url: user.profile_image_url,
+      role: user.role,
+      department_id: user.department_id,
+      phone: user.phone,
+      active: user.active,
+      status: user.status,
+      last_login: user.last_login,
+      created_at: user.created_at,
+      updated_at: user.updated_at
+    }));
   } catch (error) {
     console.error('Unexpected error fetching available users:', error);
     return [];
