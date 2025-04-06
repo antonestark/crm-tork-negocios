@@ -1,15 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { User } from '@/types/admin';
-import { ensureDepartmentFormat } from './UsersTable.helper';
 import { useUsers, UserCreate } from '@/hooks/users';
 import { DataTable } from '@/components/admin/data-table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit, Trash2, UserPlus, RefreshCw } from 'lucide-react';
-import { UserFormDialog } from './UserFormDialog';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/admin/shared/ConfirmDialog';
+import { UserFormDialog } from './UserFormDialog';
+import TableHeader from './components/TableHeader';
+import UserRow from './components/UserRow';
 
 interface UsersTableProps {
   filters: {
@@ -27,18 +25,18 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
-  // Para debugging - mostrar os usuários quando carregados
+  // Log users when loaded
   useEffect(() => {
     console.log('Usuários carregados na tabela:', users);
   }, [users]);
 
-  // Forçar nova busca quando o componente é montado
+  // Fetch users when component mounts
   useEffect(() => {
     console.log('UsersTable montado, buscando usuários...');
     fetchUsers();
   }, [fetchUsers]);
 
-  // Função para atualizar manualmente a lista de usuários
+  // Manually refresh user list
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
@@ -120,7 +118,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
         toast.success('Usuário atualizado com sucesso');
       }
     } else {
-      // Add new user - ensure email is provided
+      // Add new user
       const success = await addUser(userData);
       if (success) {
         setOpenUserFormDialog(false);
@@ -133,81 +131,53 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
     {
       key: 'name',
       title: 'Nome',
-      render: (user: User) => (
-        <div className="flex flex-col">
-          <span className="font-medium">{`${user.first_name} ${user.last_name}`}</span>
-          <span className="text-xs text-muted-foreground">{user.email}</span>
-        </div>
-      ),
+      render: (user: User) => {
+        const row = UserRow({ user, onEdit: handleEditUser, onDelete: handleDeleteUser });
+        return row.name;
+      },
     },
     {
       key: 'role',
       title: 'Função',
-      render: (user: User) => (
-        <Badge variant={user.role === 'admin' ? 'default' : 'outline'}>
-          {user.role === 'admin' ? 'Administrador' : user.role === 'super_admin' ? 'Super Admin' : 'Usuário'}
-        </Badge>
-      ),
+      render: (user: User) => {
+        const row = UserRow({ user, onEdit: handleEditUser, onDelete: handleDeleteUser });
+        return row.role;
+      },
     },
     {
       key: 'department',
       title: 'Departamento',
-      render: (user: User) => (
-        <span>
-          {user.department ? ensureDepartmentFormat(user.department).name : 'Sem departamento'}
-        </span>
-      ),
+      render: (user: User) => {
+        const row = UserRow({ user, onEdit: handleEditUser, onDelete: handleDeleteUser });
+        return row.department;
+      },
     },
     {
       key: 'status',
       title: 'Status',
-      render: (user: User) => (
-        <Badge variant={user.active ? 'success' : 'destructive'}>
-          {user.active ? 'Ativo' : 'Inativo'}
-        </Badge>
-      ),
+      render: (user: User) => {
+        const row = UserRow({ user, onEdit: handleEditUser, onDelete: handleDeleteUser });
+        return row.status;
+      },
     },
     {
       key: 'actions',
       title: 'Ações',
-      render: (user: User) => (
-        <div className="flex space-x-2">
-          <Button
-            onClick={() => handleEditUser(user)}
-            variant="outline"
-            size="sm"
-          >
-            <Edit className="h-4 w-4 mr-1" />
-            Editar
-          </Button>
-          <Button
-            onClick={() => handleDeleteUser(user.id)}
-            variant="destructive"
-            size="sm"
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Excluir
-          </Button>
-        </div>
-      ),
+      render: (user: User) => {
+        const row = UserRow({ user, onEdit: handleEditUser, onDelete: handleDeleteUser });
+        return row.actions;
+      },
     },
   ];
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Usuários ({filteredUsers.length})</h2>
-        <div className="flex space-x-2">
-          <Button onClick={handleRefresh} variant="outline" disabled={refreshing}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Atualizar
-          </Button>
-          <Button onClick={handleOpenNewUserDialog}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Novo Usuário
-          </Button>
-        </div>
-      </div>
+      <TableHeader 
+        userCount={filteredUsers.length}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        onAddUser={handleOpenNewUserDialog}
+      />
 
       <DataTable
         data={filteredUsers}
