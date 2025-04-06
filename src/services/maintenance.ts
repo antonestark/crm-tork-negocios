@@ -9,7 +9,7 @@ export const fetchMaintenances = async () => {
       .select(`
         *,
         service_areas(name),
-        users:assigned_to(name)
+        users(name)
       `)
       .order("scheduled_date", { ascending: true });
     
