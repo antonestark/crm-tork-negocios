@@ -3,19 +3,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { User } from '@/types/admin';
-
-export interface UserDepartmentRoleMember {
-  id: string;
-  user_id: string;
-  department_id: string;
-  role: string;
-  start_date?: string | null;
-  end_date?: string | null;
-  created_at: string;
-  updated_at: string;
-  user: Partial<User>;
-}
+import { User, UserDepartmentRoleMember } from '@/types/admin';
 
 interface DepartmentMembersListProps {
   members: UserDepartmentRoleMember[];

@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   first_name: string;
@@ -124,4 +125,17 @@ export interface LeadActivity {
   details: Record<string, any> | null;
   created_at: string;
   user?: User | null;
+}
+
+// Add proper UserDepartmentRoleMember interface
+export interface UserDepartmentRoleMember {
+  id: string;
+  user_id: string;
+  department_id: string;
+  role: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  created_at: string;
+  updated_at: string;
+  user: Partial<User>;
 }

@@ -210,6 +210,7 @@ export type Database = {
           meeting_room_credits: number | null
           monthly_value: number | null
           notes: string | null
+          organization_id: string | null
           phone: string | null
           responsible: string | null
           room: string | null
@@ -230,6 +231,7 @@ export type Database = {
           meeting_room_credits?: number | null
           monthly_value?: number | null
           notes?: string | null
+          organization_id?: string | null
           phone?: string | null
           responsible?: string | null
           room?: string | null
@@ -250,6 +252,7 @@ export type Database = {
           meeting_room_credits?: number | null
           monthly_value?: number | null
           notes?: string | null
+          organization_id?: string | null
           phone?: string | null
           responsible?: string | null
           room?: string | null
@@ -257,7 +260,15 @@ export type Database = {
           trading_name?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       companies: {
         Row: {
@@ -422,6 +433,7 @@ export type Database = {
           description: string | null
           id: number
           name: string
+          organization_id: string | null
           parent_id: number | null
           updated_at: string | null
         }
@@ -430,6 +442,7 @@ export type Database = {
           description?: string | null
           id?: number
           name: string
+          organization_id?: string | null
           parent_id?: number | null
           updated_at?: string | null
         }
@@ -438,10 +451,18 @@ export type Database = {
           description?: string | null
           id?: number
           name?: string
+          organization_id?: string | null
           parent_id?: number | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "departments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "departments_parent_id_fkey"
             columns: ["parent_id"]
@@ -471,6 +492,42 @@ export type Database = {
           metadata?: Json | null
         }
         Relationships: []
+      }
+      group_permissions: {
+        Row: {
+          created_at: string | null
+          group_id: string
+          id: string
+          permission_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          group_id: string
+          id?: string
+          permission_id: string
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          permission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_permissions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "permission_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lead_activities: {
         Row: {
@@ -516,6 +573,7 @@ export type Database = {
           id: string
           name: string
           notes: string | null
+          organization_id: string | null
           phone: string | null
           sessionid: string | null
           source: string | null
@@ -530,6 +588,7 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
+          organization_id?: string | null
           phone?: string | null
           sessionid?: string | null
           source?: string | null
@@ -544,13 +603,22 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
+          organization_id?: string | null
           phone?: string | null
           sessionid?: string | null
           source?: string | null
           status?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       maintenance_records: {
         Row: {
@@ -619,6 +687,76 @@ export type Database = {
           session_id?: string
         }
         Relationships: []
+      }
+      organization_members: {
+        Row: {
+          created_at: string | null
+          id: number
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          organization_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          organization_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          owner_user_id: string | null
+          plan_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          owner_user_id?: string | null
+          plan_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          owner_user_id?: string | null
+          plan_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organizations_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permission_groups: {
         Row: {
@@ -1074,7 +1212,15 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_department_id"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
