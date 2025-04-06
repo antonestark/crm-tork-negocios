@@ -87,8 +87,8 @@ export const MaintenanceList = ({ maintenances, loading }: MaintenanceListProps)
                   'Não agendada'}
               </TableCell>
               <TableCell>
-                {maintenance.users?.name ? 
-                  maintenance.users.name : 
+                {maintenance.user?.name ? 
+                  maintenance.user.name : 
                   'Não atribuído'}
               </TableCell>
               <TableCell>{getStatusBadge(maintenance.status)}</TableCell>

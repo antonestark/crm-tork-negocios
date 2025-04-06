@@ -2,6 +2,23 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+// Define a type for the maintenance record to include the users property
+type MaintenanceRecord = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  assigned_to: string | null;
+  scheduled_date: string;
+  completed_date: string | null;
+  created_at: string;
+  updated_at: string;
+  frequency: string | null;
+  area_id: string | null;
+  service_areas: { name: string } | null;
+  user?: { id: string; name: string }; // Make user optional with proper typing
+};
+
 export const fetchMaintenances = async () => {
   try {
     // Modified query to avoid joining the users table directly since there's no relationship defined
@@ -18,12 +35,14 @@ export const fetchMaintenances = async () => {
       throw error;
     }
     
+    const maintenanceRecords = data as MaintenanceRecord[] || [];
+    
     // If we have assigned users, fetch them separately
-    if (data && data.length > 0) {
+    if (maintenanceRecords.length > 0) {
       // Extract all non-null assigned_to IDs
-      const userIds = data
+      const userIds = maintenanceRecords
         .map(record => record.assigned_to)
-        .filter(id => id !== null);
+        .filter((id): id is string => id !== null);
       
       // If we have user IDs, fetch the user data
       if (userIds.length > 0) {
@@ -33,23 +52,23 @@ export const fetchMaintenances = async () => {
           .in("id", userIds);
           
         if (!userError && userData) {
-          // Create a map of user IDs to names for easy lookup
-          const userMap = userData.reduce((map, user) => {
-            map[user.id] = user;
-            return map;
-          }, {});
+          // Create a map of user IDs to user objects for easy lookup
+          const userMap: Record<string, { id: string; name: string }> = {};
+          userData.forEach(user => {
+            userMap[user.id] = user;
+          });
           
           // Add user data to each maintenance record
-          data.forEach(record => {
+          maintenanceRecords.forEach(record => {
             if (record.assigned_to && userMap[record.assigned_to]) {
-              record.users = userMap[record.assigned_to];
+              record.user = userMap[record.assigned_to];
             }
           });
         }
       }
     }
     
-    return data || [];
+    return maintenanceRecords;
   } catch (error) {
     console.error("Erro ao buscar manutenções:", error);
     throw error;
