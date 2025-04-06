@@ -1,4 +1,3 @@
-
 // This file augments the Database interface from the original types.ts file
 // without modifying the read-only file directly
 
@@ -428,6 +427,116 @@ export interface N8nChatHistories {
   Relationships: [];
 }
 
+// Add the missing tables that are causing the error
+export interface GroupPermissions {
+  Row: {
+    id: string;
+    group_id: string;
+    permission_id: string;
+    created_at: string | null;
+  };
+  Insert: {
+    id?: string;
+    group_id: string;
+    permission_id: string;
+    created_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    group_id?: string;
+    permission_id?: string;
+    created_at?: string | null;
+  };
+  Relationships: [
+    {
+      foreignKeyName: "group_permissions_group_id_fkey";
+      columns: ["group_id"];
+      isOneToOne: false;
+      referencedRelation: "permission_groups";
+      referencedColumns: ["id"];
+    },
+    {
+      foreignKeyName: "group_permissions_permission_id_fkey";
+      columns: ["permission_id"];
+      isOneToOne: false;
+      referencedRelation: "permissions";
+      referencedColumns: ["id"];
+    }
+  ];
+}
+
+export interface OrganizationMembers {
+  Row: {
+    id: number;
+    organization_id: string;
+    user_id: string;
+    role: string;
+    created_at: string | null;
+  };
+  Insert: {
+    id?: number;
+    organization_id: string;
+    user_id: string;
+    role?: string;
+    created_at?: string | null;
+  };
+  Update: {
+    id?: number;
+    organization_id?: string;
+    user_id?: string;
+    role?: string;
+    created_at?: string | null;
+  };
+  Relationships: [
+    {
+      foreignKeyName: "organization_members_organization_id_fkey";
+      columns: ["organization_id"];
+      isOneToOne: false;
+      referencedRelation: "organizations";
+      referencedColumns: ["id"];
+    }
+  ];
+}
+
+export interface Organizations {
+  Row: {
+    id: string;
+    name: string;
+    owner_user_id: string | null;
+    plan_id: string | null;
+    status: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+  };
+  Insert: {
+    id?: string;
+    name: string;
+    owner_user_id?: string | null;
+    plan_id?: string | null;
+    status?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    name?: string;
+    owner_user_id?: string | null;
+    plan_id?: string | null;
+    status?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Relationships: [
+    {
+      foreignKeyName: "organizations_plan_id_fkey";
+      columns: ["plan_id"];
+      isOneToOne: false;
+      referencedRelation: "plans";
+      referencedColumns: ["id"];
+    }
+  ];
+}
+
 // Import the Database type from types.ts but don't re-export it
 import type { Database as OriginalDatabase } from './types';
 import { Json } from './types';
@@ -478,6 +587,11 @@ declare global {
         // Add the new companies and company_users tables
         companies: Companies;
         company_users: CompanyUsers;
+        
+        // Add the missing tables that were causing the error
+        group_permissions: GroupPermissions;
+        organization_members: OrganizationMembers;
+        organizations: Organizations;
       };
       Views: OriginalDatabase['public']['Views'];
       Functions: OriginalDatabase['public']['Functions'];
