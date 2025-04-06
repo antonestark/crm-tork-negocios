@@ -4,18 +4,49 @@ import { toast } from "sonner";
 
 export const fetchMaintenances = async () => {
   try {
+    // Modified query to avoid joining the users table directly since there's no relationship defined
     const { data, error } = await supabase
       .from("maintenance_records")
       .select(`
         *,
-        service_areas(name),
-        users(name)
+        service_areas(name)
       `)
       .order("scheduled_date", { ascending: true });
     
     if (error) {
       toast.error("Erro ao carregar manutenções");
       throw error;
+    }
+    
+    // If we have assigned users, fetch them separately
+    if (data && data.length > 0) {
+      // Extract all non-null assigned_to IDs
+      const userIds = data
+        .map(record => record.assigned_to)
+        .filter(id => id !== null);
+      
+      // If we have user IDs, fetch the user data
+      if (userIds.length > 0) {
+        const { data: userData, error: userError } = await supabase
+          .from("users")
+          .select("id, name")
+          .in("id", userIds);
+          
+        if (!userError && userData) {
+          // Create a map of user IDs to names for easy lookup
+          const userMap = userData.reduce((map, user) => {
+            map[user.id] = user;
+            return map;
+          }, {});
+          
+          // Add user data to each maintenance record
+          data.forEach(record => {
+            if (record.assigned_to && userMap[record.assigned_to]) {
+              record.users = userMap[record.assigned_to];
+            }
+          });
+        }
+      }
     }
     
     return data || [];
