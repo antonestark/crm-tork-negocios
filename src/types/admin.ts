@@ -3,17 +3,17 @@ export interface User {
   first_name: string;
   last_name: string;
   email?: string;
-  profile_image_url: string | null;
-  role: string;
-  department_id: number | null;
-  phone: string | null;
-  active: boolean;
-  status: string;
-  last_login: string | null;
-  settings: Record<string, any>;
-  metadata: Record<string, any>;
-  created_at: string;
-  updated_at: string;
+  profile_image_url?: string | null;
+  role?: string;
+  department_id?: number | null;
+  phone?: string | null;
+  active?: boolean;
+  status?: string;
+  last_login?: string | null;
+  settings?: Record<string, any>;
+  metadata?: Record<string, any>;
+  created_at?: string;
+  updated_at?: string;
   department?: Department | null;
 }
 

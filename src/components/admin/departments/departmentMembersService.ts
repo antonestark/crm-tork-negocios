@@ -67,16 +67,41 @@ const mockDepartmentMembers: UserDepartmentRoleMember[] = [
 
 // Fetch department members
 export const fetchDepartmentMembers = async (departmentId: string): Promise<UserDepartmentRoleMember[]> => {
-  console.log(`Fetching members for department ${departmentId}`);
-  // In a real app, this would be a Supabase query
-  return mockDepartmentMembers.filter(member => member.department_id === departmentId);
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('department_id', departmentId);
+
+  if (error) {
+    console.error('Error fetching department members:', error);
+    return [];
+  }
+
+  return data.map(user => ({
+    id: user.id,
+    user_id: user.id,
+    department_id: departmentId,
+    role: user.role || 'member',
+    start_date: null,
+    end_date: null,
+    created_at: user.created_at,
+    updated_at: user.updated_at,
+    user: user
+  }));
 };
 
 // Fetch available users
 export const fetchAvailableUsers = async () => {
-  console.log('Fetching available users');
-  // In a real app, this would be a Supabase query
-  return mockUsers;
+  const { data, error } = await supabase
+    .from('users')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching available users:', error);
+    return [];
+  }
+
+  return data;
 };
 
 // Add a member to a department
@@ -96,7 +121,7 @@ export const addDepartmentMember = async (
   const newMember: UserDepartmentRoleMember = {
     id: `${Date.now()}`, // Generate a unique ID
     user_id: userId,
-    department_id: department.id,
+      department_id: department.id.toString(),
     role: role,
     start_date: new Date().toISOString(),
     end_date: null,
@@ -108,7 +133,7 @@ export const addDepartmentMember = async (
       last_name: user.last_name,
       profile_image_url: user.profile_image_url,
       role: user.role,
-      department_id: department.id as unknown as number,
+      department_id: Number(department.id),
       phone: user.phone,
       active: user.active,
       status: user.status,
@@ -125,7 +150,15 @@ export const addDepartmentMember = async (
 
 // Remove a member from a department
 export const removeDepartmentMember = async (userId: string): Promise<boolean> => {
-  console.log(`Removing user ${userId} from department`);
-  // In a real app, this would be a Supabase query
+  const { data, error } = await supabase
+    .from('users')
+    .update({ department_id: null })
+    .eq('id', userId);
+
+  if (error) {
+    console.error('Error removing department member:', error);
+    return false;
+  }
+
   return true;
 };

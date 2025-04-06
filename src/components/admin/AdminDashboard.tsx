@@ -22,10 +22,23 @@ export function AdminDashboard() {
     queryKey: ['admin-dashboard-users'],
     queryFn: async () => {
       try {
+        // TESTE: Tentar buscar apenas um ID para verificar a leitura básica
+        const { data: testData, error: testError } = await supabase
+          .from('users')
+          .select('id')
+          .limit(1);
+
+        if (testError) {
+          console.error('Error fetching single user ID (test):', testError.message);
+          throw testError; // Re-lança o erro para o catch principal
+        }
+        console.log('Teste de leitura básica de usuário bem-sucedido:', testData);
+
+        // Se o teste passou, tenta a contagem original
         const { count, error } = await supabase
           .from('users')
           .select('*', { count: 'exact', head: true });
-        
+
         if (error) throw error;
         setUserCount(count || 0);
         return count;

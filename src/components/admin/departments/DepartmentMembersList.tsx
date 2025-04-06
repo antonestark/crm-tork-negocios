@@ -14,7 +14,7 @@ export interface UserDepartmentRoleMember {
   end_date?: string | null;
   created_at: string;
   updated_at: string;
-  user: User;
+  user: Partial<User>;
 }
 
 interface DepartmentMembersListProps {

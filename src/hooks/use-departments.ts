@@ -54,35 +54,10 @@ export const useDepartments = () => {
       
       console.log('Departments raw data received:', data?.length || 0, 'records');
       const adaptedData = departmentAdapter(data || []);
-      
-      // Get member counts for each department
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('department_id');
-        
-      if (userError) {
-        console.warn('Could not fetch member counts:', userError);
-        setDepartments(adaptedData);
-        return;
-      }
-      
-      // Count members per department
-      const counts: Record<string, number> = {};
-      userData?.forEach(user => {
-        if (user.department_id) {
-          const deptId = user.department_id.toString();
-          counts[deptId] = (counts[deptId] || 0) + 1;
-        }
-      });
-      
-      // Add member counts to departments
-      const departmentsWithCount = adaptedData.map(dept => ({
-        ...dept,
-        _memberCount: counts[dept.id] || 0
-      }));
-      
-      setDepartments(departmentsWithCount);
-      console.log('Departments processed:', departmentsWithCount.length, 'departments with counts');
+
+      // TESTE: Remover busca de contagem de membros para simplificar
+      setDepartments(adaptedData.map(dept => ({ ...dept, _memberCount: 0 }))); // Define _memberCount como 0 temporariamente
+      console.log('Departments processed (sem contagem):', adaptedData.length);
     } catch (err) {
       console.error('Error in fetchDepartments:', err);
       setError(err as Error);
