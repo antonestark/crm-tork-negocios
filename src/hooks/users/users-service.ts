@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { userAdapter } from '@/integrations/supabase/adapters';
 import { formatUserFromDatabase } from '@/utils/user-formatter';
@@ -167,15 +166,22 @@ export async function deleteUserFromAPI(id: string) {
   try {
     console.log('Deleting user with ID:', id);
     
+    if (!id) {
+      throw new Error('ID do usuário não fornecido');
+    }
+    
+    // Tenta excluir o usuário
     const { error } = await supabase
       .from('users')
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Erro do Supabase ao excluir usuário:', error);
+      throw error;
+    }
     
     console.log('User deleted successfully');
-    toast.success('Usuário excluído com sucesso');
     return true;
   } catch (err) {
     console.error('Error deleting user:', err);

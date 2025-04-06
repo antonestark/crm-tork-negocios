@@ -25,7 +25,7 @@ export const useUsers = (): UseUsersReturn => {
       const adaptedData = await fetchUsersFromAPI();
       console.log('Dados adaptados recebidos:', adaptedData);
       setUsers(adaptedData);
-      return adaptedData; // This return type is causing the error
+      return adaptedData;
     } catch (err) {
       console.error('Erro ao buscar usuários:', err);
       setError(err as Error);
@@ -83,10 +83,16 @@ export const useUsers = (): UseUsersReturn => {
 
   const deleteUser = async (id: string) => {
     try {
+      console.log('Chamando deleteUserFromAPI com ID:', id);
       const success = await deleteUserFromAPI(id);
+      
       if (success) {
+        console.log('Usuário excluído com sucesso, atualizando lista...');
         await fetchUsers(); // Re-fetch all users
+      } else {
+        console.error('deleteUserFromAPI retornou falso');
       }
+      
       return success;
     } catch (err) {
       console.error('Erro ao excluir usuário:', err);

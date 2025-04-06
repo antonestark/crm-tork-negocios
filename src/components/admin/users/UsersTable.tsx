@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Edit, Trash2, UserPlus, RefreshCw } from 'lucide-react';
 import { UserFormDialog } from './UserFormDialog';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/admin/shared/ConfirmDialog';
 
 interface UsersTableProps {
   filters: {
@@ -23,6 +24,8 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
   const [openUserFormDialog, setOpenUserFormDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   // Para debugging - mostrar os usuários quando carregados
   useEffect(() => {
@@ -79,12 +82,29 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
     setOpenUserFormDialog(true);
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
-      const success = await deleteUser(userId);
+  const handleDeleteUser = (userId: string) => {
+    setUserToDelete(userId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+    
+    console.log('Tentando excluir usuário ID:', userToDelete);
+    
+    try {
+      const success = await deleteUser(userToDelete);
       if (success) {
         toast.success('Usuário excluído com sucesso');
+      } else {
+        toast.error('Falha ao excluir usuário');
       }
+    } catch (error) {
+      console.error('Erro ao excluir usuário:', error);
+      toast.error('Erro ao excluir usuário');
+    } finally {
+      setUserToDelete(null);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -201,6 +221,17 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
         onOpenChange={setOpenUserFormDialog}
         user={selectedUser}
         onSave={handleSaveUser}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Excluir Usuário"
+        description="Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita."
+        onConfirm={confirmDelete}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        variant="destructive"
       />
     </div>
   );
