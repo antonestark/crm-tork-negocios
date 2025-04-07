@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,8 +25,12 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
   const { subscription, loading: subscriptionLoading, checkCanCreateServiceArea } = useSubscription();
 
   const handleEdit = useCallback((area: ServiceArea) => {
+    // First set the area data
     setEditingArea(area);
-    setIsEditDialogOpen(true);
+    // Then open the dialog after a short delay to ensure state is set
+    setTimeout(() => {
+      setIsEditDialogOpen(true);
+    }, 50);
   }, []);
 
   const handleUpdated = useCallback(() => {

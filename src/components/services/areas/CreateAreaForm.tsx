@@ -7,6 +7,7 @@ import { DescriptionField } from "./form-fields/DescriptionField";
 import { StatusField } from "./form-fields/StatusField";
 import { TypeField } from "./form-fields/TypeField";
 import { FormActions } from "./form-fields/FormActions";
+import { useEffect } from "react";
 
 interface CreateAreaFormProps {
   onSubmit: (values: AreaSubmitData) => Promise<void>;
@@ -24,6 +25,15 @@ export const CreateAreaForm = ({
   const { form, areaTypes, loadingTypes, handleSubmit } = useAreaForm(onSubmit, initialValues);
   
   const isEditMode = !!initialValues;
+  
+  // Disable form when submitting
+  useEffect(() => {
+    if (isSubmitting) {
+      form.disable();
+    } else {
+      form.enable();
+    }
+  }, [isSubmitting, form]);
 
   return (
     <Form {...form}>

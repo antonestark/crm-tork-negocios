@@ -1,3 +1,4 @@
+
 import { Dispatch, SetStateAction } from "react";
 import { CreateAreaForm } from "../CreateAreaForm";
 import { AreaTypesManager } from "../AreaTypesManager";
@@ -33,6 +34,8 @@ export const DialogContentManager = ({
       setError(null);
       console.log("Submitting form with values:", values);
       await onCreateArea(values);
+      
+      // Only close the dialog if submission was successful
       setOpen(false);
     } catch (err) {
       console.error("Error in dialog submit:", err);
