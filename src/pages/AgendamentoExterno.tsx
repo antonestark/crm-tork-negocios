@@ -68,19 +68,41 @@ const AgendamentoExterno: React.FC = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Agendamento Externo</h1>
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h1 className="text-3xl font-bold mb-6 text-center">Agendamento Externo</h1>
       <form onSubmit={handleSubmit} className="grid gap-4">
         <Input placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
         <Input placeholder="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} required />
         <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <Input type="date" value={data} onChange={(e) => setData(e.target.value)} required />
-        <div className="flex gap-2">
-          <Input type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} required />
-          <Input type="time" value={horaFim} onChange={(e) => setHoraFim(e.target.value)} required />
+
+        <div>
+          <p className="mb-2 font-semibold">Selecione o horário:</p>
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from({ length: 11 }, (_, i) => {
+              const hour = 8 + i;
+              const label = `${hour.toString().padStart(2, '0')}:00`;
+              const isSelected = horaInicio === label;
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => {
+                    setHoraInicio(label);
+                    const nextHour = hour + 1;
+                    setHoraFim(`${nextHour.toString().padStart(2, '0')}:00`);
+                  }}
+                  className={`py-2 rounded border ${isSelected ? 'bg-green-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
+
         <Input placeholder="Descrição" value={descricao} onChange={(e) => setDescricao(e.target.value)} required />
-        <Button type="submit">Agendar</Button>
+        <Button type="submit" className="w-full">Agendar</Button>
       </form>
     </div>
   );
