@@ -1,29 +1,37 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { DateRange } from 'react-day-picker';
 
-export const useDashboardData = () => {
+export const useDashboardData = (range?: DateRange) => {
   const [data, setData] = useState({
     leads: [],
     demands: [],
     users: [],
     checklistItems: [],
-    metrics: {
-      completed: 0,
-      pending: 0,
-      delayed: 0,
-    },
+    metrics: [],
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const { data: leads, error: leadsError } = await supabase.from('leads').select('*');
-        const { data: demands, error: demandsError } = await supabase.from('demands').select('*');
-        const { data: users, error: usersError } = await supabase.from('users').select('*');
-        const { data: checklistItems, error: checklistError } = await supabase.from('checklist_items').select('*');
-        const { data: metrics, error: metricsError } = await supabase.from('service_reports').select('*');
+        const filters = (query: any) => {
+          if (range?.from) {
+            query = query.gte('created_at', range.from.toISOString());
+          }
+          if (range?.to) {
+            query = query.lte('created_at', range.to.toISOString());
+          }
+          return query;
+        };
+
+        const { data: leads } = await filters(supabase.from('leads').select('*'));
+        const { data: demands } = await filters(supabase.from('demands').select('*'));
+        const { data: users } = await supabase.from('users').select('*'); // usuários geralmente não são filtrados por data
+        const { data: checklistItems } = await filters(supabase.from('checklist_items').select('*'));
+        const { data: metrics } = await filters(supabase.from('service_reports').select('*'));
 
         setData({
           leads,
@@ -40,7 +48,7 @@ export const useDashboardData = () => {
     };
 
     fetchData();
-  }, []);
+  }, [range]);
 
   return { data, loading, error };
 };

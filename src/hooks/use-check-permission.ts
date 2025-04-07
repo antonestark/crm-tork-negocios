@@ -6,7 +6,7 @@ import { useAuthState } from '@/hooks/use-auth-state';
 export const useCheckPermission = (permissionCode: string) => {
   const [hasPermission, setHasPermission] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated, userId } = useAuthState();
+  const { isAuthenticated, userId, user } = useAuthState();
 
   useEffect(() => {
     if (!isAuthenticated || !userId) {
@@ -15,14 +15,20 @@ export const useCheckPermission = (permissionCode: string) => {
       return;
     }
 
+    // Se for superadmin, concede acesso irrestrito
+    if (user?.role === 'superadmin') {
+      setHasPermission(true);
+      setLoading(false);
+      return;
+    }
+
     checkPermission();
-  }, [isAuthenticated, userId, permissionCode]);
+  }, [isAuthenticated, userId, permissionCode, user]);
 
   const checkPermission = async () => {
     try {
       setLoading(true);
       
-      // Instead of calling RPC, check permissions directly
       const { data: permissionData, error: permissionError } = await supabase
         .from('user_permissions')
         .select('permission_id, permissions!inner(code)')

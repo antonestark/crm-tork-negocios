@@ -39,5 +39,6 @@ export const useAuthState = () => {
     userId: user?.id || null,
     sessionExpired: !session && !isLoading,
     refreshSession,
+    user, // adiciona o objeto user completo
   };
 };
