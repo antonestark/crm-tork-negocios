@@ -26,21 +26,6 @@ export const CreateAreaForm = ({
   
   const isEditMode = !!initialValues;
   
-  // Set form fields to disabled/enabled based on isSubmitting
-  useEffect(() => {
-    if (isSubmitting) {
-      // Instead of using non-existent disable() method, 
-      // we'll set all form fields to disabled state
-      Object.keys(form.getValues()).forEach((fieldName) => {
-        form.setValue(fieldName as any, form.getValues(fieldName as any), {
-          shouldValidate: false,
-          shouldDirty: false,
-          shouldTouch: false
-        });
-      });
-    }
-  }, [isSubmitting, form]);
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
