@@ -21,7 +21,7 @@ export const UserActions: React.FC<UserActionsProps> = ({
         onClick={() => onEdit(user)}
         variant="outline"
         size="sm"
-        className="text-white"
+        className="text-gray-800"
       >
         <Edit className="h-4 w-4 mr-1" />
         Editar
@@ -30,7 +30,7 @@ export const UserActions: React.FC<UserActionsProps> = ({
         onClick={() => onDelete(user.id)}
         variant="destructive"
         size="sm"
-        className="text-white"
+        className="text-gray-800"
       >
         <Trash2 className="h-4 w-4 mr-1" />
         Excluir

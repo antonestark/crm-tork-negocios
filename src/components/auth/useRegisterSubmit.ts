@@ -96,6 +96,30 @@ export function useRegisterSubmit() {
         });
       } else {
         console.log('Usuário inserido com sucesso na tabela users');
+
+        // Buscar o usuário recém-criado para obter o ID
+        const { data: createdUser, error: fetchUserError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', data.email)
+          .maybeSingle();
+
+        if (fetchUserError || !createdUser) {
+          console.error('Erro ao buscar usuário recém-criado para vincular permissão:', fetchUserError);
+        } else {
+          const { error: permissionInsertError } = await supabase
+            .from('user_permissions')
+            .insert({
+              user_id: createdUser.id,
+              permission_id: 'e3f8855e-946e-4965-bd9d-95af3c59f95e'
+            });
+
+          if (permissionInsertError) {
+            console.error('Erro ao vincular permissão padrão ao novo usuário:', permissionInsertError);
+          } else {
+            console.log('Permissão padrão vinculada com sucesso ao novo usuário');
+          }
+        }
       }
 
       console.log('Registro: Conta criada com sucesso para:', data.email);

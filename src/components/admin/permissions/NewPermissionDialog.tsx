@@ -94,7 +94,7 @@ export function NewPermissionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+<DialogContent className="sm:max-w-[500px] bg-background text-foreground">
         <DialogHeader>
           <DialogTitle>
             {permission ? 'Editar Permissão' : 'Nova Permissão'}
@@ -105,70 +105,76 @@ export function NewPermissionDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nome*</Label>
-              <Input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
+<Input
+  id="name"
+  name="name"
+  value={formData.name}
+  onChange={handleInputChange}
+  required
+  className="bg-input border border-border text-foreground"
+/>
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="module">Módulo*</Label>
-              <Input
-                id="module"
-                name="module"
-                value={formData.module}
-                onChange={handleInputChange}
-                required
-              />
+<Input
+  id="module"
+  name="module"
+  value={formData.module}
+  onChange={handleInputChange}
+  required
+  className="bg-input border border-border text-foreground"
+/>
             </div>
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="code">Código*</Label>
-            <Input
-              id="code"
-              name="code"
-              value={formData.code}
-              onChange={handleInputChange}
-              placeholder="admin:resource:action"
-              required
-              disabled={!!permission} // Can't change code for existing permissions
-            />
+<Input
+  id="code"
+  name="code"
+  value={formData.code}
+  onChange={handleInputChange}
+  placeholder="admin:resource:action"
+  required
+  disabled={!!permission} // Can't change code for existing permissions
+  className="bg-input border border-border text-foreground"
+/>
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="resource_type">Tipo de Recurso*</Label>
-            <Input
-              id="resource_type"
-              name="resource_type"
-              value={formData.resource_type}
-              onChange={handleInputChange}
-              required
-            />
+<Input
+  id="resource_type"
+  name="resource_type"
+  value={formData.resource_type}
+  onChange={handleInputChange}
+  required
+  className="bg-input border border-border text-foreground"
+/>
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={formData.description || ''}
-              onChange={handleInputChange}
-              rows={2}
-            />
+<Textarea
+  id="description"
+  name="description"
+  value={formData.description || ''}
+  onChange={handleInputChange}
+  rows={2}
+  className="bg-input border border-border text-foreground"
+/>
           </div>
           
           <div className="space-y-2">
             <Label>Ações*</Label>
             <div className="flex space-x-2">
-              <Input
-                value={actionInput}
-                onChange={(e) => setActionInput(e.target.value)}
-                placeholder="create, read, update, delete, etc."
-              />
+<Input
+  value={actionInput}
+  onChange={(e) => setActionInput(e.target.value)}
+  placeholder="create, read, update, delete, etc."
+  className="bg-input border border-border text-foreground"
+/>
               <Button type="button" onClick={handleAddAction} variant="outline">
                 Adicionar
               </Button>

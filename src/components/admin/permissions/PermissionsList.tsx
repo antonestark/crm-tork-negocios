@@ -4,13 +4,17 @@ import { PermissionsHeader } from './PermissionsHeader';
 import { PermissionsGrid } from './PermissionsGrid';
 import { usePermissions } from '@/hooks/use-permissions';
 import { Permission } from '@/types/admin';
+import { NewPermissionDialog } from './NewPermissionDialog';
 
 export function PermissionsList() {
-  const { permissions, loading, deletePermission } = usePermissions();
+  const { permissions, loading, createPermission, updatePermission, deletePermission } = usePermissions();
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedPermission, setSelectedPermission] = useState<Permission | null>(null);
 
   const handleEdit = (permission: Permission) => {
-    // In a real app, this would open a modal or navigate to an edit page
-    console.log('Edit permission:', permission);
+    setSelectedPermission(permission);
+    setDialogOpen(true);
   };
 
   const handleDelete = async (permission: Permission) => {
@@ -18,8 +22,17 @@ export function PermissionsList() {
   };
 
   const handleNewPermission = () => {
-    // In a real app, this would open a form to create a new permission
-    console.log('Create new permission');
+    setSelectedPermission(null);
+    setDialogOpen(true);
+  };
+
+  const handleSave = async (data: Partial<Permission>) => {
+    if (selectedPermission) {
+      await updatePermission({ ...selectedPermission, ...data });
+    } else {
+      await createPermission(data as Permission);
+    }
+    setDialogOpen(false);
   };
 
   return (
@@ -35,6 +48,13 @@ export function PermissionsList() {
           onDelete={handleDelete}
         />
       )}
+
+      <NewPermissionDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSave={handleSave}
+        permission={selectedPermission}
+      />
     </div>
   );
 }

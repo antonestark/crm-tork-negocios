@@ -18,7 +18,7 @@ interface RoleBadgeProps {
 }
 
 export const RoleBadge: React.FC<RoleBadgeProps> = ({ role }) => (
-  <Badge variant={role === 'admin' ? 'default' : 'outline'}>
+  <Badge variant="default">
     {role === 'admin' 
       ? 'Administrador' 
       : role === 'super_admin' 

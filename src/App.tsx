@@ -1,4 +1,3 @@
-x
 import React from 'react';
 import './App.css';
 import Index from '@/pages/Index';
@@ -27,6 +26,7 @@ import Planos from '@/pages/Planos';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { QueryClientProvider } from '@/providers/QueryClientProvider';
 import { Toaster } from "@/components/ui/sonner";
+import { RequirePermission } from '@/components/auth/RequirePermission';
 
 // Route related imports
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -63,7 +63,7 @@ function App() {
             <Route path="/services" element={<RequireAuth><ServicesIndex /></RequireAuth>} />
             <Route path="/services/areas" element={<RequireAuth><Areas /></RequireAuth>} />
             <Route path="/services/demands" element={<RequireAuth><Demands /></RequireAuth>} />
-            <Route path="/services/checklist" element={<RequireAuth><Checklist /></RequireAuth>} />
+            <Route path="/services/checklist" element={<RequireAuth><RequirePermission permissionCode="checklist:view"><Checklist /></RequirePermission></RequireAuth>} />
             <Route path="/services/maintenance" element={<RequireAuth><Maintenance /></RequireAuth>} />
             <Route path="/services/reports" element={<RequireAuth><ServiceReports /></RequireAuth>} />
             
