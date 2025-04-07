@@ -49,7 +49,8 @@ const AgendamentoExterno: React.FC = () => {
         start_time: `${data}T${horaInicio}:00`,
         end_time: `${data}T${horaFim}:00`,
         description: descricao,
-        status: 'pending'
+        status: 'pending',
+        externo: true
       },
     ]);
 
