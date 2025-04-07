@@ -35,6 +35,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({ onSubmit, initialValues 
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
       company_name: initialValues?.company_name || "",
+      contact_name: initialValues?.contact_name || "", // Adicionado valor padrão
       razao_social: initialValues?.razao_social || "",
       document: initialValues?.document || "",
       birth_date: initialValues?.birth_date || "",

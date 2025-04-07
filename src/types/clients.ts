@@ -23,6 +23,7 @@ export interface Client {
   tags?: string[]; // Novo: Tags
   created_at: string;
   updated_at: string;
+  contact_name?: string | null; // Adicionado Nome do Cliente/Contato
 }
 
 export interface CreditUsage { // Manter esta interface inalterada

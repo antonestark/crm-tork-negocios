@@ -10,6 +10,7 @@ export const clientFormSchema = z.object({
   company_name: z.string().min(2, {
     message: "Nome da empresa deve ter pelo menos 2 caracteres.",
   }),
+  contact_name: z.string().optional(), // Adicionado Nome do Cliente/Contato
   razao_social: z.string().optional(),
   document: z.string().optional(),
   birth_date: z.string().optional(),

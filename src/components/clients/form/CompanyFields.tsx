@@ -27,6 +27,19 @@ export const CompanyFields: React.FC<CompanyFieldsProps> = ({ form }) => {
       />
       <FormField
         control={form.control}
+        name="contact_name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Nome do Cliente/Contato</FormLabel>
+            <FormControl>
+              <Input placeholder="Nome do responsável ou cliente" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
         name="razao_social"
         render={({ field }) => (
           <FormItem>

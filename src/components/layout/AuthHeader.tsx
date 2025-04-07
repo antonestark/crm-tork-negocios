@@ -40,7 +40,7 @@ export function AuthHeader({ hideNavigation = false }: AuthHeaderProps) {
           </nav>
         )}
         
-        <UserNav />
+        {!hideNavigation && <UserNav />} 
       </div>
     </header>
   );

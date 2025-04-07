@@ -16,20 +16,49 @@ import { ClientForm } from '@/components/clients/ClientForm'; // Import ClientFo
 import { ClientFormValues } from '@/components/clients/ClientForm'; // Import form values type
 import { Client } from '@/types/clients'; // Import Client type
 import { toast } from "sonner"; // Import toast
+// Import service functions (Moved to top level)
+import { createClient, updateClient } from '@/services/clients-service'; 
+// Import useMutation and useQueryClient for data handling (Moved to top level)
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Clients = () => {
   // Add state for Dialog and selected client
   const [open, setOpen] = useState(false); 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  // Add handleSubmit function (adapt if needed, e.g., refetching data)
+  // ... inside Clients component ...
+  const queryClient = useQueryClient(); // Get query client instance
+
+  // Mutation for creating/updating client
+  const clientMutation = useMutation({
+    mutationFn: async (values: ClientFormValues) => {
+      if (selectedClient) {
+        // Update existing client
+        return updateClient(selectedClient.id, values);
+      } else {
+        // Create new client
+        return createClient(values);
+      }
+    },
+    onSuccess: (data) => {
+      toast.success(`Cliente ${selectedClient ? 'atualizado' : 'criado'} com sucesso!`);
+      setOpen(false); // Close dialog on success
+      setSelectedClient(null); // Reset selected client
+      // Invalidate clients query to refetch data in the table
+      queryClient.invalidateQueries({ queryKey: ['clients'] }); 
+    },
+    onError: (error) => {
+      console.error("Error saving client:", error);
+      toast.error(`Erro ao ${selectedClient ? 'atualizar' : 'criar'} cliente`, {
+        description: error.message || "Ocorreu um erro inesperado.",
+      });
+    },
+  });
+
+  // Updated handleSubmit function
   const handleSubmit = (values: ClientFormValues) => { 
-    // TODO: Implementar a lógica para criar/atualizar o cliente no Supabase
-    console.log("Form values from Clients page:", values); 
-    setOpen(false);
-    setSelectedClient(null); // Reset selected client after submit
-    toast.success('Cliente criado/atualizado com sucesso!');
-    // Consider adding logic to refetch clients list if using local state
+    console.log("Submitting form values:", values); 
+    clientMutation.mutate(values); // Trigger the mutation
   };
 
   // Add prepareInitialValues function
@@ -77,7 +106,8 @@ const Clients = () => {
                 </Button>
               </DialogTrigger>
               {/* Add DialogContent */}
-              <DialogContent className="sm:max-w-[625px]">
+              {/* Adicionado classes para tema escuro */}
+              <DialogContent className="sm:max-w-[625px] bg-card text-card-foreground border-border">
                 <DialogHeader>
                   <DialogTitle>{selectedClient ? "Editar Cliente" : "Criar Novo Cliente"}</DialogTitle>
                   <DialogDescription>

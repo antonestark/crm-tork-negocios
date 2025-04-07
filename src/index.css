@@ -96,13 +96,22 @@
     @apply border-border;
   }
 
+  html, body, #root {
+    @apply h-full; /* Garantir altura total */
+  }
+
   html {
     scroll-behavior: smooth;
+    @apply overflow-x-hidden; /* Prevenir overflow horizontal no HTML */
   }
 
   body {
-    @apply bg-background text-foreground overflow-x-hidden;
+    @apply bg-background text-foreground overflow-x-hidden; /* Prevenir overflow no Body */
     -webkit-overflow-scrolling: touch;
+  }
+
+  #root {
+    @apply overflow-x-hidden; /* Prevenir overflow no Root */
   }
 }
 
