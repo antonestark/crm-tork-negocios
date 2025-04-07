@@ -17,18 +17,20 @@ export const UserActions: React.FC<UserActionsProps> = ({
 }) => {
   return (
     <div className="flex space-x-2">
-      <Button
+<Button
         onClick={() => onEdit(user)}
         variant="outline"
         size="sm"
+        className="text-white"
       >
         <Edit className="h-4 w-4 mr-1" />
         Editar
       </Button>
-      <Button
+<Button
         onClick={() => onDelete(user.id)}
         variant="destructive"
         size="sm"
+        className="text-white"
       >
         <Trash2 className="h-4 w-4 mr-1" />
         Excluir

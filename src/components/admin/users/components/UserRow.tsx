@@ -27,13 +27,13 @@ export const UserRow = ({
   return {
     name: (
       <div className="flex flex-col">
-        <span className="font-medium">{`${user.first_name} ${user.last_name}`}</span>
-        <span className="text-xs text-muted-foreground">{user.email}</span>
+<span className="font-medium text-white">{`${user.first_name} ${user.last_name}`}</span>
+<span className="text-xs text-white">{user.email}</span>
       </div>
     ),
     role: <RoleBadge role={user.role} />,
     department: (
-      <span>
+<span className="text-white">
         {user.department ? ensureDepartmentFormat(user.department).name : 'Sem departamento'}
       </span>
     ),

@@ -72,38 +72,6 @@ const ChecklistPage = () => {
           <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] pb-1">
             Checklist Diário
           </h2>
-          {/* Add Button to create Service Task/Demand for Serviço Geral */}
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                className="bg-green-600 text-white hover:bg-green-700"
-                disabled={!servicoGeralAreaId && !areasLoading} // Disable if area not found (and not loading)
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Adicionar Tarefa (Serv. Geral)
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]">
-              <DialogHeader>
-                <DialogTitle>Nova Tarefa - Serviço Geral</DialogTitle>
-                <DialogDescription>
-                  Adicione os detalhes da tarefa para o departamento de Serviço Geral.
-                </DialogDescription>
-              </DialogHeader>
-              {/* Use/Adapt DemandFormDialog or create a new form */}
-              {/* Need to pass onSubmit and potentially initialValues with area_id */}
-              <DemandFormDialog 
-                 open={isModalOpen} // Pass state
-                 onOpenChange={setIsModalOpen} // Pass state setter
-                 onSubmit={handleFormSubmit} 
-                 demand={null} // For creating new
-                 // Pass areaId to pre-select or hide field?
-                 // initialValues={{ area_id: servicoGeralAreaId }} 
-              />
-              {/* Placeholder - Replace with actual form */}
-              {/* <div>Formulário de Tarefa aqui... (Área pré-selecionada: Serviço Geral)</div> */}
-            </DialogContent>
-          </Dialog>
         </div>
         
         <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg p-6 animate-fade-in delay-200 mx-4"> {/* Added mx-4 */}
@@ -133,17 +101,17 @@ const ChecklistPage = () => {
             </TabsList>
             <TabsContent value="morning">
               <div className="mt-4 bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
-                <ChecklistItems period="morning" />
+                <ChecklistItems period="Manhã" />
               </div>
             </TabsContent>
             <TabsContent value="afternoon">
               <div className="mt-4 bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
-                <ChecklistItems period="afternoon" />
+                <ChecklistItems period="Tarde" />
               </div>
             </TabsContent>
             <TabsContent value="evening">
               <div className="mt-4 bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
-                <ChecklistItems period="evening" />
+                <ChecklistItems period="Noite" />
               </div>
             </TabsContent>
           </Tabs>

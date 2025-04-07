@@ -44,9 +44,10 @@ export const fetchDepartmentMembers = async (departmentId: string): Promise<User
 // Fetch available users
 export const fetchAvailableUsers = async (): Promise<User[]> => {
   try {
-    const { data, error } = await supabase
+const { data, error } = await supabase
       .from('users')
-      .select('*');
+      .select('*')
+      .is('department_id', null);
 
     if (error) {
       console.error('Error fetching available users:', error);

@@ -10,6 +10,7 @@ export type ChecklistItem = {
   period: string;
   area_id?: string;
   area_name?: string;
+  responsible?: string;
   active: boolean;
   completed?: boolean;
   completed_at?: string;
@@ -96,6 +97,7 @@ export const useServiceChecklist = (period?: string) => {
           period: item.period || '',
           area_id: item.area_id,
           area_name: area?.name,
+          responsible: item.responsible,
           active: !!item.active,
           completed: !!completedItem,
           completed_at: completedItem?.completed_at,
@@ -149,11 +151,41 @@ export const useServiceChecklist = (period?: string) => {
     }
   };
 
+  const addChecklistItem = async (item: {
+    name: string;
+    description?: string;
+    period?: string;
+    area_id?: string;
+    responsible?: string;
+  }) => {
+    try {
+      const { error } = await supabase.from('checklist_items').insert([
+        {
+          name: item.name,
+          description: item.description,
+          period: item.period,
+          area_id: item.area_id,
+          responsible: item.responsible,
+          active: true
+        }
+      ]);
+      if (error) throw error;
+      toast.success('Item adicionado com sucesso');
+      fetchChecklistItems();
+      return true;
+    } catch (err) {
+      console.error('Erro ao adicionar item:', err);
+      toast.error('Falha ao adicionar item');
+      return false;
+    }
+  };
+
   return {
     items,
     loading,
     error,
     fetchChecklistItems,
-    toggleItemCompletion
+    toggleItemCompletion,
+    addChecklistItem
   };
 };
