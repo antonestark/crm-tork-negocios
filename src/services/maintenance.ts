@@ -24,10 +24,7 @@ export const fetchMaintenances = async () => {
     // Modified query to avoid joining the users table directly since there's no relationship defined
     const { data, error } = await supabase
       .from("maintenance_records")
-      .select(`
-        *,
-        service_areas(name)
-      `)
+      .select('id, title, type, frequency, scheduled_date, status, area_id, assigned_to, service_areas(name)')
       .order("scheduled_date", { ascending: true });
     
     if (error) {
