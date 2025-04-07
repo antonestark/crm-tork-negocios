@@ -9,9 +9,10 @@ interface TypeFieldProps {
   form: UseFormReturn<AreaFormValues>;
   areaTypes: AreaType[];
   loadingTypes: boolean;
+  disabled?: boolean;
 }
 
-export const TypeField = ({ form, areaTypes, loadingTypes }: TypeFieldProps) => {
+export const TypeField = ({ form, areaTypes, loadingTypes, disabled }: TypeFieldProps) => {
   return (
     <FormField
       control={form.control}
@@ -19,7 +20,11 @@ export const TypeField = ({ form, areaTypes, loadingTypes }: TypeFieldProps) => 
       render={({ field }) => (
         <FormItem>
           <FormLabel>Tipo</FormLabel>
-          <Select onValueChange={field.onChange} value={field.value}>
+          <Select 
+            onValueChange={field.onChange} 
+            value={field.value}
+            disabled={disabled}
+          >
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder={loadingTypes ? "Carregando tipos..." : "Selecione o tipo"} />

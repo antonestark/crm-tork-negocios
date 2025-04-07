@@ -6,9 +6,10 @@ import { AreaFormValues } from "../hooks/useAreaForm";
 
 interface DescriptionFieldProps {
   form: UseFormReturn<AreaFormValues>;
+  disabled?: boolean;
 }
 
-export const DescriptionField = ({ form }: DescriptionFieldProps) => {
+export const DescriptionField = ({ form, disabled }: DescriptionFieldProps) => {
   return (
     <FormField
       control={form.control}
@@ -21,6 +22,7 @@ export const DescriptionField = ({ form }: DescriptionFieldProps) => {
               placeholder="Descrição (opcional)" 
               {...field} 
               value={field.value || ''} 
+              disabled={disabled}
             />
           </FormControl>
           <FormMessage />

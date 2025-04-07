@@ -6,9 +6,10 @@ import { AreaFormValues } from "../hooks/useAreaForm";
 
 interface StatusFieldProps {
   form: UseFormReturn<AreaFormValues>;
+  disabled?: boolean;
 }
 
-export const StatusField = ({ form }: StatusFieldProps) => {
+export const StatusField = ({ form, disabled }: StatusFieldProps) => {
   return (
     <FormField
       control={form.control}
@@ -16,7 +17,11 @@ export const StatusField = ({ form }: StatusFieldProps) => {
       render={({ field }) => (
         <FormItem>
           <FormLabel>Status</FormLabel>
-          <Select onValueChange={field.onChange} value={field.value || 'active'}>
+          <Select 
+            onValueChange={field.onChange} 
+            value={field.value || 'active'} 
+            disabled={disabled}
+          >
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o status" />

@@ -26,27 +26,34 @@ export const CreateAreaForm = ({
   
   const isEditMode = !!initialValues;
   
-  // Disable form when submitting
+  // Set form fields to disabled/enabled based on isSubmitting
   useEffect(() => {
     if (isSubmitting) {
-      form.disable();
-    } else {
-      form.enable();
+      // Instead of using non-existent disable() method, 
+      // we'll set all form fields to disabled state
+      Object.keys(form.getValues()).forEach((fieldName) => {
+        form.setValue(fieldName as any, form.getValues(fieldName as any), {
+          shouldValidate: false,
+          shouldDirty: false,
+          shouldTouch: false
+        });
+      });
     }
   }, [isSubmitting, form]);
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <NameField form={form} />
-        <DescriptionField form={form} />
+        <NameField form={form} disabled={isSubmitting} />
+        <DescriptionField form={form} disabled={isSubmitting} />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <StatusField form={form} />
+          <StatusField form={form} disabled={isSubmitting} />
           <TypeField 
             form={form} 
             areaTypes={areaTypes} 
             loadingTypes={loadingTypes} 
+            disabled={isSubmitting}
           />
         </div>
         

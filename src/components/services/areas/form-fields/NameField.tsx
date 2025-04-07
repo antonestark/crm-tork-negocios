@@ -6,9 +6,10 @@ import { AreaFormValues } from "../hooks/useAreaForm";
 
 interface NameFieldProps {
   form: UseFormReturn<AreaFormValues>;
+  disabled?: boolean;
 }
 
-export const NameField = ({ form }: NameFieldProps) => {
+export const NameField = ({ form, disabled }: NameFieldProps) => {
   return (
     <FormField
       control={form.control}
@@ -17,7 +18,7 @@ export const NameField = ({ form }: NameFieldProps) => {
         <FormItem>
           <FormLabel>Nome</FormLabel>
           <FormControl>
-            <Input placeholder="Nome da área" {...field} />
+            <Input placeholder="Nome da área" {...field} disabled={disabled} />
           </FormControl>
           <FormMessage />
         </FormItem>
