@@ -200,12 +200,14 @@ export type Database = {
         Row: {
           address: string | null
           auth_id: string | null
+          birth_date: string | null
           cnpj: string | null
           company_name: string
           contact_name: string | null
           contract_end_date: string | null
           contract_start_date: string | null
           created_at: string | null
+          document: string | null
           email: string | null
           id: string
           meeting_room_credits: number | null
@@ -213,21 +215,25 @@ export type Database = {
           notes: string | null
           organization_id: string | null
           phone: string | null
+          razao_social: string | null
           responsible: string | null
           room: string | null
           status: string | null
+          tags: string[] | null
           trading_name: string | null
           updated_at: string | null
         }
         Insert: {
           address?: string | null
           auth_id?: string | null
+          birth_date?: string | null
           cnpj?: string | null
           company_name: string
           contact_name?: string | null
           contract_end_date?: string | null
           contract_start_date?: string | null
           created_at?: string | null
+          document?: string | null
           email?: string | null
           id?: string
           meeting_room_credits?: number | null
@@ -235,21 +241,25 @@ export type Database = {
           notes?: string | null
           organization_id?: string | null
           phone?: string | null
+          razao_social?: string | null
           responsible?: string | null
           room?: string | null
           status?: string | null
+          tags?: string[] | null
           trading_name?: string | null
           updated_at?: string | null
         }
         Update: {
           address?: string | null
           auth_id?: string | null
+          birth_date?: string | null
           cnpj?: string | null
           company_name?: string
           contact_name?: string | null
           contract_end_date?: string | null
           contract_start_date?: string | null
           created_at?: string | null
+          document?: string | null
           email?: string | null
           id?: string
           meeting_room_credits?: number | null
@@ -257,9 +267,11 @@ export type Database = {
           notes?: string | null
           organization_id?: string | null
           phone?: string | null
+          razao_social?: string | null
           responsible?: string | null
           room?: string | null
           status?: string | null
+          tags?: string[] | null
           trading_name?: string | null
           updated_at?: string | null
         }
@@ -635,6 +647,7 @@ export type Database = {
           scheduled_date: string
           status: string | null
           title: string
+          type: string | null
           updated_at: string | null
         }
         Insert: {
@@ -648,6 +661,7 @@ export type Database = {
           scheduled_date: string
           status?: string | null
           title: string
+          type?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -661,6 +675,7 @@ export type Database = {
           scheduled_date?: string
           status?: string | null
           title?: string
+          type?: string | null
           updated_at?: string | null
         }
         Relationships: [
