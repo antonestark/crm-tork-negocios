@@ -28,6 +28,9 @@ export function EditAreaDialog({ area, open, onOpenChange, onUpdated }: EditArea
         type: area.type || ""
       });
     } else if (!open) {
+      // Reset submitting state when dialog closes
+      setIsSubmitting(false);
+      
       // Clean up form values when dialog closes
       setTimeout(() => {
         setFormValues(null);
@@ -66,6 +69,7 @@ export function EditAreaDialog({ area, open, onOpenChange, onUpdated }: EditArea
   };
 
   const handleCancel = () => {
+    if (isSubmitting) return; // Prevent cancellation while submitting
     handleClose();
   };
 
@@ -76,14 +80,6 @@ export function EditAreaDialog({ area, open, onOpenChange, onUpdated }: EditArea
     // Then close the dialog through the parent component
     onOpenChange(false);
   };
-
-  // Ensure we clean up when component unmounts
-  useEffect(() => {
-    return () => {
-      setFormValues(null);
-      setIsSubmitting(false);
-    };
-  }, []);
 
   return (
     <Dialog 

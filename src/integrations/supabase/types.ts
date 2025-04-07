@@ -202,6 +202,7 @@ export type Database = {
           auth_id: string | null
           cnpj: string | null
           company_name: string
+          contact_name: string | null
           contract_end_date: string | null
           contract_start_date: string | null
           created_at: string | null
@@ -223,6 +224,7 @@ export type Database = {
           auth_id?: string | null
           cnpj?: string | null
           company_name: string
+          contact_name?: string | null
           contract_end_date?: string | null
           contract_start_date?: string | null
           created_at?: string | null
@@ -244,6 +246,7 @@ export type Database = {
           auth_id?: string | null
           cnpj?: string | null
           company_name?: string
+          contact_name?: string | null
           contract_end_date?: string | null
           contract_start_date?: string | null
           created_at?: string | null

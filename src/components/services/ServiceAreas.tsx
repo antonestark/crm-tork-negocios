@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { ArrowRight, Users, Lock } from "lucide-react";
 import { ServiceArea } from "@/hooks/use-service-areas-data";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { EditAreaDialog } from "./areas/EditAreaDialog";
 import { AreaActionsMenu } from "./areas/AreaActionsMenu";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -36,10 +35,21 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
   const handleDialogOpenChange = useCallback((open: boolean) => {
     setIsEditDialogOpen(open);
     
-    // If dialog is closing, reset the editing area immediately
+    // If dialog is closing, reset the editing area after a short delay
+    // This ensures the dialog animations complete before state changes
     if (!open) {
-      setEditingArea(null); 
+      setTimeout(() => {
+        setEditingArea(null);
+      }, 300);
     }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      setEditingArea(null);
+      setIsEditDialogOpen(false);
+    };
   }, []);
 
   const checkSubscriptionLimit = useCallback(() => {
