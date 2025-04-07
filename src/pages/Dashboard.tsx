@@ -1,29 +1,21 @@
 
 import React from 'react';
 import { Header } from '@/components/layout/Header';
-import { useLeads } from '@/hooks/use-leads';
-import { useDemands } from '@/hooks/use-demands';
-import useUsers from '@/hooks/users';
-import { useServiceChecklist } from '@/hooks/use-service-checklist';
-import { useServiceReports } from '@/hooks/use-service-reports';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { OverviewCards } from '@/components/dashboard/OverviewCards';
 import { DashboardTabs } from '@/components/dashboard/DashboardTabs';
+import { useDashboardData } from '@/hooks/use-dashboard-data';
 
 const Dashboard = () => {
-  const { leads, loading: leadsLoading } = useLeads();
-  const { demands, loading: demandsLoading } = useDemands();
-  const { users, loading: usersLoading } = useUsers();
-  const { items: checklistItems, loading: checklistLoading } = useServiceChecklist();
-  const { metrics, loading: metricsLoading } = useServiceReports();
+  const { data, loading } = useDashboardData();
   
   // Calculate overview stats
-  const qualifiedLeads = leadsLoading ? '...' : leads.filter(lead => lead.status === 'qualificado').length;
-  const pendingDemands = demandsLoading ? '...' : demands.filter(demand => demand.status === 'open').length;
-  const pendingChecklistItems = checklistLoading ? '...' : checklistItems.filter(item => !item.completed).length;
+  const qualifiedLeads = loading ? '...' : data.leads.filter(lead => lead.status === 'qualificado').length;
+  const pendingDemands = loading ? '...' : data.demands.filter(demand => demand.status === 'open').length;
+  const pendingChecklistItems = loading ? '...' : data.checklistItems.filter(item => !item.completed).length;
   
-  const totalTasksValue = metricsLoading ? 0 : (metrics.completed + metrics.pending + metrics.delayed);
-  const completionRate = totalTasksValue > 0 ? Math.round((metrics.completed / totalTasksValue) * 100) : 0;
+  const totalTasksValue = loading ? 0 : (data.metrics[0]?.completed_tasks + data.metrics[0]?.pending_tasks + data.metrics[0]?.delayed_tasks);
+  const completionRate = totalTasksValue > 0 ? Math.round((data.metrics[0]?.completed_tasks / totalTasksValue) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white overflow-x-hidden no-scrollbar relative">
@@ -45,24 +37,19 @@ const Dashboard = () => {
           {/* Overview Cards with Glassmorphism Effect */}
           <OverviewCards 
             qualifiedLeads={qualifiedLeads}
-            totalLeads={leads.length}
+            totalLeads={data.leads.length}
             pendingDemands={pendingDemands}
             pendingChecklistItems={pendingChecklistItems}
             completionRate={completionRate}
-            leadsLoading={leadsLoading}
-            demandsLoading={demandsLoading}
-            checklistLoading={checklistLoading}
-            metricsLoading={metricsLoading}
+            loading={loading}
           />
 
           {/* Tabs with Futuristic Styling */}
           <DashboardTabs 
-            leads={leads}
-            demands={demands}
-            users={users}
-            leadsLoading={leadsLoading}
-            demandsLoading={demandsLoading}
-            usersLoading={usersLoading}
+            leads={data.leads}
+            demands={data.demands}
+            users={data.users}
+            loading={loading}
           />
         </div>
       </main>

@@ -15,22 +15,16 @@ interface OverviewCardsProps {
   pendingDemands: number | string;
   pendingChecklistItems: number | string;
   completionRate: number;
-  leadsLoading: boolean;
-  demandsLoading: boolean;
-  checklistLoading: boolean;
-  metricsLoading: boolean;
+  loading: boolean;
 }
 
-export const OverviewCards: React.FC<OverviewCardsProps> = ({ 
+export const OverviewCards = ({ 
   qualifiedLeads,
   totalLeads,
   pendingDemands,
   pendingChecklistItems,
   completionRate,
-  leadsLoading,
-  demandsLoading,
-  checklistLoading,
-  metricsLoading
+  loading,
 }) => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-fade-in">
@@ -45,10 +39,10 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-white">
-            {leadsLoading ? <Skeleton className="h-8 w-16 bg-slate-800" /> : qualifiedLeads}
+            {loading ? <Skeleton className="h-8 w-16 bg-slate-800" /> : qualifiedLeads}
           </div>
           <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors duration-300">
-            De um total de {leadsLoading ? "..." : totalLeads} leads
+            De um total de {loading ? "..." : totalLeads} leads
           </p>
         </CardContent>
       </Card>
@@ -64,7 +58,7 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-white">
-            {demandsLoading ? <Skeleton className="h-8 w-16 bg-slate-800" /> : pendingDemands}
+            {loading ? <Skeleton className="h-8 w-16 bg-slate-800" /> : pendingDemands}
           </div>
           <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors duration-300">
             Aguardando atendimento
@@ -83,7 +77,7 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-white">
-            {checklistLoading ? <Skeleton className="h-8 w-16 bg-slate-800" /> : pendingChecklistItems}
+            {loading ? <Skeleton className="h-8 w-16 bg-slate-800" /> : pendingChecklistItems}
           </div>
           <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors duration-300">
             Pendentes de verificação
@@ -102,7 +96,7 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-white">
-            {metricsLoading ? <Skeleton className="h-8 w-16 bg-slate-800" /> : `${completionRate}%`}
+            {loading ? <Skeleton className="h-8 w-16 bg-slate-800" /> : `${completionRate}%`}
           </div>
           <div className="h-2 w-full bg-slate-800 rounded-full mt-1 overflow-hidden">
             <div 

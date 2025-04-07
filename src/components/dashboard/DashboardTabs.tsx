@@ -15,19 +15,15 @@ interface DashboardTabsProps {
   leads: Lead[];
   demands: Demand[];
   users: User[];
-  leadsLoading: boolean;
-  demandsLoading: boolean;
-  usersLoading: boolean;
+  loading: boolean;
 }
 
-export const DashboardTabs: React.FC<DashboardTabsProps> = ({
+export const DashboardTabs = ({
   leads,
   demands,
   users,
-  leadsLoading,
-  demandsLoading,
-  usersLoading
-}) => {
+  loading,
+}: DashboardTabsProps) => {
   return (
     <Tabs defaultValue="overview" className="space-y-4 animate-fade-in">
       <TabsList className="bg-slate-900/70 backdrop-blur-md p-1 border border-blue-900/40 rounded-lg overflow-hidden">
@@ -64,10 +60,10 @@ export const DashboardTabs: React.FC<DashboardTabsProps> = ({
       <TabsContent value="overview" className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden group hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300">
-            <LeadsOverview leads={leads} loading={leadsLoading} />
+            <LeadsOverview leads={leads} loading={loading} />
           </Card>
           <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden group hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300">
-            <DemandsOverview demands={demands} loading={demandsLoading} />
+            <DemandsOverview demands={demands} loading={loading} />
           </Card>
         </div>
       </TabsContent>
@@ -88,7 +84,7 @@ export const DashboardTabs: React.FC<DashboardTabsProps> = ({
         <DemandsTab 
           demands={demands} 
           users={users} 
-          loading={demandsLoading || usersLoading} 
+          loading={loading} 
         />
       </TabsContent>
     </Tabs>

@@ -237,7 +237,7 @@ export function ClientsTable() {
                     <TableCell className="font-medium">{client.company_name}</TableCell>
                     <TableCell>{client.razao_social || ''}</TableCell>
                     <TableCell>{client.document || ''}</TableCell>
-                    <TableCell>{client.birth_date || ''}</TableCell>
+                    <TableCell>{client.birth_date?.toString() || ''}</TableCell>
                     <TableCell>{client.email || ''}</TableCell>
                     <TableCell>{client.phone || ''}</TableCell>
                      <TableCell>

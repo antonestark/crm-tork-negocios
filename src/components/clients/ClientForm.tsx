@@ -47,30 +47,53 @@ export const ClientForm: React.FC<ClientFormProps> = ({ onSubmit, initialValues 
     mode: "onChange",
   });
 
+  function applyCpfMask(value: string) {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  }
+
+  function applyCnpjMask(value: string) {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{2})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1/$2')
+      .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+  }
+
   // Determine document type and set appropriate mask
   const handleDocumentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove all non-digit characters for comparison
-    const value = event.target.value.replace(/\D/g, '');
-    
-    // Set mask based on length
-    if (value.length > 11) {
+    const rawValue = event.target.value.replace(/\D/g, '');
+
+    if (rawValue.length > 11) {
       setDocumentMask(CNPJ_MASK);
+      const masked = applyCnpjMask(rawValue);
+      form.setValue('document', masked);
     } else {
       setDocumentMask(CPF_MASK);
+      const masked = applyCpfMask(rawValue);
+      form.setValue('document', masked);
     }
-    
-    // Update form value
-    form.setValue('document', event.target.value);
   };
 
   // Helper function to handle form submission.
   const handleSubmit = (values: ClientFormValues) => {
-    onSubmit(values);
+    const newValues = { ...values };
+
+    if (newValues.birth_date && newValues.birth_date.includes('/')) {
+      const [day, month, year] = newValues.birth_date.split('/');
+      newValues.birth_date = `${year}-${month}-${day}`;
+    }
+
+    onSubmit(newValues);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
         {/* Company Information Fields */}
         <CompanyFields form={form} />
         
