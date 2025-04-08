@@ -58,7 +58,8 @@ export const fetchMaintenances = async () => {
           // Add user data to each maintenance record
           fetched.forEach(record => {
             if (record.assigned_to && userMap[record.assigned_to]) {
-              record.user = userMap[record.assigned_to];
+              // Explicitly add the user property to each record
+              (record as any).user = userMap[record.assigned_to];
             }
           });
         }

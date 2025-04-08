@@ -36,65 +36,49 @@ export const fetchDepartmentUsers = async (departmentId: number) => {
     }
 
     // Get list of users who belong to the department via the department_users table
-    // We can perform this query since we know the table exists in the database schema
-    const { data: departmentUsersData, error: departmentUsersError } = await supabase
-      .rpc('get_department_users', { department_id: departmentId });
-
-    if (departmentUsersError) {
-      // If RPC function not available, use a workaround
-      // We'll fetch all user IDs from department_users table then get user details
-      console.error("Error with RPC call, falling back to manual joining:", departmentUsersError);
+    // We can't use RPC since the function doesn't exist, so use a manual join approach
+    const { data: departmentUserIds, error: departmentUserIdsError } = await supabase
+      .from('department_users')
+      .select('user_id')
+      .eq('department_id', departmentId);
       
-      // First get user IDs for this department
-      const { data: departmentUserIds, error: departmentUserIdsError } = await supabase
-        .from('department_users')
-        .select('user_id')
-        .eq('department_id', departmentId);
-        
-      if (departmentUserIdsError) {
-        console.error("Failed to fetch department user IDs:", departmentUserIdsError);
-        throw departmentUserIdsError;
-      }
-      
-      // Fetch user details if we have any user IDs
-      let usersFromRelation: User[] = [];
-      if (departmentUserIds && departmentUserIds.length > 0) {
-        const userIds = departmentUserIds.map(item => item.user_id);
-        
-        const { data: usersData, error: usersError } = await supabase
-          .from('users')
-          .select('id, name, email, department_id')
-          .in('id', userIds);
-          
-        if (usersError) {
-          console.error("Error fetching user details:", usersError);
-          throw usersError;
-        }
-        
-        usersFromRelation = usersData || [];
-      }
-      
-      // Combine results
-      const combinedUsers = [...(directUsers || [])];
-      
-      // Add users from relation table, avoiding duplicates
-      for (const user of usersFromRelation) {
-        if (!combinedUsers.some(u => u.id === user.id)) {
-          combinedUsers.push(user);
-        }
-      }
-      
-      return {
-        department,
-        users: combinedUsers
-      };
-    } else {
-      // RPC call was successful, use its results
-      return {
-        department,
-        users: departmentUsersData || []
-      };
+    if (departmentUserIdsError) {
+      console.error("Failed to fetch department user IDs:", departmentUserIdsError);
+      throw departmentUserIdsError;
     }
+    
+    // Fetch user details if we have any user IDs
+    let usersFromRelation: User[] = [];
+    if (departmentUserIds && departmentUserIds.length > 0) {
+      const userIds = departmentUserIds.map(item => item.user_id);
+      
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, email, department_id')
+        .in('id', userIds);
+        
+      if (usersError) {
+        console.error("Error fetching user details:", usersError);
+        throw usersError;
+      }
+      
+      usersFromRelation = usersData || [];
+    }
+    
+    // Combine results
+    const combinedUsers = [...(directUsers || [])];
+    
+    // Add users from relation table, avoiding duplicates
+    for (const user of usersFromRelation) {
+      if (!combinedUsers.some(u => u.id === user.id)) {
+        combinedUsers.push(user);
+      }
+    }
+    
+    return {
+      department,
+      users: combinedUsers
+    };
   } catch (error) {
     console.error("Error fetching department users:", error);
     toast.error("Falha ao carregar usuários do departamento");
@@ -102,55 +86,92 @@ export const fetchDepartmentUsers = async (departmentId: number) => {
   }
 };
 
-// Function to add user to department
-export const addUserToDepartment = async (userId: string, departmentId: number) => {
+// Add these exported functions to match what DepartmentMembersDialog.tsx is importing
+
+// Function to fetch available users (those not in the department)
+export const fetchAvailableUsers = async (departmentId?: number) => {
   try {
-    // Check if the relationship already exists
-    const { data: existingRelation, error: checkError } = await supabase
-      .from('department_users')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('department_id', departmentId)
-      .maybeSingle();
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, email, department_id')
+      .order('name');
       
-    if (checkError) {
-      console.error("Error checking existing relation:", checkError);
-      throw checkError;
+    if (error) {
+      throw error;
     }
     
-    if (existingRelation) {
-      // Already exists, no need to add
-      toast.info("Usuário já pertence a este departamento");
-      return true;
+    // If we have a department ID, filter out users already in that department
+    if (departmentId) {
+      const { data: deptUsers } = await fetchDepartmentUsers(departmentId);
+      const deptUserIds = deptUsers.users.map(user => user.id);
+      return data.filter(user => !deptUserIds.includes(user.id)) || [];
     }
     
-    // Create the relation
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching available users:", error);
+    toast.error("Falha ao carregar usuários disponíveis");
+    return [];
+  }
+};
+
+// Rename this to match what DepartmentMembersDialog.tsx is importing
+export const addDepartmentMember = async (userId: string, department: any, role: string, availableUsers: any[]) => {
+  try {
+    // Convert department.id to number if it's a string
+    const departmentId = typeof department.id === 'string' ? parseInt(department.id, 10) : department.id;
+    
     const { error: insertError } = await supabase
       .from('department_users')
-      .insert({ user_id: userId, department_id: departmentId });
+      .insert({ 
+        user_id: userId, 
+        department_id: departmentId 
+      });
       
     if (insertError) {
       throw insertError;
     }
     
-    toast.success("Usuário adicionado ao departamento com sucesso");
-    return true;
+    // Find the user in available users to return complete data
+    const user = availableUsers.find(u => u.id === userId);
+    if (!user) {
+      throw new Error("User not found in available users");
+    }
+    
+    // Create a new member object to return
+    const newMember = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      department_id: department.id.toString(),
+      role: role,
+      start_date: new Date().toISOString(),
+      end_date: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      user: {
+        id: user.id,
+        first_name: user.name.split(' ')[0] || '',
+        last_name: user.name.split(' ').slice(1).join(' ') || '',
+        email: user.email
+      }
+    };
+    
+    toast.success("Membro adicionado ao departamento com sucesso");
+    return newMember;
   } catch (error) {
-    console.error("Error adding user to department:", error);
-    toast.error("Falha ao adicionar usuário ao departamento");
-    return false;
+    console.error("Error adding member to department:", error);
+    toast.error("Falha ao adicionar membro ao departamento");
+    return null;
   }
 };
 
-// Function to remove user from department
-export const removeUserFromDepartment = async (userId: string, departmentId: number) => {
+// Rename this to match what DepartmentMembersDialog.tsx is importing
+export const removeDepartmentMember = async (userId: string) => {
   try {
-    // Remove the relation
     const { error } = await supabase
       .from('department_users')
       .delete()
-      .eq('user_id', userId)
-      .eq('department_id', departmentId);
+      .eq('user_id', userId);
       
     if (error) {
       throw error;

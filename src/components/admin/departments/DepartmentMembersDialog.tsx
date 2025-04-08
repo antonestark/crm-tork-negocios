@@ -6,7 +6,7 @@ import { Department, UserDepartmentRoleMember } from '@/types/admin';
 import DepartmentMembersList from './DepartmentMembersList';
 import AddDepartmentMemberForm from './AddDepartmentMemberForm';
 import { 
-  fetchDepartmentMembers, 
+  fetchDepartmentUsers, 
   fetchAvailableUsers, 
   addDepartmentMember, 
   removeDepartmentMember 
@@ -41,10 +41,30 @@ const DepartmentMembersDialog: React.FC<DepartmentMembersDialogProps> = ({
     setIsLoading(true);
     try {
       if (department?.id) {
-        const membersData = await fetchDepartmentMembers(department.id);
-        setMembers(membersData);
+        // Use fetchDepartmentUsers instead of fetchDepartmentMembers
+        const { users } = await fetchDepartmentUsers(Number(department.id));
+        // Convert to the expected format for members
+        const formattedMembers = users.map((user: any) => ({
+          id: crypto.randomUUID(),
+          user_id: user.id,
+          department_id: department.id.toString(),
+          role: 'member', // Default role
+          start_date: null,
+          end_date: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user: {
+            id: user.id,
+            first_name: user.name.split(' ')[0] || '',
+            last_name: user.name.split(' ').slice(1).join(' ') || '',
+            profile_image_url: null
+          }
+        }));
         
-        const usersData = await fetchAvailableUsers();
+        setMembers(formattedMembers);
+        
+        // Fetch available users
+        const usersData = await fetchAvailableUsers(Number(department.id));
         setAvailableUsers(usersData);
       }
     } finally {
