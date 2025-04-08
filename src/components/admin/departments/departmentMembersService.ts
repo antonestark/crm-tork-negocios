@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { formatUserFromDatabase } from "@/utils/user-formatter";
 
 // Define User type for departmentMembersService
 interface User {
@@ -104,10 +105,12 @@ export const fetchAvailableUsers = async (departmentId?: number) => {
       throw error;
     }
     
-    // Ensure all users have the email property, even if it's an empty string
+    // Ensure all users have the email property as a non-optional string
     const usersWithEmail = (data || []).map(user => ({
-      ...user,
-      email: user.email || ''  // Ensure email is always a string, never undefined
+      id: user.id,
+      name: user.name,
+      email: user.email || '',  // Ensure email is always a string, never undefined
+      department_id: user.department_id
     }));
     
     // If we have a department ID, filter out users already in that department
@@ -148,7 +151,8 @@ export const addDepartmentMember = async (userId: string, department: any, role:
       throw new Error("User not found in available users");
     }
     
-    // Create a new member object to return
+    // Explicitly create a new object with all required properties
+    // Make sure email is always provided as a string
     const newMember = {
       id: crypto.randomUUID(),
       user_id: userId,
@@ -162,7 +166,7 @@ export const addDepartmentMember = async (userId: string, department: any, role:
         id: user.id,
         first_name: user.name.split(' ')[0] || '',
         last_name: user.name.split(' ').slice(1).join(' ') || '',
-        email: user.email || '' // Ensure email is not undefined
+        email: user.email || '' // Ensure email is always a string, never undefined
       }
     };
     
