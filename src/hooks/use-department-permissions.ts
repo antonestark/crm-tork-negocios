@@ -34,17 +34,17 @@ export const useDepartmentPermissions = (departmentId?: number) => {
         .eq('department_id', departmentId);
       
       if (error) throw error;
-      
-      // Check if data exists and is an array before trying to access permission_id
-      if (Array.isArray(data) && data.length > 0) {
-        // Check if the first item has permission_id property to ensure data structure is correct
-        if (data[0] && 'permission_id' in data[0]) {
-          setPermissions(data.map(item => item.permission_id));
-        } else {
-          console.log('No valid permission_id found in data:', data);
-          setPermissions([]);
-        }
+
+      // Safely handle the data - first check if it's an array
+      if (Array.isArray(data)) {
+        // Map the permission IDs only if valid data exists
+        const permissionIds = data
+          .filter(item => item && typeof item === 'object' && 'permission_id' in item)
+          .map(item => item.permission_id);
+          
+        setPermissions(permissionIds);
       } else {
+        console.log('Data is not an array:', data);
         setPermissions([]);
       }
     } catch (err) {

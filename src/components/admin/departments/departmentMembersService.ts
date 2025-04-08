@@ -74,8 +74,10 @@ export const fetchDepartmentUsers = async (departmentId: number) => {
     
     // Combine results - make sure all users have email as string
     const combinedUsers = (directUsers || []).map(user => ({
-      ...user,
-      email: user.email || ''  // Ensure email is always a string
+      id: user.id,
+      name: user.name,
+      email: user.email || '',  // Ensure email is always a string
+      department_id: user.department_id || null  // Allow department_id to be null
     }));
     
     // Add users from relation table, avoiding duplicates
