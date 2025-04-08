@@ -1,13 +1,7 @@
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  department_id: string | null;
-}
+import { User } from '@/types/admin';
 
 export function useUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -19,13 +13,28 @@ export function useUsers() {
       setLoading(true);
       setError(null);
       try {
+        // Updating the query to use the 'users' table instead of 'user_list'
+        // since user_list view doesn't have email column
         const { data, error } = await supabase
-          .from('user_list')
+          .from('users')
           .select('id, name, email, role, department_id');
 
         if (error) throw error;
 
-        setUsers(data || []);
+        // Map the data to User objects with proper types
+        const formattedUsers: User[] = (data || []).map(user => ({
+          id: user.id,
+          first_name: user.name?.split(' ')[0] || '',
+          last_name: user.name?.split(' ').slice(1).join(' ') || '',
+          email: user.email || '',
+          role: user.role || 'user',
+          department_id: user.department_id || null,
+          // Add other required User properties with default values
+          active: true,
+          status: 'active'
+        }));
+
+        setUsers(formattedUsers);
       } catch (err) {
         console.error('Erro ao buscar usuários:', err);
         setError(err as Error);
