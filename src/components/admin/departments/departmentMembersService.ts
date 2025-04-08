@@ -162,7 +162,7 @@ export const addDepartmentMember = async (userId: string, department: any, role:
         id: user.id,
         first_name: user.name.split(' ')[0] || '',
         last_name: user.name.split(' ').slice(1).join(' ') || '',
-        email: user.email || '' // Provide default empty string
+        email: user.email || '' // Ensure email is not undefined
       }
     };
     
