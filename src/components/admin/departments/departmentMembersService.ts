@@ -6,7 +6,7 @@ import { toast } from "sonner";
 interface User {
   id: string;
   name: string;
-  email?: string;
+  email?: string;  // Keep email optional to match the User type in the system
   department_id?: number;
 }
 
@@ -62,7 +62,13 @@ export const fetchDepartmentUsers = async (departmentId: number) => {
         throw usersError;
       }
       
-      usersFromRelation = usersData || [];
+      // Make sure to handle optional email in the resulting data
+      usersFromRelation = (usersData || []).map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email || '',  // Provide default empty string for email if it's null/undefined
+        department_id: user.department_id
+      }));
     }
     
     // Combine results
@@ -150,7 +156,7 @@ export const addDepartmentMember = async (userId: string, department: any, role:
         id: user.id,
         first_name: user.name.split(' ')[0] || '',
         last_name: user.name.split(' ').slice(1).join(' ') || '',
-        email: user.email
+        email: user.email || '' // Provide default empty string
       }
     };
     
