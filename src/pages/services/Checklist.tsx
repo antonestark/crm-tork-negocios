@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BaseLayout } from "@/components/layout/BaseLayout";
 import { Card } from "@/components/ui/card";
 import { 
@@ -10,24 +10,16 @@ import {
 } from "@/components/ui/tabs";
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { ChecklistItems } from "@/components/services/ChecklistItems";
-import { useCheckDepartment } from "@/hooks/use-check-department";
 import { useAuthState } from '@/hooks/use-auth-state';
 
 const ChecklistPage = () => {
-  const [showNav, setShowNav] = useState(true);
-  const { isInDepartment: isOperationUser } = useCheckDepartment("Operação");
   const { userId } = useAuthState();
-
-  // Hide navigation for Operation department users
-  useEffect(() => {
-    setShowNav(!isOperationUser);
-  }, [isOperationUser]);
 
   return (
     <BaseLayout>
       <div className="py-6"> 
         <div className="animate-fade-in px-4">
-          {showNav && <ServicesNav />}
+          <ServicesNav />
         </div>
         
         <div className="flex items-center justify-between mb-6 animate-fade-in delay-100 px-4">
@@ -63,17 +55,17 @@ const ChecklistPage = () => {
             </TabsList>
             <TabsContent value="morning">
               <div className="mt-4 bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
-                <ChecklistItems period="Manhã" onlyResponsible={isOperationUser} />
+                <ChecklistItems period="Manhã" onlyResponsible={false} />
               </div>
             </TabsContent>
             <TabsContent value="afternoon">
               <div className="mt-4 bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
-                <ChecklistItems period="Tarde" onlyResponsible={isOperationUser} />
+                <ChecklistItems period="Tarde" onlyResponsible={false} />
               </div>
             </TabsContent>
             <TabsContent value="evening">
               <div className="mt-4 bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
-                <ChecklistItems period="Noite" onlyResponsible={isOperationUser} />
+                <ChecklistItems period="Noite" onlyResponsible={false} />
               </div>
             </TabsContent>
           </Tabs>

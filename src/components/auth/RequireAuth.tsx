@@ -5,7 +5,6 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useAuthState } from '@/hooks/use-auth-state';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 interface RequireAuthProps {
   children: ReactNode;
@@ -14,51 +13,16 @@ interface RequireAuthProps {
 export function RequireAuth({ children }: RequireAuthProps) {
   const { user, isLoading } = useAuth();
   const { sessionExpired, refreshSession } = useAuthState();
-  const [checkingDepartment, setCheckingDepartment] = useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (!isLoading && user) {
-      // Check if user belongs to Operação department
-      const checkUserDepartment = async () => {
-        try {
-          setCheckingDepartment(true);
-          
-          // Get Operação department ID
-          const { data: departmentData } = await supabase
-            .from('departments')
-            .select('id')
-            .eq('name', 'Operação')
-            .single();
-            
-          if (departmentData) {
-            // Check if user is in this department
-            const { data: userData } = await supabase
-              .from('users')
-              .select('department_id')
-              .eq('id', user.id)
-              .single();
-              
-            if (userData && userData.department_id === departmentData.id) {
-              // User is in Operação department, redirect to checklist
-              if (location.pathname !== '/services/checklist') {
-                navigate('/services/checklist');
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error checking department:', error);
-        } finally {
-          setCheckingDepartment(false);
-        }
-      };
-      
-      checkUserDepartment();
-    } else {
-      setCheckingDepartment(false);
+    // Simplificado: apenas verifica se o usuário está autenticado
+    if (!isLoading) {
+      setCheckingAuth(false);
     }
-  }, [user, isLoading, navigate, location.pathname]);
+  }, [isLoading]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -79,7 +43,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
     }
   }, [user, isLoading, sessionExpired, navigate, location, refreshSession]);
 
-  if (isLoading || checkingDepartment) {
+  if (isLoading || checkingAuth) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">

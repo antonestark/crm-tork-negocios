@@ -37,15 +37,7 @@ export type Database = {
           id?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "activity_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       area_types: {
         Row: {
@@ -161,13 +153,6 @@ export type Database = {
             referencedRelation: "checklist_items"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "checklist_completions_completed_by_fkey"
-            columns: ["completed_by"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
         ]
       }
       checklist_item_status: {
@@ -198,13 +183,6 @@ export type Database = {
             columns: ["checklist_item_id"]
             isOneToOne: false
             referencedRelation: "checklist_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checklist_item_status_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -271,13 +249,6 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checklist_items_responsible_id_fkey"
-            columns: ["responsible_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -363,13 +334,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "clients_auth_id_fkey"
-            columns: ["auth_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "clients_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -447,13 +411,6 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "company_users_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
         ]
       }
       demands: {
@@ -508,46 +465,41 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "demands_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "demands_department_id_fkey"
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "demands_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
         ]
       }
       department_permissions: {
         Row: {
+          can_delete: boolean | null
+          can_edit: boolean | null
+          can_view: boolean | null
           created_at: string | null
           department_id: number
           id: string
-          permission_id: string
+          page_code: string | null
         }
         Insert: {
+          can_delete?: boolean | null
+          can_edit?: boolean | null
+          can_view?: boolean | null
           created_at?: string | null
           department_id: number
           id?: string
-          permission_id: string
+          page_code?: string | null
         }
         Update: {
+          can_delete?: boolean | null
+          can_edit?: boolean | null
+          can_view?: boolean | null
           created_at?: string | null
           department_id?: number
           id?: string
-          permission_id?: string
+          page_code?: string | null
         }
         Relationships: [
           {
@@ -555,13 +507,6 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "department_permissions_permission_id_fkey"
-            columns: ["permission_id"]
-            isOneToOne: false
-            referencedRelation: "permissions"
             referencedColumns: ["id"]
           },
         ]
@@ -603,13 +548,6 @@ export type Database = {
             referencedRelation: "permissions"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "department_user_permissions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
         ]
       }
       department_users: {
@@ -637,6 +575,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "department_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
           {
@@ -836,13 +781,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "leads_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "leads_department_id_fkey"
             columns: ["department_id"]
             isOneToOne: false
@@ -909,13 +847,6 @@ export type Database = {
             referencedRelation: "service_areas"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "maintenance_records_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
         ]
       }
       n8n_chat_histories: {
@@ -966,13 +897,6 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "organization_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
         ]
       }
       organizations: {
@@ -1004,13 +928,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "organizations_owner_user_id_fkey"
-            columns: ["owner_user_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "organizations_plan_id_fkey"
             columns: ["plan_id"]
@@ -1199,13 +1116,6 @@ export type Database = {
             referencedRelation: "departments"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "scheduling_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
         ]
       }
       service_areas: {
@@ -1248,13 +1158,6 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_areas_responsible_id_fkey"
-            columns: ["responsible_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -1380,13 +1283,6 @@ export type Database = {
             referencedRelation: "permission_groups"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "user_groups_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
-            referencedColumns: ["id"]
-          },
         ]
       }
       user_permissions: {
@@ -1414,13 +1310,6 @@ export type Database = {
             columns: ["permission_id"]
             isOneToOne: false
             referencedRelation: "permissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_permissions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -1465,13 +1354,6 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_subscriptions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -1536,18 +1418,35 @@ export type Database = {
     Views: {
       user_list: {
         Row: {
+          department_id: number | null
+          email: string | null
           id: string | null
           name: string | null
+          role: string | null
         }
         Insert: {
+          department_id?: number | null
+          email?: string | null
           id?: string | null
-          name?: never
+          name?: string | null
+          role?: string | null
         }
         Update: {
+          department_id?: number | null
+          email?: string | null
           id?: string | null
-          name?: never
+          name?: string | null
+          role?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_department_id"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
