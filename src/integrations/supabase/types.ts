@@ -37,7 +37,15 @@ export type Database = {
           id?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       area_types: {
         Row: {
@@ -153,6 +161,52 @@ export type Database = {
             referencedRelation: "checklist_items"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "checklist_completions_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_item_status: {
+        Row: {
+          checklist_item_id: string | null
+          created_at: string | null
+          id: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          checklist_item_id?: string | null
+          created_at?: string | null
+          id?: string
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          checklist_item_id?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_item_status_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_item_status_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
         ]
       }
       checklist_items: {
@@ -160,30 +214,48 @@ export type Database = {
           active: boolean | null
           area_id: string | null
           created_at: string | null
+          department_id: number | null
           description: string | null
+          end_date: string | null
           id: string
           name: string
           period: string | null
+          responsible: string | null
+          responsible_id: string | null
+          start_date: string | null
+          status: string | null
           updated_at: string | null
         }
         Insert: {
           active?: boolean | null
           area_id?: string | null
           created_at?: string | null
+          department_id?: number | null
           description?: string | null
+          end_date?: string | null
           id?: string
           name: string
           period?: string | null
+          responsible?: string | null
+          responsible_id?: string | null
+          start_date?: string | null
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
           active?: boolean | null
           area_id?: string | null
           created_at?: string | null
+          department_id?: number | null
           description?: string | null
+          end_date?: string | null
           id?: string
           name?: string
           period?: string | null
+          responsible?: string | null
+          responsible_id?: string | null
+          start_date?: string | null
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -192,6 +264,20 @@ export type Database = {
             columns: ["area_id"]
             isOneToOne: false
             referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_items_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_items_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -277,6 +363,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "clients_auth_id_fkey"
+            columns: ["auth_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "clients_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -354,6 +447,13 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "company_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
         ]
       }
       demands: {
@@ -361,6 +461,7 @@ export type Database = {
           area_id: string | null
           assigned_to: string | null
           created_at: string | null
+          department_id: number | null
           description: string | null
           due_date: string | null
           id: string
@@ -374,6 +475,7 @@ export type Database = {
           area_id?: string | null
           assigned_to?: string | null
           created_at?: string | null
+          department_id?: number | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -387,6 +489,7 @@ export type Database = {
           area_id?: string | null
           assigned_to?: string | null
           created_at?: string | null
+          department_id?: number | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -402,6 +505,27 @@ export type Database = {
             columns: ["area_id"]
             isOneToOne: false
             referencedRelation: "service_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demands_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demands_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demands_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -438,6 +562,88 @@ export type Database = {
             columns: ["permission_id"]
             isOneToOne: false
             referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      department_user_permissions: {
+        Row: {
+          created_at: string | null
+          department_id: number
+          id: string
+          permission_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          department_id: number
+          id?: string
+          permission_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          department_id?: number
+          id?: string
+          permission_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_user_permissions_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "department_user_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "department_user_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      department_users: {
+        Row: {
+          created_at: string | null
+          department_id: number
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          department_id: number
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          department_id?: number
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_users_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "department_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -584,6 +790,7 @@ export type Database = {
           assigned_to: string | null
           company: string | null
           created_at: string | null
+          department_id: number | null
           email: string | null
           id: string
           name: string
@@ -599,6 +806,7 @@ export type Database = {
           assigned_to?: string | null
           company?: string | null
           created_at?: string | null
+          department_id?: number | null
           email?: string | null
           id?: string
           name: string
@@ -614,6 +822,7 @@ export type Database = {
           assigned_to?: string | null
           company?: string | null
           created_at?: string | null
+          department_id?: number | null
           email?: string | null
           id?: string
           name?: string
@@ -626,6 +835,20 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "leads_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_organization_id_fkey"
             columns: ["organization_id"]
@@ -686,6 +909,13 @@ export type Database = {
             referencedRelation: "service_areas"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "maintenance_records_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
         ]
       }
       n8n_chat_histories: {
@@ -736,6 +966,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "organization_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
         ]
       }
       organizations: {
@@ -767,6 +1004,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "organizations_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "organizations_plan_id_fkey"
             columns: ["plan_id"]
@@ -881,9 +1125,11 @@ export type Database = {
           company_id: string | null
           created_at: string | null
           customer_id: string | null
+          department_id: number | null
           description: string | null
           email: string | null
           end_time: string
+          externo: boolean | null
           id: string
           location: string | null
           phone: string | null
@@ -898,9 +1144,11 @@ export type Database = {
           company_id?: string | null
           created_at?: string | null
           customer_id?: string | null
+          department_id?: number | null
           description?: string | null
           email?: string | null
           end_time: string
+          externo?: boolean | null
           id?: string
           location?: string | null
           phone?: string | null
@@ -915,9 +1163,11 @@ export type Database = {
           company_id?: string | null
           created_at?: string | null
           customer_id?: string | null
+          department_id?: number | null
           description?: string | null
           email?: string | null
           end_time?: string
+          externo?: boolean | null
           id?: string
           location?: string | null
           phone?: string | null
@@ -940,6 +1190,20 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduling_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduling_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -984,6 +1248,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_areas_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -1109,6 +1380,13 @@ export type Database = {
             referencedRelation: "permission_groups"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_groups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_permissions: {
@@ -1136,6 +1414,13 @@ export type Database = {
             columns: ["permission_id"]
             isOneToOne: false
             referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -1180,6 +1465,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_list"
             referencedColumns: ["id"]
           },
         ]
@@ -1242,7 +1534,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_list: {
+        Row: {
+          id: string | null
+          name: string | null
+        }
+        Insert: {
+          id?: string | null
+          name?: never
+        }
+        Update: {
+          id?: string | null
+          name?: never
+        }
+        Relationships: []
+      }
     }
     Functions: {
       binary_quantize: {

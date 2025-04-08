@@ -2,25 +2,32 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuthState } from '@/hooks/use-auth-state';
 
 export type ChecklistItem = {
   id: string;
   name: string;
   description?: string;
-  period: string;
+  period?: string;
   area_id?: string;
   area_name?: string;
   responsible?: string;
+  responsible_id?: string;
+  department_id?: number;
   active: boolean;
+  status: string;
+  start_date?: string | null;
+  end_date?: string | null;
   completed?: boolean;
   completed_at?: string;
   completed_by?: string;
 };
 
-export const useServiceChecklist = (period?: string) => {
+export const useServiceChecklist = (period?: string, onlyResponsible: boolean = false) => {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { userId } = useAuthState();
 
   useEffect(() => {
     fetchChecklistItems();
@@ -42,12 +49,19 @@ export const useServiceChecklist = (period?: string) => {
       }, () => {
         fetchChecklistItems();
       })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'checklist_item_status' 
+      }, () => {
+        fetchChecklistItems();
+      })
       .subscribe();
       
     return () => {
       subscription.unsubscribe();
     };
-  }, [period]);
+  }, [period, onlyResponsible, userId]);
 
   const fetchChecklistItems = async () => {
     try {
@@ -55,7 +69,11 @@ export const useServiceChecklist = (period?: string) => {
       
       let query = supabase
         .from("checklist_items")
-        .select("*")
+        .select(`
+          *,
+          departments(name),
+          service_areas(id, name)
+        `)
         .eq("active", true)
         .order("name", { ascending: true });
       
@@ -64,16 +82,14 @@ export const useServiceChecklist = (period?: string) => {
         query = query.eq("period", period);
       }
       
+      // Filter by user responsibility if required
+      if (onlyResponsible && userId) {
+        query = query.eq("responsible_id", userId);
+      }
+      
       const { data: itemsData, error: itemsError } = await query;
       
       if (itemsError) throw itemsError;
-      
-      // Get area information
-      const { data: areasData, error: areasError } = await supabase
-        .from("service_areas")
-        .select("id, name");
-      
-      if (areasError) throw areasError;
       
       // Get completed items for today
       const today = new Date().toISOString().split('T')[0];
@@ -88,7 +104,6 @@ export const useServiceChecklist = (period?: string) => {
       // Map completed status to items
       const processedItems: ChecklistItem[] = itemsData.map(item => {
         const completedItem = completedData?.find(c => c.checklist_item_id === item.id);
-        const area = areasData?.find(a => a.id === item.area_id);
         
         return {
           id: item.id,
@@ -96,9 +111,14 @@ export const useServiceChecklist = (period?: string) => {
           description: item.description,
           period: item.period || '',
           area_id: item.area_id,
-          area_name: area?.name,
+          area_name: item.service_areas?.name,
           responsible: item.responsible,
+          responsible_id: item.responsible_id,
+          department_id: item.department_id,
           active: !!item.active,
+          status: item.status || 'pending',
+          start_date: item.start_date,
+          end_date: item.end_date,
           completed: !!completedItem,
           completed_at: completedItem?.completed_at,
           completed_by: completedItem?.completed_by
@@ -115,21 +135,84 @@ export const useServiceChecklist = (period?: string) => {
     }
   };
 
+  const toggleItemStart = async (itemId: string, started: boolean) => {
+    try {
+      const now = new Date().toISOString();
+      const newStatus = started ? 'in_progress' : 'pending';
+      
+      // Update the item status
+      const { error: updateError } = await supabase
+        .from("checklist_items")
+        .update({
+          status: newStatus,
+          start_date: started ? now : null
+        })
+        .eq("id", itemId);
+      
+      if (updateError) throw updateError;
+      
+      // Record the status change
+      const { error: statusError } = await supabase
+        .from("checklist_item_status")
+        .insert({
+          checklist_item_id: itemId,
+          user_id: userId,
+          status: newStatus
+        });
+      
+      if (statusError) throw statusError;
+      
+      toast.success(started ? "Tarefa iniciada" : "Tarefa revertida para pendente");
+      fetchChecklistItems();
+      return true;
+    } catch (err) {
+      console.error("Error toggling item start:", err);
+      toast.error("Falha ao atualizar status da tarefa");
+      return false;
+    }
+  };
+
   const toggleItemCompletion = async (itemId: string, completed: boolean) => {
     try {
+      const now = new Date().toISOString();
+      const newStatus = completed ? 'completed' : 'in_progress';
+      
+      // Update the item status
+      const { error: updateError } = await supabase
+        .from("checklist_items")
+        .update({
+          status: newStatus,
+          end_date: completed ? now : null
+        })
+        .eq("id", itemId);
+      
+      if (updateError) throw updateError;
+      
+      // Record the status change
+      const { error: statusError } = await supabase
+        .from("checklist_item_status")
+        .insert({
+          checklist_item_id: itemId,
+          user_id: userId,
+          status: newStatus
+        });
+      
+      if (statusError) throw statusError;
+      
+      // For backward compatibility, also update the completions table
       if (completed) {
         // Mark as completed
         const { error } = await supabase
           .from("checklist_completions")
           .insert([{
             checklist_item_id: itemId,
-            completed_by: null, // Use auth.uid() if authenticated
-            completed_at: new Date().toISOString()
+            completed_by: userId, 
+            completed_at: now
           }]);
         
         if (error) throw error;
       } else {
-        // Remove completion
+        // Remove completion for today
         const today = new Date().toISOString().split('T')[0];
         const { error } = await supabase
           .from("checklist_completions")
@@ -141,12 +224,12 @@ export const useServiceChecklist = (period?: string) => {
         if (error) throw error;
       }
       
-      toast.success(completed ? "Item marcado como concluído" : "Marcação removida");
+      toast.success(completed ? "Tarefa concluída" : "Tarefa marcada como em andamento");
       fetchChecklistItems();
       return true;
     } catch (err) {
       console.error("Error toggling item completion:", err);
-      toast.error("Falha ao atualizar item");
+      toast.error("Falha ao atualizar status da tarefa");
       return false;
     }
   };
@@ -157,6 +240,8 @@ export const useServiceChecklist = (period?: string) => {
     period?: string;
     area_id?: string;
     responsible?: string;
+    responsible_id?: string;
+    department_id?: number;
   }) => {
     try {
       const { error } = await supabase.from('checklist_items').insert([
@@ -166,6 +251,9 @@ export const useServiceChecklist = (period?: string) => {
           period: item.period,
           area_id: item.area_id,
           responsible: item.responsible,
+          responsible_id: item.responsible_id,
+          department_id: item.department_id,
+          status: 'pending',
           active: true
         }
       ]);
@@ -185,6 +273,7 @@ export const useServiceChecklist = (period?: string) => {
     loading,
     error,
     fetchChecklistItems,
+    toggleItemStart,
     toggleItemCompletion,
     addChecklistItem
   };
