@@ -49,13 +49,6 @@ export const useServiceChecklist = (period?: string, onlyResponsible: boolean = 
       }, () => {
         fetchChecklistItems();
       })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'checklist_item_status' 
-      }, () => {
-        fetchChecklistItems();
-      })
       .subscribe();
       
     return () => {
@@ -71,7 +64,6 @@ export const useServiceChecklist = (period?: string, onlyResponsible: boolean = 
         .from("checklist_items")
         .select(`
           *,
-          departments(name),
           service_areas(id, name)
         `)
         .eq("active", true)
@@ -150,17 +142,19 @@ export const useServiceChecklist = (period?: string, onlyResponsible: boolean = 
         .eq("id", itemId);
       
       if (updateError) throw updateError;
-      
+
       // Record the status change
-      const { error: statusError } = await supabase
+      const { error: statusInsertError } = await supabase
         .from("checklist_item_status")
         .insert({
           checklist_item_id: itemId,
           user_id: userId,
           status: newStatus
         });
-      
-      if (statusError) throw statusError;
+        
+      if (statusInsertError) {
+        console.error("Error recording status change:", statusInsertError);
+      }
       
       toast.success(started ? "Tarefa iniciada" : "Tarefa revertida para pendente");
       fetchChecklistItems();
@@ -189,15 +183,17 @@ export const useServiceChecklist = (period?: string, onlyResponsible: boolean = 
       if (updateError) throw updateError;
       
       // Record the status change
-      const { error: statusError } = await supabase
+      const { error: statusInsertError } = await supabase
         .from("checklist_item_status")
         .insert({
           checklist_item_id: itemId,
           user_id: userId,
           status: newStatus
         });
-      
-      if (statusError) throw statusError;
+        
+      if (statusInsertError) {
+        console.error("Error recording status change:", statusInsertError);
+      }
       
       // For backward compatibility, also update the completions table
       if (completed) {

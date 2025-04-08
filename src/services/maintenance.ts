@@ -2,18 +2,19 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// Define a type for the maintenance record to include the users property
+// Define a type for the maintenance record to include all properties
 type MaintenanceRecord = {
   id: string;
   title: string;
   description: string | null;
   status: string;
+  type: string | null;
+  frequency: string | null;
   assigned_to: string | null;
   scheduled_date: string;
   completed_date: string | null;
   created_at: string;
   updated_at: string;
-  frequency: string | null;
   area_id: string | null;
   service_areas: { name: string } | null;
   user?: { id: string; name: string }; // Make user optional with proper typing
@@ -24,20 +25,19 @@ export const fetchMaintenances = async () => {
     // Modified query to avoid joining the users table directly since there's no relationship defined
     const { data, error } = await supabase
       .from("maintenance_records")
-      .select('id, title, type, frequency, scheduled_date, status, area_id, assigned_to, service_areas(name)')
-      .order("scheduled_date", { ascending: true });
+      .select('id, title, type, frequency, scheduled_date, status, area_id, assigned_to, service_areas(name)');
     
     if (error) {
       toast.error("Erro ao carregar manutenções");
       throw error;
     }
     
-    const maintenanceRecords = data as MaintenanceRecord[] || [];
+    const fetched = data || [];
     
     // If we have assigned users, fetch them separately
-    if (maintenanceRecords.length > 0) {
+    if (fetched.length > 0) {
       // Extract all non-null assigned_to IDs
-      const userIds = maintenanceRecords
+      const userIds = fetched
         .map(record => record.assigned_to)
         .filter((id): id is string => id !== null);
       
@@ -56,7 +56,7 @@ export const fetchMaintenances = async () => {
           });
           
           // Add user data to each maintenance record
-          maintenanceRecords.forEach(record => {
+          fetched.forEach(record => {
             if (record.assigned_to && userMap[record.assigned_to]) {
               record.user = userMap[record.assigned_to];
             }
@@ -65,7 +65,8 @@ export const fetchMaintenances = async () => {
       }
     }
     
-    return maintenanceRecords;
+    // Cast the fetched data to MaintenanceRecord[] type with as unknown as intermediate step
+    return fetched as unknown as MaintenanceRecord[];
   } catch (error) {
     console.error("Erro ao buscar manutenções:", error);
     throw error;

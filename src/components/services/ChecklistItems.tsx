@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Info, Play, CheckCircle2 } from "lucide-react";
 import {
@@ -95,7 +94,7 @@ export const ChecklistItems = ({ period, onlyResponsible = false }: ChecklistIte
     // Only allow completion if already started
     if (item.status !== 'in_progress') return;
     
-    const newCompleted = item.status !== 'completed';
+    const newCompleted = true; // Always set to true when toggling to completed from in_progress
     await toggleItemCompletion(item.id, newCompleted);
   };
 

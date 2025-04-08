@@ -31,19 +31,31 @@ export function useCheckDepartment(departmentName: string) {
           return;
         }
 
-        // Check if user is in this department
-        const { data: userData, error: userError } = await supabase
-          .from('users')
+        // Check if user is in this department through department_users
+        const { data: departmentUserData, error: departmentUserError } = await supabase
+          .from('department_users')
           .select('id')
-          .eq('id', userId)
+          .eq('user_id', userId)
           .eq('department_id', departmentData.id)
           .single();
 
-        if (userError) {
-          console.error('Error checking user department:', userError);
-          setIsInDepartment(false);
+        if (!departmentUserError && departmentUserData) {
+          setIsInDepartment(true);
         } else {
-          setIsInDepartment(!!userData);
+          // As a fallback, also check the users table directly
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', userId)
+            .eq('department_id', departmentData.id)
+            .single();
+
+          if (userError) {
+            console.error('Error checking user department:', userError);
+            setIsInDepartment(false);
+          } else {
+            setIsInDepartment(!!userData);
+          }
         }
       } catch (error) {
         console.error('Error in department check:', error);
