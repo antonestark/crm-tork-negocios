@@ -8,7 +8,7 @@ import Clients from '@/pages/Clients';
 import Leads from '@/pages/Leads';
 import Agendamento from '@/pages/Agendamento';
 import AdminIndex from '@/pages/admin/Index';
-import UsersPage from '@/pages/admin/UsersPage';
+import UsersPage from '@/pages/admin/Users';
 import Departments from '@/pages/admin/Departments';
 import Permissions from '@/pages/admin/Permissions';
 import Audit from '@/pages/admin/Audit';

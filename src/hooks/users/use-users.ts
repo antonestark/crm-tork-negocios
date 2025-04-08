@@ -15,9 +15,9 @@ export function useUsers() {
       try {
         // Updating the query to use the 'users' table instead of 'user_list'
         // since user_list view doesn't have email column
-        const { data, error } = await supabase
-          .from('users')
-          .select('id, name, email, role, department_id');
+        const { data, error } = await (supabase as any)
+          .from('user_with_logs')
+          .select('id, name, email, role, department_id, activity_logs');
 
         if (error) throw error;
 
@@ -29,6 +29,7 @@ export function useUsers() {
           email: user.email || '',
           role: user.role || 'user',
           department_id: user.department_id || null,
+          activity_logs: user.activity_logs || [],
           // Add other required User properties with default values
           active: true,
           status: 'active'

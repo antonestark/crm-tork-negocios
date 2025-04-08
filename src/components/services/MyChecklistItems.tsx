@@ -18,7 +18,7 @@ type MyChecklistItemsProps = {
 };
 
 export const MyChecklistItems = ({ period }: MyChecklistItemsProps) => {
-  const { items, loading, toggleItemStart, toggleItemCompletion } = useServiceChecklist(period, true);
+  const { items, loading, toggleItemStart, toggleItemCompletion } = useServiceChecklist(period, false);
   const { userId } = useAuthState();
 
   return (

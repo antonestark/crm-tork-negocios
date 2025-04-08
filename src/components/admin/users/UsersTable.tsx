@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { User } from '@/types/admin';
 import { useUsers, UserCreate } from '@/hooks/users';
@@ -17,7 +16,7 @@ interface UsersTableProps {
   };
 }
 
-export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
+const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
   const { users, loading, addUser, updateUser, deleteUser, fetchUsers } = useUsers();
   const [openUserFormDialog, setOpenUserFormDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -25,18 +24,15 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
-  // Log users when loaded
   useEffect(() => {
     console.log('Usuários carregados na tabela:', users);
   }, [users]);
 
-  // Fetch users when component mounts
   useEffect(() => {
     console.log('UsersTable montado, buscando usuários...');
     fetchUsers();
   }, [fetchUsers]);
 
-  // Manually refresh user list
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
@@ -49,24 +45,16 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
     }
   };
 
-  // Apply filters
   const filteredUsers = users.filter(user => {
-    // Filter by status
     if (filters.status !== 'all' && user.status !== filters.status) {
       return false;
     }
-    
-    // Filter by department
-    if (filters.department !== 'all' && 
-        (!user.department_id || String(user.department_id) !== filters.department)) {
+    if (filters.department !== 'all' && (!user.department_id || String(user.department_id) !== filters.department)) {
       return false;
     }
-    
-    // Filter by search
     if (filters.search && !`${user.first_name} ${user.last_name}`.toLowerCase().includes(filters.search.toLowerCase())) {
       return false;
     }
-    
     return true;
   });
 
@@ -87,9 +75,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
-    
     console.log('Tentando excluir usuário ID:', userToDelete);
-    
     try {
       const success = await deleteUser(userToDelete);
       if (success) {
@@ -108,7 +94,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
 
   const handleSaveUser = async (userData: UserCreate) => {
     if (selectedUser) {
-      // Update existing user
       const success = await updateUser({
         ...selectedUser,
         ...userData,
@@ -118,7 +103,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
         toast.success('Usuário atualizado com sucesso');
       }
     } else {
-      // Add new user
       const success = await addUser(userData);
       if (success) {
         setOpenUserFormDialog(false);
@@ -172,19 +156,21 @@ export const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
 
   return (
     <div className="space-y-4">
-      <TableHeader 
-        userCount={filteredUsers.length}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
-        onAddUser={handleOpenNewUserDialog}
-      />
+      <div className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg shadow-lg p-6 space-y-4">
+        <TableHeader
+          userCount={filteredUsers.length}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          onAddUser={handleOpenNewUserDialog}
+        />
 
-      <DataTable
-        data={filteredUsers}
-        columns={columns}
-        loading={loading}
-        noDataMessage="Nenhum usuário encontrado"
-      />
+        <DataTable
+          data={filteredUsers}
+          columns={columns}
+          loading={loading}
+          noDataMessage="Nenhum usuário encontrado"
+        />
+      </div>
 
       <UserFormDialog
         open={openUserFormDialog}

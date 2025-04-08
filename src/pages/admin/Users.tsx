@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { AdminNav } from '@/components/admin/AdminNav';
-import { UsersTable } from '@/components/admin/users/UsersTable';
+import UsersTable from '@/components/admin/users/UsersTable';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';

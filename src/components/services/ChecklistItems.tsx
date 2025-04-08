@@ -121,8 +121,8 @@ export const ChecklistItems = ({ period, onlyResponsible = false }: ChecklistIte
     setSaving(false);
   };
 
-  // Only administrators or non-Operations users can add items
-  const canAddItems = !isOperationUser;
+  // Botão sempre visível para todos os usuários
+  const canAddItems = true;
 
   return (
     <div className="space-y-4">
