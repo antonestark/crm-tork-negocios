@@ -8,6 +8,8 @@ import { LeadFormDialog } from '@/components/leads/LeadFormDialog'; // Import Le
 import { Lead } from '@/types/admin'; // Import Lead type
 import { NewLead } from '@/services/leads-service'; // Import NewLead type
 import { toast } from 'sonner'; // Import toast for feedback
+import { PermissionGuard } from '@/components/auth/PermissionGuard';
+import { ResourcePage, ActionType } from '@/types/permissions';
 
 const Leads = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false); // State for dialog visibility
@@ -75,52 +77,56 @@ const Leads = () => {
 
 
   return (
-    <BaseLayout>
-      {/* Removed px-4, max-w-7xl, mx-auto */}
-      <div className="py-6"> 
-        <div className="flex justify-between items-center mb-6 animate-fade-in px-4"> {/* Added px-4 here */}
-          <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] pb-1">
-            Leads
-          </h2>
-          {/* This button now correctly controls the dialog state */}
-          <Button 
-            className="group border border-blue-500/50 text-blue-400 hover:border-blue-400 hover:bg-blue-950/30 rounded-full transition-all duration-300 relative overflow-hidden"
-            onClick={() => {
-              setSelectedLead(null); // Ensure we are creating, not editing
-              setIsDialogOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-            <span className="relative z-10">Novo Lead</span>
-            <span className="absolute inset-0 w-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 transition-all duration-300 group-hover:w-full"></span>
-          </Button>
+    <PermissionGuard page={ResourcePage.LEADS} action={ActionType.VIEW}>
+      <BaseLayout>
+        {/* Removed px-4, max-w-7xl, mx-auto */}
+        <div className="py-6"> 
+          <div className="flex justify-between items-center mb-6 animate-fade-in px-4"> {/* Added px-4 here */}
+            <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] pb-1">
+              Leads
+            </h2>
+            {/* This button now correctly controls the dialog state */}
+            <PermissionGuard page={ResourcePage.LEADS} action={ActionType.CREATE}>
+              <Button 
+                className="group border border-blue-500/50 text-blue-400 hover:border-blue-400 hover:bg-blue-950/30 rounded-full transition-all duration-300 relative overflow-hidden"
+                onClick={() => {
+                  setSelectedLead(null); // Ensure we are creating, not editing
+                  setIsDialogOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                <span className="relative z-10">Novo Lead</span>
+                <span className="absolute inset-0 w-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 transition-all duration-300 group-hover:w-full"></span>
+              </Button>
+            </PermissionGuard>
+          </div>
+          {/* Added px-4 here */}
+          <div className="animate-fade-in px-4"> 
+            <LeadsKanban 
+              leads={leads || []} 
+              users={users}
+              loading={loading}
+              onAddLead={addLead} // Still pass addLead if needed elsewhere
+              onUpdateLead={updateLead} // Still pass updateLead if needed elsewhere
+              onUpdateLeadStatus={updateLeadStatus}
+              onDeleteLead={deleteLead}
+              onRefresh={fetchLeads}
+              // Pass the edit request handler down
+              // onEditLead={handleEditLeadRequest} // TODO: Pass this down through Kanban -> Column -> Card
+            />
+          </div>
         </div>
-        {/* Added px-4 here */}
-        <div className="animate-fade-in px-4"> 
-          <LeadsKanban 
-            leads={leads || []} 
-            users={users}
-            loading={loading}
-            onAddLead={addLead} // Still pass addLead if needed elsewhere
-            onUpdateLead={updateLead} // Still pass updateLead if needed elsewhere
-            onUpdateLeadStatus={updateLeadStatus}
-            onDeleteLead={deleteLead}
-            onRefresh={fetchLeads}
-            // Pass the edit request handler down
-            // onEditLead={handleEditLeadRequest} // TODO: Pass this down through Kanban -> Column -> Card
-          />
-        </div>
-      </div>
-      
-      {/* Render the LeadFormDialog here, controlled by local state */}
-      <LeadFormDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onSubmit={handleFormSubmit}
-        lead={selectedLead}
-        users={users}
-      />
-    </BaseLayout>
+        
+        {/* Render the LeadFormDialog here, controlled by local state */}
+        <LeadFormDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          onSubmit={handleFormSubmit}
+          lead={selectedLead}
+          users={users}
+        />
+      </BaseLayout>
+    </PermissionGuard>
   );
 };
 

@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Department, User } from '@/types/admin';
 import { useUsers } from '@/hooks/users';
 import { compareDepartmentIds } from './EnhancedDepartmentsView';
+import { DepartmentPermissionsCard } from './DepartmentPermissionsCard';
 
 interface DepartmentDetailsProps {
   department: Department;
@@ -74,7 +75,7 @@ export function DepartmentDetails({
       
       <Separator className="my-4" />
       
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Informações</CardTitle>
@@ -141,6 +142,8 @@ export function DepartmentDetails({
             </div>
           </CardContent>
         </Card>
+
+        <DepartmentPermissionsCard departmentId={department.id} />
       </div>
     </div>
   );

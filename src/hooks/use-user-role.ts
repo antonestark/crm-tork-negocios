@@ -24,7 +24,7 @@ export function useUserRole(userId: string | null | undefined) {
         .from('user_list')
         .select('role')
         .eq('id', userId)
-        .single<UserListRow>();
+        .maybeSingle<UserListRow>();
 
       if (error) {
         console.error('Erro ao buscar role do usuário:', error);

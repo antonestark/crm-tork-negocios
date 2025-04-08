@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Department } from '@/types/admin';
-import { usePermissions } from '@/hooks/use-permissions';
+import { useAllDepartmentPermissions } from '@/hooks/use-all-department-permissions';
 import { useDepartmentPermissions } from '@/hooks/use-department-permissions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -23,7 +23,7 @@ export function DepartmentPermissionsDialog({
   onOpenChange,
   department
 }: DepartmentPermissionsDialogProps) {
-  const { permissions, loading: permissionsLoading } = usePermissions();
+  const { permissions, loading: permissionsLoading, refetch } = useAllDepartmentPermissions(department?.id ?? null);
   const { 
     permissions: departmentPermissions, 
     loading: departmentPermissionsLoading,
@@ -53,6 +53,7 @@ export function DepartmentPermissionsDialog({
     try {
       setIsSubmitting(true);
       await updateDepartmentPermissions(selectedPermissions);
+      await refetch(); // força recarregar permissões atualizadas
       onOpenChange(false);
     } finally {
       setIsSubmitting(false);
@@ -63,17 +64,17 @@ export function DepartmentPermissionsDialog({
   
   // Filter permissions based on search query
   const filteredPermissions = permissions.filter(permission => 
-    permission.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    permission.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
     permission.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    permission.module.toLowerCase().includes(searchQuery.toLowerCase())
+    permission.resource.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
-  // Group permissions by module
+  // Group permissions by resource
   const permissionsByModule = filteredPermissions.reduce((acc, permission) => {
-    if (!acc[permission.module]) {
-      acc[permission.module] = [];
+    if (!acc[permission.resource]) {
+      acc[permission.resource] = [];
     }
-    acc[permission.module].push(permission);
+    acc[permission.resource].push(permission);
     return acc;
   }, {} as Record<string, typeof permissions>);
   
@@ -111,20 +112,20 @@ export function DepartmentPermissionsDialog({
                     <Separator />
                     <div className="grid grid-cols-1 gap-2 pl-2">
                       {modulePermissions.map(permission => (
-                        <div key={permission.id} className="flex items-start space-x-2 py-1">
+                        <div key={permission.permission_id} className="flex items-start space-x-2 py-1">
                           <Checkbox 
-                            id={permission.id}
-                            checked={selectedPermissions.includes(permission.id)}
+                            id={permission.permission_id}
+                            checked={selectedPermissions.includes(permission.permission_id)}
                             onCheckedChange={(checked) => 
-                              handlePermissionChange(permission.id, checked as boolean)
+                              handlePermissionChange(permission.permission_id, checked as boolean)
                             }
                           />
                           <div className="grid gap-1">
                             <Label 
-                              htmlFor={permission.id}
+                              htmlFor={permission.permission_id}
                               className="font-medium cursor-pointer"
                             >
-                              {permission.name}
+                              {permission.title}
                             </Label>
                             {permission.description && (
                               <p className="text-sm text-muted-foreground">
@@ -132,11 +133,9 @@ export function DepartmentPermissionsDialog({
                               </p>
                             )}
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {permission.actions.map(action => (
-                                <span key={action} className="text-xs bg-secondary px-2 py-0.5 rounded-full">
-                                  {action}
-                                </span>
-                              ))}
+                              <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">
+                                {permission.action}
+                              </span>
                             </div>
                           </div>
                         </div>
