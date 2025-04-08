@@ -2,152 +2,167 @@
 import { Department, User, UserDepartmentRoleMember } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
 
-// Fetch department members
+// Buscar membros do departamento via tabela department_users + join com users
 export const fetchDepartmentMembers = async (departmentId: string): Promise<UserDepartmentRoleMember[]> => {
   try {
     const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('department_id', Number(departmentId));
+      .from('department_users')
+      .select(`
+        id,
+        user_id,
+        department_id,
+        created_at,
+        user:users (
+          id,
+          name,
+          email,
+          profile_image_url,
+          role,
+          status,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq('department_id', departmentId);
 
     if (error) {
-      console.error('Error fetching department members:', error);
+      console.error('Erro ao buscar membros do departamento:', error);
       return [];
     }
 
-    return data.map(user => ({
-      id: `${user.id}-${departmentId}`, // Create a composite ID
-      user_id: user.id,
-      department_id: departmentId,
-      role: user.role || 'member',
-      start_date: null,
-      end_date: null,
-      created_at: user.created_at,
-      updated_at: user.updated_at,
-      user: {
+    return data.map((item: any) => {
+      const [first_name, ...last_name_parts] = (item.user.name || '').split(' ');
+      return {
+        id: item.id,
+        user_id: item.user_id,
+        department_id: item.department_id,
+        role: item.user.role || 'member',
+        start_date: null,
+        end_date: null,
+        created_at: item.created_at,
+        updated_at: item.user.updated_at,
+        user: {
+          id: item.user.id,
+          first_name,
+          last_name: last_name_parts.join(' '),
+          email: item.user.email,
+          profile_image_url: item.user.profile_image_url,
+          role: item.user.role,
+          department_id: item.department_id,
+          status: item.user.status
+        }
+      };
+    });
+  } catch (error) {
+    console.error('Erro inesperado ao buscar membros:', error);
+    return [];
+  }
+};
+
+// Buscar usuários disponíveis (não associados a este departamento)
+export const fetchAvailableUsers = async (): Promise<User[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*');
+
+    if (error) {
+      console.error('Erro ao buscar usuários:', error);
+      return [];
+    }
+
+    return data.map((user: any) => {
+      const [first_name, ...last_name_parts] = (user.name || '').split(' ');
+      return {
         id: user.id,
-        first_name: user.name ? user.name.split(' ')[0] : '',
-        last_name: user.name ? user.name.split(' ').slice(1).join(' ') : '',
+        first_name,
+        last_name: last_name_parts.join(' '),
         email: user.email,
         profile_image_url: user.profile_image_url,
         role: user.role,
-        department_id: user.department_id,
-        status: user.status
-      }
-    }));
+        department_id: null, // não relevante aqui
+        phone: user.phone,
+        active: user.active,
+        status: user.status,
+        last_login: user.last_login,
+        created_at: user.created_at,
+        updated_at: user.updated_at
+      };
+    });
   } catch (error) {
-    console.error('Unexpected error fetching department members:', error);
+    console.error('Erro inesperado ao buscar usuários:', error);
     return [];
   }
 };
 
-// Fetch available users
-export const fetchAvailableUsers = async (): Promise<User[]> => {
-  try {
-const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .is('department_id', null);
-
-    if (error) {
-      console.error('Error fetching available users:', error);
-      return [];
-    }
-
-    // Convert database user format to application User format
-    return data.map(user => ({
-      id: user.id,
-      first_name: user.name ? user.name.split(' ')[0] : '',
-      last_name: user.name ? user.name.split(' ').slice(1).join(' ') : '',
-      email: user.email,
-      profile_image_url: user.profile_image_url,
-      role: user.role,
-      department_id: user.department_id,
-      phone: user.phone,
-      active: user.active,
-      status: user.status,
-      last_login: user.last_login,
-      created_at: user.created_at,
-      updated_at: user.updated_at
-    }));
-  } catch (error) {
-    console.error('Unexpected error fetching available users:', error);
-    return [];
-  }
-};
-
-// Add a member to a department
+// Adicionar membro ao departamento (inserir em department_users)
 export const addDepartmentMember = async (
   userId: string,
   department: Department,
   role: string,
   availableUsers: User[]
 ): Promise<UserDepartmentRoleMember | null> => {
-  console.log(`Adding user ${userId} to department ${department.id} as ${role}`);
-  
   try {
-    // Find user from available users
-    const user = availableUsers.find(u => u.id === userId);
-    if (!user) return null;
-    
-    // Update the user's department_id
-    const { error } = await supabase
-      .from('users')
-      .update({ 
-        department_id: Number(department.id),
-        role: role 
+    const { data, error } = await supabase
+      .from('department_users')
+      .insert({
+        user_id: userId,
+        department_id: department.id
       })
-      .eq('id', userId);
-    
-    if (error) {
-      console.error('Error adding member to department:', error);
+      .select('id, created_at');
+
+    if (error || !data || data.length === 0) {
+      console.error('Erro ao adicionar membro:', error);
       return null;
     }
-    
-    // Create new member object
-    const newMember: UserDepartmentRoleMember = {
-      id: `${userId}-${department.id}`, // Create a composite ID
+
+    const user = availableUsers.find(u => u.id === userId);
+    if (!user) return null;
+
+    const [first_name, ...last_name_parts] = (user.name || '').split(' ');
+
+    return {
+      id: data[0].id,
       user_id: userId,
       department_id: department.id.toString(),
-      role: role,
+      role,
       start_date: new Date().toISOString(),
       end_date: null,
-      created_at: new Date().toISOString(),
+      created_at: data[0].created_at,
       updated_at: new Date().toISOString(),
       user: {
         id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
+        first_name,
+        last_name: last_name_parts.join(' '),
+        email: user.email,
         profile_image_url: user.profile_image_url,
-        role: role,
-        department_id: Number(department.id),
+        role,
+        department_id: department.id,
         status: user.status
       }
     };
-    
-    return newMember;
   } catch (error) {
-    console.error('Unexpected error adding department member:', error);
+    console.error('Erro inesperado ao adicionar membro:', error);
     return null;
   }
 };
 
-// Remove a member from a department
-export const removeDepartmentMember = async (userId: string): Promise<boolean> => {
+// Remover membro do departamento (deletar de department_users)
+export const removeDepartmentMember = async (departmentUserId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('users')
-      .update({ department_id: null })
-      .eq('id', userId);
+      .from('department_users')
+      .delete()
+      .eq('id', departmentUserId);
 
     if (error) {
-      console.error('Error removing department member:', error);
+      console.error('Erro ao remover membro:', error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Unexpected error removing department member:', error);
+    console.error('Erro inesperado ao remover membro:', error);
     return false;
   }
 };
