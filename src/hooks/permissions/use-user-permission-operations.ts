@@ -71,6 +71,20 @@ export const useUserPermissionOperations = () => {
     
     try {
       setLoading(true);
+
+      // Verifica se o usuário ainda existe na tabela users
+      const { data: userExists, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (userError) throw userError;
+
+      if (!userExists) {
+        toast.error('Usuário não encontrado. Atualize a página.');
+        return false;
+      }
       
       const selectedPerms = permissions.filter(p => p.selected).map(p => p.id);
       const selectedGroupsIds = permissionGroups.filter(g => g.selected).map(g => g.id);
