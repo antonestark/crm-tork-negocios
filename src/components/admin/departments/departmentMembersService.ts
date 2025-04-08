@@ -8,7 +8,7 @@ interface User {
   id: string;
   name: string;
   email: string;  // Making email required here
-  department_id?: number;
+  department_id?: number | null;  // Making department_id optional
 }
 
 // Function to fetch department users
