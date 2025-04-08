@@ -3,11 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatUserFromDatabase } from "@/utils/user-formatter";
 
-// Define User type for departmentMembersService
+// Define User type for departmentMembersService with email always as string
 interface User {
   id: string;
   name: string;
-  email?: string;  // Keep email optional to match the User type in the system
+  email: string;  // Making email required here
   department_id?: number;
 }
 
@@ -63,17 +63,20 @@ export const fetchDepartmentUsers = async (departmentId: number) => {
         throw usersError;
       }
       
-      // Make sure to handle optional email in the resulting data
+      // Make sure to handle optional email in the resulting data - always provide empty string
       usersFromRelation = (usersData || []).map(user => ({
         id: user.id,
         name: user.name,
-        email: user.email || '',  // Provide default empty string for email if it's null/undefined
+        email: user.email || '',  // Ensure email is always a string
         department_id: user.department_id
       }));
     }
     
-    // Combine results
-    const combinedUsers = [...(directUsers || [])];
+    // Combine results - make sure all users have email as string
+    const combinedUsers = (directUsers || []).map(user => ({
+      ...user,
+      email: user.email || ''  // Ensure email is always a string
+    }));
     
     // Add users from relation table, avoiding duplicates
     for (const user of usersFromRelation) {
@@ -129,7 +132,7 @@ export const fetchAvailableUsers = async (departmentId?: number) => {
 };
 
 // Add department member
-export const addDepartmentMember = async (userId: string, department: any, role: string, availableUsers: any[]) => {
+export const addDepartmentMember = async (userId: string, department: any, role: string, availableUsers: User[]) => {
   try {
     // Convert department.id to number if it's a string
     const departmentId = typeof department.id === 'string' ? parseInt(department.id, 10) : department.id;
@@ -151,12 +154,6 @@ export const addDepartmentMember = async (userId: string, department: any, role:
       throw new Error("User not found in available users");
     }
     
-    // Make sure the user object has a required email property by providing a default empty string
-    const userWithEmail = {
-      ...user,
-      email: user.email || ''  // Ensure email is always a string
-    };
-    
     // Explicitly create a new object with all required properties
     const newMember = {
       id: crypto.randomUUID(),
@@ -168,10 +165,10 @@ export const addDepartmentMember = async (userId: string, department: any, role:
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       user: {
-        id: userWithEmail.id,
-        first_name: userWithEmail.name.split(' ')[0] || '',
-        last_name: userWithEmail.name.split(' ').slice(1).join(' ') || '',
-        email: userWithEmail.email // Now guaranteed to be a string
+        id: user.id,
+        first_name: user.name.split(' ')[0] || '',
+        last_name: user.name.split(' ').slice(1).join(' ') || '',
+        email: user.email // Now guaranteed to be a string by our User interface
       }
     };
     
