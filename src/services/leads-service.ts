@@ -84,9 +84,10 @@ export const fetchLeads = async (): Promise<Lead[]> => {
 // Add a new lead to the database
 export const addLead = async (lead: NewLead): Promise<Lead | null> => {
   try {
-    // Normalize status before saving
+    // Normalize status and assigned_to before saving
     const normalizedLead = {
       ...lead,
+      assigned_to: lead.assigned_to ? lead.assigned_to : null,
       status: normalizeStatus(lead.status || 'neutro')
     };
     

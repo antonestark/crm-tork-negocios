@@ -105,6 +105,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
     } else {
       const success = await addUser(userData);
       if (success) {
+        await fetchUsers();
         setOpenUserFormDialog(false);
         toast.success('Usuário adicionado com sucesso');
       }
