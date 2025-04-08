@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -58,7 +57,7 @@ export const fetchMaintenances = async () => {
           // Add user data to each maintenance record
           fetched.forEach(record => {
             if (record.assigned_to && userMap[record.assigned_to]) {
-              // Explicitly add the user property to each record
+              // Add the user property to each record
               (record as any).user = userMap[record.assigned_to];
             }
           });
@@ -66,7 +65,7 @@ export const fetchMaintenances = async () => {
       }
     }
     
-    // Cast the fetched data to MaintenanceRecord[] type with as unknown as intermediate step
+    // Cast the fetched data to MaintenanceRecord[] type
     return fetched as unknown as MaintenanceRecord[];
   } catch (error) {
     console.error("Erro ao buscar manutenções:", error);

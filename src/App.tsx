@@ -19,6 +19,7 @@ import ServicesIndex from '@/pages/services/Index';
 import Areas from '@/pages/services/Areas';
 import Demands from '@/pages/services/Demands';
 import Checklist from '@/pages/services/Checklist';
+import MyChecklist from '@/pages/services/MyChecklist';
 import Maintenance from '@/pages/services/Maintenance';
 import ServiceReports from '@/pages/services/Reports';
 import Dashboard from '@/pages/Dashboard';
@@ -216,6 +217,13 @@ function App() {
             <Route path="/services/checklist" element={
               <RequireAuth>
                 <Checklist />
+              </RequireAuth>
+            } />
+            
+            {/* My Checklist page shows only items assigned to the current user */}
+            <Route path="/services/my-checklist" element={
+              <RequireAuth>
+                <MyChecklist />
               </RequireAuth>
             } />
             

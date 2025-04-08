@@ -7,7 +7,8 @@ import {
   Wrench, 
   FileText, 
   MessageSquare,
-  Grid3X3
+  Grid3X3,
+  User
 } from "lucide-react";
 
 const navItems = [
@@ -26,6 +27,11 @@ const navItems = [
     title: "Checklist",
     icon: CheckSquare,
     href: "/services/checklist"
+  },
+  {
+    title: "Meus Itens",
+    icon: User,
+    href: "/services/my-checklist"
   },
   {
     title: "Manutenções",

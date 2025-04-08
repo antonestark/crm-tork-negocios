@@ -86,8 +86,6 @@ export const fetchDepartmentUsers = async (departmentId: number) => {
   }
 };
 
-// Add these exported functions to match what DepartmentMembersDialog.tsx is importing
-
 // Function to fetch available users (those not in the department)
 export const fetchAvailableUsers = async (departmentId?: number) => {
   try {
@@ -102,8 +100,8 @@ export const fetchAvailableUsers = async (departmentId?: number) => {
     
     // If we have a department ID, filter out users already in that department
     if (departmentId) {
-      const { data: deptUsers } = await fetchDepartmentUsers(departmentId);
-      const deptUserIds = deptUsers.users.map(user => user.id);
+      const departmentResult = await fetchDepartmentUsers(departmentId);
+      const deptUserIds = departmentResult.users.map(user => user.id);
       return data.filter(user => !deptUserIds.includes(user.id)) || [];
     }
     
@@ -115,7 +113,7 @@ export const fetchAvailableUsers = async (departmentId?: number) => {
   }
 };
 
-// Rename this to match what DepartmentMembersDialog.tsx is importing
+// Add department member
 export const addDepartmentMember = async (userId: string, department: any, role: string, availableUsers: any[]) => {
   try {
     // Convert department.id to number if it's a string
@@ -165,7 +163,7 @@ export const addDepartmentMember = async (userId: string, department: any, role:
   }
 };
 
-// Rename this to match what DepartmentMembersDialog.tsx is importing
+// Remove department member
 export const removeDepartmentMember = async (userId: string) => {
   try {
     const { error } = await supabase
