@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuthState } from '@/hooks/use-auth-state';
 import { supabase } from '@/integrations/supabase/client';
 
-export function useCheckDepartment(departmentName: string) {
+export function useCheckDepartment(departmentName: string, role?: string | null) {
   const { userId } = useAuthState();
   const [isInDepartment, setIsInDepartment] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -12,6 +12,13 @@ export function useCheckDepartment(departmentName: string) {
     const checkDepartment = async () => {
       if (!userId) {
         setIsInDepartment(false);
+        setLoading(false);
+        return;
+      }
+
+      // Se for super_admin ou admin, sempre retorna true
+      if (role === 'super_admin' || role === 'admin') {
+        setIsInDepartment(true);
         setLoading(false);
         return;
       }
@@ -66,7 +73,7 @@ export function useCheckDepartment(departmentName: string) {
     };
 
     checkDepartment();
-  }, [userId, departmentName]);
+  }, [userId, departmentName, role]);
 
   return { isInDepartment, loading };
 }

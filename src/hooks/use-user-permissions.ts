@@ -55,12 +55,20 @@ export async function removeGlobalPermissionFromUser(userId: string, permissionI
   }
 }
 
-export function useUserPermissions(userId: string) {
+export function useUserPermissions(userId: string, role?: string | null) {
   const [permissions, setPermissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPermissions = async () => {
     setLoading(true);
+
+    if (role === 'super_admin') {
+      // Super admin tem todas as permissões
+      setPermissions([{ code: 'ALL_PERMISSIONS' }]);
+      setLoading(false);
+      return;
+    }
+
     const perms = await fetchUserGlobalPermissions(userId);
     setPermissions(perms);
     setLoading(false);
@@ -70,7 +78,7 @@ export function useUserPermissions(userId: string) {
     if (userId) {
       fetchPermissions();
     }
-  }, [userId]);
+  }, [userId, role]);
 
   return { permissions, loading, reload: fetchPermissions };
 }

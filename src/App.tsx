@@ -28,6 +28,7 @@ import Planos from '@/pages/Planos';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { QueryClientProvider } from '@/providers/QueryClientProvider';
 import { Toaster } from "@/components/ui/sonner";
+import { UserAccessProvider } from '@/providers/UserAccessProvider';
 
 // Route related imports
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -38,8 +39,9 @@ function App() {
   return (
     <QueryClientProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
+        <UserAccessProvider>
+          <BrowserRouter>
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -254,6 +256,7 @@ function App() {
           </Routes>
         </BrowserRouter>
         <Toaster position="top-right" />
+        </UserAccessProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
