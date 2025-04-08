@@ -104,14 +104,20 @@ export const fetchAvailableUsers = async (departmentId?: number) => {
       throw error;
     }
     
+    // Ensure all users have the email property, even if it's an empty string
+    const usersWithEmail = (data || []).map(user => ({
+      ...user,
+      email: user.email || ''  // Ensure email is always a string, never undefined
+    }));
+    
     // If we have a department ID, filter out users already in that department
     if (departmentId) {
       const departmentResult = await fetchDepartmentUsers(departmentId);
       const deptUserIds = departmentResult.users.map(user => user.id);
-      return data.filter(user => !deptUserIds.includes(user.id)) || [];
+      return usersWithEmail.filter(user => !deptUserIds.includes(user.id)) || [];
     }
     
-    return data || [];
+    return usersWithEmail || [];
   } catch (error) {
     console.error("Error fetching available users:", error);
     toast.error("Falha ao carregar usuários disponíveis");
