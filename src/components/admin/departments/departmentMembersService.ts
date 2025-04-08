@@ -151,8 +151,13 @@ export const addDepartmentMember = async (userId: string, department: any, role:
       throw new Error("User not found in available users");
     }
     
+    // Make sure the user object has a required email property by providing a default empty string
+    const userWithEmail = {
+      ...user,
+      email: user.email || ''  // Ensure email is always a string
+    };
+    
     // Explicitly create a new object with all required properties
-    // Make sure email is always provided as a string
     const newMember = {
       id: crypto.randomUUID(),
       user_id: userId,
@@ -163,10 +168,10 @@ export const addDepartmentMember = async (userId: string, department: any, role:
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       user: {
-        id: user.id,
-        first_name: user.name.split(' ')[0] || '',
-        last_name: user.name.split(' ').slice(1).join(' ') || '',
-        email: user.email || '' // Ensure email is always a string, never undefined
+        id: userWithEmail.id,
+        first_name: userWithEmail.name.split(' ')[0] || '',
+        last_name: userWithEmail.name.split(' ').slice(1).join(' ') || '',
+        email: userWithEmail.email // Now guaranteed to be a string
       }
     };
     
