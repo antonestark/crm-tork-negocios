@@ -35,7 +35,13 @@ export const useDepartmentPermissions = (departmentId?: number) => {
       
       if (error) throw error;
       
-      setPermissions(data?.map(item => item.permission_id) || []);
+      // Check if data is an array and contains objects with permission_id
+      if (Array.isArray(data) && data.length > 0 && 'permission_id' in data[0]) {
+        setPermissions(data.map(item => item.permission_id) || []);
+      } else {
+        console.log('No valid permission_id found in data:', data);
+        setPermissions([]);
+      }
     } catch (err) {
       console.error('Error fetching department permissions:', err);
       setError(err as Error);
