@@ -35,11 +35,11 @@ export const useDepartmentPermissions = (departmentId?: number) => {
       
       if (error) throw error;
 
-      // Safely handle the data - first check if it's an array
+      // Safely handle the data
       if (Array.isArray(data)) {
         // Map the permission IDs only if valid data exists
         const permissionIds = data
-          .filter(item => item && typeof item === 'object' && 'permission_id' in item)
+          .filter(item => item && typeof item === 'object' && item.permission_id)
           .map(item => item.permission_id);
           
         setPermissions(permissionIds);

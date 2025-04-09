@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -26,8 +27,9 @@ export function useAllDepartmentPermissions(departmentId: string | null | undefi
 
     try {
       setLoading(true);
-      const { data, error } = await (supabase
-        .from('department_permission_view') as any)
+      // Use the generic form when accessing views not defined in the TypeScript types
+      const { data, error } = await supabase
+        .from('department_permission_view')
         .select('*')
         .order('resource');
 
