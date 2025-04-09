@@ -482,6 +482,7 @@ export type Database = {
           department_id: number
           id: string
           page_code: string | null
+          permission_id: string | null
         }
         Insert: {
           can_delete?: boolean | null
@@ -491,6 +492,7 @@ export type Database = {
           department_id: number
           id?: string
           page_code?: string | null
+          permission_id?: string | null
         }
         Update: {
           can_delete?: boolean | null
@@ -500,6 +502,7 @@ export type Database = {
           department_id?: number
           id?: string
           page_code?: string | null
+          permission_id?: string | null
         }
         Relationships: [
           {
@@ -507,6 +510,20 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_permission"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "department_permission_view"
+            referencedColumns: ["permission_id"]
+          },
+          {
+            foreignKeyName: "fk_permission"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "system_permissions"
             referencedColumns: ["id"]
           },
         ]
@@ -582,6 +599,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "department_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_with_logs"
             referencedColumns: ["id"]
           },
           {
@@ -1256,6 +1280,33 @@ export type Database = {
           },
         ]
       }
+      system_permissions: {
+        Row: {
+          action: string
+          code: string
+          description: string | null
+          id: string
+          resource: string
+          title: string
+        }
+        Insert: {
+          action: string
+          code: string
+          description?: string | null
+          id?: string
+          resource: string
+          title: string
+        }
+        Update: {
+          action?: string
+          code?: string
+          description?: string | null
+          id?: string
+          resource?: string
+          title?: string
+        }
+        Relationships: []
+      }
       user_groups: {
         Row: {
           created_at: string | null
@@ -1416,6 +1467,27 @@ export type Database = {
       }
     }
     Views: {
+      department_permission_view: {
+        Row: {
+          action: string | null
+          assigned: boolean | null
+          code: string | null
+          department_id: number | null
+          description: string | null
+          permission_id: string | null
+          resource: string | null
+          title: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_permissions_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_list: {
         Row: {
           department_id: number | null
@@ -1437,6 +1509,33 @@ export type Database = {
           id?: string | null
           name?: string | null
           role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_department_id"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_with_logs: {
+        Row: {
+          active: boolean | null
+          activity_logs: Json | null
+          created_at: string | null
+          department_id: number | null
+          email: string | null
+          id: string | null
+          is_admin: boolean | null
+          last_login: string | null
+          name: string | null
+          phone: string | null
+          profile_image_url: string | null
+          role: string | null
+          status: string | null
+          updated_at: string | null
         }
         Relationships: [
           {

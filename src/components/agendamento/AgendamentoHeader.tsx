@@ -43,47 +43,46 @@ export const AgendamentoHeader = ({ selectedDate, onDateSelect }: AgendamentoHea
   return (
     <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Agendamentos</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Agendamentos</h2>
         <p className="text-muted-foreground">
           Gerencie os agendamentos da sala de reunião
         </p>
       </div>
       <div className="flex flex-col sm:flex-row gap-2">
-        {/* Apply green style */}
-        <Button className="flex items-center bg-green-600 text-white hover:bg-green-700" size="sm" onClick={handleNewBooking}>
+        {/* Dynamic styling based on theme */}
+        <Button className="flex items-center bg-primary text-primary-foreground hover:bg-primary/90" size="sm" onClick={handleNewBooking}>
           <CalendarIcon className="mr-2 h-4 w-4" />
           Novo Agendamento
         </Button>
         
         <Popover>
           <PopoverTrigger asChild>
-            {/* Apply green style, remove variant="outline" */}
             <Button
-              className="justify-start text-left font-normal bg-green-600 text-white hover:bg-green-700"
+              className="justify-start text-left font-normal bg-primary text-primary-foreground hover:bg-primary/90"
               size="sm"
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {selectedDate ? format(selectedDate, "PPP", { locale: ptBR }) : "Selecionar data"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
+          <PopoverContent className="w-auto p-0 bg-popover text-popover-foreground">
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={onDateSelect}
               locale={ptBR}
               initialFocus
+              className="bg-popover text-popover-foreground"
             />
           </PopoverContent>
         </Popover>
 
         <div className="flex gap-1">
-          {/* Apply green style when not active (variant="outline") */}
           <Button
             variant={view === "day" ? "default" : "outline"}
             size="sm"
             onClick={() => setView("day")}
-            className={view !== "day" ? "bg-green-600 text-white hover:bg-green-700" : ""}
+            className={view !== "day" ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}
           >
             <List className="h-4 w-4" />
           </Button>
@@ -91,7 +90,7 @@ export const AgendamentoHeader = ({ selectedDate, onDateSelect }: AgendamentoHea
             variant={view === "week" ? "default" : "outline"}
             size="sm"
             onClick={() => setView("week")}
-            className={view !== "week" ? "bg-green-600 text-white hover:bg-green-700" : ""}
+            className={view !== "week" ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}
           >
             <Grid2X2 className="h-4 w-4" />
           </Button>
@@ -99,7 +98,7 @@ export const AgendamentoHeader = ({ selectedDate, onDateSelect }: AgendamentoHea
             variant={view === "month" ? "default" : "outline"}
             size="sm"
             onClick={() => setView("month")}
-            className={view !== "month" ? "bg-green-600 text-white hover:bg-green-700" : ""}
+            className={view !== "month" ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}
           >
             <CalendarIcon className="h-4 w-4" />
           </Button>
