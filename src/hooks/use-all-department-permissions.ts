@@ -9,7 +9,7 @@ export interface DepartmentPermissionView {
   description: string;
   resource: string;
   action: string;
-  department_id: string | null;
+  department_id: string | null; // Changed to string | null to match potential database return
   assigned: boolean;
 }
 
@@ -35,7 +35,13 @@ export function useAllDepartmentPermissions(departmentId: string | null | undefi
 
       if (error) throw error;
 
-      setPermissions(data as DepartmentPermissionView[] || []);
+      // Cast the data to our expected type - ensuring department_id is treated as string
+      const typedData = (data || []).map(item => ({
+        ...item,
+        department_id: item.department_id !== null ? String(item.department_id) : null
+      })) as DepartmentPermissionView[];
+
+      setPermissions(typedData);
     } catch (err) {
       console.error('Erro ao buscar permissões do departamento:', err);
       setError(err as Error);
