@@ -98,7 +98,7 @@ export default function UsersPage() {
           </div>
           
           {/* Users Table */}
-          <div className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg shadow-lg overflow-hidden p-6"> {/* Added card styling */}
+          <div className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg shadow-lg overflow-hidden p-6"> {/* Added card styling */}
             <UsersTable filters={filters} />
           </div>
         </div>

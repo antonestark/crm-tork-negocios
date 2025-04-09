@@ -28,7 +28,7 @@ export const OverviewCards = ({
 }) => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-fade-in">
-      <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/50 shadow-[0_0_15px_rgba(56,189,248,0.2)] hover:shadow-[0_0_20px_rgba(56,189,248,0.3)] transition-all duration-500 hover:-translate-y-1 group overflow-hidden">
+      <Card className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/50 shadow-[0_0_15px_rgba(56,189,248,0.2)] hover:shadow-[0_0_20px_rgba(56,189,248,0.3)] transition-all duration-500 hover:-translate-y-1 group overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-slate-900/0 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -47,7 +47,7 @@ export const OverviewCards = ({
         </CardContent>
       </Card>
       
-      <Card className="bg-slate-900/50 backdrop-blur-md border border-purple-900/50 shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all duration-500 hover:-translate-y-1 group overflow-hidden">
+      <Card className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-purple-900/50 shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all duration-500 hover:-translate-y-1 group overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 to-slate-900/0 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 to-fuchsia-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -66,7 +66,7 @@ export const OverviewCards = ({
         </CardContent>
       </Card>
       
-      <Card className="bg-slate-900/50 backdrop-blur-md border border-cyan-900/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all duration-500 hover:-translate-y-1 group overflow-hidden">
+      <Card className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-cyan-900/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all duration-500 hover:-translate-y-1 group overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 to-slate-900/0 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-600 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -85,7 +85,7 @@ export const OverviewCards = ({
         </CardContent>
       </Card>
       
-      <Card className="bg-slate-900/50 backdrop-blur-md border border-indigo-900/50 shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all duration-500 hover:-translate-y-1 group overflow-hidden">
+      <Card className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-indigo-900/50 shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all duration-500 hover:-translate-y-1 group overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/10 to-slate-900/0 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-600 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

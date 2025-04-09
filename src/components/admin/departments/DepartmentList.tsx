@@ -83,7 +83,7 @@ export function DepartmentList({
                 key={department.id}
                 className={`p-3 rounded-md cursor-pointer transition-colors ${
                   selectedDepartment?.id === department.id
-                    ? 'bg-primary/10'
+                    ? 'bg-[#094067] dark:bg-slate-900/50'
                     : 'hover:bg-muted'
                 }`}
                 onClick={() => onSelectDepartment(department)}

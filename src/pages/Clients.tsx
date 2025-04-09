@@ -83,7 +83,7 @@ const Clients = () => {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
               <Input 
                 placeholder="Buscar cliente..." 
-                className="pl-8 bg-slate-900/50 border-blue-900/40 text-slate-300 placeholder:text-slate-500 focus-visible:ring-blue-500"
+                className="pl-8 bg-white/50 dark:bg-slate-900/50 border-blue-900/40 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus-visible:ring-blue-500"
               />
             </div>
             {/* Wrap Button with DialogTrigger */}
@@ -123,7 +123,7 @@ const Clients = () => {
           </div>
         </div>
         
-        <div className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg shadow-lg overflow-hidden animate-fade-in">
+        <div className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg shadow-lg overflow-hidden animate-fade-in">
           {/* Pass setOpen and setSelectedClient to ClientsTable if edit needs to be triggered from there */}
           <ClientsTable /> 
         </div>

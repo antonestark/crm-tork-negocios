@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Header } from '@/components/layout/Header';
+import { BaseLayout } from '@/components/layout/BaseLayout';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { OverviewCards } from '@/components/dashboard/OverviewCards';
 import { LeadsOverview } from '@/components/dashboard/LeadsOverview';
@@ -24,14 +24,7 @@ const Dashboard = () => {
   const completionRate = totalTasksValue > 0 ? Math.round((data.metrics[0]?.completed_tasks / totalTasksValue) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white overflow-x-hidden no-scrollbar relative">
-      <div className="absolute inset-0 overflow-hidden z-0">
-        <div className="absolute w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50"></div>
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50"></div>
-      </div>
-      
-      <Header />
+    <BaseLayout>
       <main className="py-6 relative z-10"> 
         <div className="flex flex-col gap-6 px-4"> 
           <DashboardHeader range={range} setRange={setRange} />
@@ -46,28 +39,28 @@ const Dashboard = () => {
           />
 
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden group hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300 p-4">
+            <div className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden group hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300 p-4">
               <LeadsOverview leads={data.leads} loading={loading} />
             </div>
-            <div className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden group hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300 p-4">
+            <div className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden group hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300 p-4">
               <DemandsOverview demands={data.demands} loading={loading} />
             </div>
           </div>
 
-          <div className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden flex-1 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300 p-4">
+          <div className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden flex-1 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300 p-4">
             <TaskPanel />
           </div>
 
-          <div className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden flex-1 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300 p-4">
+          <div className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden flex-1 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300 p-4">
             <BookingCalendar />
           </div>
 
-          <div className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden flex-1 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300 p-4">
+          <div className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden flex-1 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300 p-4">
             <DemandsTab demands={data.demands} users={data.users} loading={loading} />
           </div>
         </div>
       </main>
-    </div>
+    </BaseLayout>
   );
 };
 

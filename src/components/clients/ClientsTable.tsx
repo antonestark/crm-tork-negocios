@@ -158,7 +158,7 @@ export function ClientsTable() {
 
 
   return (
-    <Card>
+    <Card className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg">
       <CardHeader>
         <CardTitle>Clientes</CardTitle>
         <CardDescription>

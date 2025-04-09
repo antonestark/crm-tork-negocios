@@ -112,7 +112,7 @@ const MaintenancePage = () => {
         </div>
         
         <div className="px-4 mt-6"> {/* Added padding and margin */}
-          <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden"> {/* Apply consistent card style */}
+          <Card className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden"> {/* Apply consistent card style */}
             <CardHeader>
               <CardTitle>Próximas Manutenções</CardTitle>
             </CardHeader>

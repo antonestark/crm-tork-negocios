@@ -14,7 +14,7 @@ export function PermissionCard({
   onDelete,
 }: PermissionCardProps) {
   return (
-    <div className="relative rounded-lg border border-[#1f2937] bg-[#0b1120] p-4 shadow transition hover:shadow-lg">
+    <div className="relative rounded-lg border border-[#1f2937] bg-[#094067] dark:bg-slate-900/50 p-4 shadow transition hover:shadow-lg">
       <h3 className="text-base font-semibold text-white mb-1">{permission.name}</h3>
       <p className="text-sm text-gray-400 mb-3">{permission.description}</p>
       <div className="flex flex-wrap gap-2 mb-3">

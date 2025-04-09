@@ -54,14 +54,14 @@ const Agendamento = () => {
           </TabsList>
           
           <TabsContent value="calendar">
-            <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-6 bg-card/50 dark:bg-slate-900/50 backdrop-blur-md border border-border dark:border-blue-900/40 rounded-lg p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-6 bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg p-6">
               <AgendamentoCalendar onDateChange={handleDateChange} />
               <AgendamentoList selectedDate={selectedDate} />
             </div>
           </TabsContent>
           
           <TabsContent value="register">
-            <div className="bg-card/50 dark:bg-slate-900/50 backdrop-blur-md border border-border dark:border-blue-900/40 rounded-lg p-6">
+            <div className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg p-6">
               <AppointmentRegistration 
                 initialDate={selectedDate}
                 onSuccess={handleAppointmentSuccess}

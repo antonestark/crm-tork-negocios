@@ -46,7 +46,7 @@ const AreasPage = () => {
           />
         </div>
 
-        <div className="mt-6 bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg p-6 animate-fade-in delay-200">
+        <div className="mt-6 bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 rounded-lg p-6 animate-fade-in delay-200">
           <ServiceAreas 
             areas={areas} 
             loading={loading || authLoading} 

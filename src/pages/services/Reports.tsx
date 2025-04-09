@@ -28,7 +28,7 @@ const ReportsPage = () => {
         </div>
         
         <div className="mt-6 animate-fade-in delay-300 px-4"> {/* Added px-4 */}
-          <Card className="bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden group hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300">
+          <Card className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg overflow-hidden group hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300">
             <CardHeader className="border-b border-blue-900/40">
               <CardTitle className="text-slate-100">Desempenho por Área</CardTitle>
             </CardHeader>
