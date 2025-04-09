@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BaseLayout } from "@/components/layout/BaseLayout";
 import { Card } from "@/components/ui/card";
 import { 
@@ -11,9 +10,32 @@ import {
 import { ServicesNav } from "@/components/services/ServicesNav";
 import { ChecklistItems } from "@/components/services/ChecklistItems";
 import { useAuthState } from '@/hooks/use-auth-state';
+import { supabase } from '@/integrations/supabase/client';
+
+type User = {
+  id: string;
+  name: string;
+};
 
 const ChecklistPage = () => {
   const { userId } = useAuthState();
+
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return today;
+  });
+  const [selectedResponsibleId, setSelectedResponsibleId] = useState<string>('');
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data, error } = await supabase.from('users').select('id, name');
+      if (!error && data) {
+        setUsers(data);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   return (
     <BaseLayout>
@@ -22,10 +44,36 @@ const ChecklistPage = () => {
           <ServicesNav />
         </div>
         
-        <div className="flex items-center justify-between mb-6 animate-fade-in delay-100 px-4">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6 animate-fade-in delay-100 px-4">
           <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] pb-1">
             Checklist Diário
           </h2>
+          <div className="flex flex-col md:flex-row gap-2 md:items-center">
+            <div>
+              <label className="block text-sm font-medium mb-1">Data</label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="border border-gray-300 rounded px-2 py-1 text-black"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Responsável</label>
+              <select
+                value={selectedResponsibleId}
+                onChange={(e) => setSelectedResponsibleId(e.target.value)}
+                className="border border-gray-300 rounded px-2 py-1 text-black"
+              >
+                <option value="">Todos</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
         
         <Card className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg p-6 animate-fade-in delay-200 mx-4">
@@ -55,17 +103,32 @@ const ChecklistPage = () => {
             </TabsList>
             <TabsContent value="morning">
               <div className="mt-4 bg-slate-100/50 dark:bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
-                <ChecklistItems period="Manhã" onlyResponsible={false} />
+                <ChecklistItems 
+                  period="Manhã" 
+                  onlyResponsible={false} 
+                  date={selectedDate} 
+                  responsibleIdFilter={selectedResponsibleId || undefined} 
+                />
               </div>
             </TabsContent>
             <TabsContent value="afternoon">
               <div className="mt-4 bg-slate-100/50 dark:bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
-                <ChecklistItems period="Tarde" onlyResponsible={false} />
+                <ChecklistItems 
+                  period="Tarde" 
+                  onlyResponsible={false} 
+                  date={selectedDate} 
+                  responsibleIdFilter={selectedResponsibleId || undefined} 
+                />
               </div>
             </TabsContent>
             <TabsContent value="evening">
               <div className="mt-4 bg-slate-100/50 dark:bg-slate-900/30 border border-blue-900/20 rounded-lg p-4">
-                <ChecklistItems period="Noite" onlyResponsible={false} />
+                <ChecklistItems 
+                  period="Noite" 
+                  onlyResponsible={false} 
+                  date={selectedDate} 
+                  responsibleIdFilter={selectedResponsibleId || undefined} 
+                />
               </div>
             </TabsContent>
           </Tabs>

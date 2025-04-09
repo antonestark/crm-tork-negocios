@@ -23,7 +23,12 @@ export type ChecklistItem = {
   completed_by?: string;
 };
 
-export const useServiceChecklist = (period?: string, onlyResponsible: boolean = false) => {
+export const useServiceChecklist = (
+  period?: string,
+  onlyResponsible: boolean = false,
+  date?: string, // novo filtro por data (YYYY-MM-DD)
+  responsibleIdFilter?: string // novo filtro por responsável específico
+) => {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -54,7 +59,7 @@ export const useServiceChecklist = (period?: string, onlyResponsible: boolean = 
     return () => {
       subscription.unsubscribe();
     };
-  }, [period, onlyResponsible, userId]);
+  }, [period, onlyResponsible, userId, date, responsibleIdFilter]);
 
   const fetchChecklistItems = async () => {
     try {
@@ -78,18 +83,23 @@ export const useServiceChecklist = (period?: string, onlyResponsible: boolean = 
       if (onlyResponsible && userId) {
         query = query.eq("responsible_id", userId);
       }
+
+      // Filter by responsibleIdFilter if provided (admin quer ver só de um usuário)
+      if (responsibleIdFilter) {
+        query = query.eq("responsible_id", responsibleIdFilter);
+      }
       
       const { data: itemsData, error: itemsError } = await query;
       
       if (itemsError) throw itemsError;
       
-      // Get completed items for today
-      const today = new Date().toISOString().split('T')[0];
+      // Data alvo para buscar conclusões
+      const targetDate = date || new Date().toISOString().split('T')[0];
       const { data: completedData, error: completedError } = await supabase
         .from("checklist_completions")
         .select("*")
-        .gte("completed_at", `${today}T00:00:00`)
-        .lte("completed_at", `${today}T23:59:59`);
+        .gte("completed_at", `${targetDate}T00:00:00`)
+        .lte("completed_at", `${targetDate}T23:59:59`);
       
       if (completedError) throw completedError;
       

@@ -58,16 +58,17 @@ export const MyChecklistItems = ({ period }: MyChecklistItemsProps) => {
             >
               <div className="flex items-start gap-3">
                 <div className="flex flex-col gap-2 items-center mt-1">
-                  <button
-                    className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                      isInProgress || isCompleted 
-                        ? "bg-blue-500 text-white" 
-                        : "bg-gray-700 text-gray-300"
-                    } cursor-pointer hover:bg-blue-600`}
-                    onClick={() => toggleItemStart(item.id, !isInProgress && !isCompleted)}
-                  >
-                    <Play size={14} />
-                  </button>
+<button
+  disabled={isCompleted}
+  className={`w-6 h-6 rounded-full flex items-center justify-center ${
+    isInProgress || isCompleted 
+      ? "bg-blue-500 text-white" 
+      : "bg-gray-700 text-gray-300"
+  } ${isCompleted ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-blue-600"}`}
+  onClick={() => !isCompleted && toggleItemStart(item.id, !isInProgress && !isCompleted)}
+>
+  <Play size={14} />
+</button>
                   
                   <button
                     className={`w-6 h-6 rounded-full flex items-center justify-center ${

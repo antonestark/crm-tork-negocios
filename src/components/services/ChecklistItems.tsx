@@ -18,6 +18,8 @@ import { useCheckDepartment } from "@/hooks/use-check-department";
 type ChecklistItemsProps = {
   period: string;
   onlyResponsible?: boolean;
+  date?: string; // nova prop para filtro por data
+  responsibleIdFilter?: string; // nova prop para filtro por responsável
 };
 
 type Area = {
@@ -30,8 +32,13 @@ type User = {
   name: string;
 };
 
-export const ChecklistItems = ({ period, onlyResponsible = false }: ChecklistItemsProps) => {
-  const { items, loading, toggleItemStart, toggleItemCompletion, addChecklistItem } = useServiceChecklist(period, onlyResponsible);
+export const ChecklistItems = ({ period, onlyResponsible = false, date, responsibleIdFilter }: ChecklistItemsProps) => {
+  const { items, loading, toggleItemStart, toggleItemCompletion, addChecklistItem } = useServiceChecklist(
+    period,
+    onlyResponsible,
+    date,
+    responsibleIdFilter
+  );
   const { userId } = useAuthState();
   const { isInDepartment: isOperationUser } = useCheckDepartment("Operação");
 
