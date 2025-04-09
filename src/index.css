@@ -3,6 +3,30 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background: #ffffff;
+  --foreground: #094067;
+  --paragraph: #5f6c7b;
+  --button-bg: #3da9fc;
+  --button-text: #ffffff;
+  --stroke: #094067;
+  --highlight: #3da9fc;
+  --secondary: #90b4ce;
+  --tertiary: #ef4565;
+}
+
+.dark {
+  --background: #0b1120;
+  --foreground: #ffffff;
+  --paragraph: #cbd5e1;
+  --button-bg: #2563eb;
+  --button-text: #ffffff;
+  --stroke: #60a5fa;
+  --highlight: #3b82f6;
+  --secondary: #64748b;
+  --tertiary: #db2777;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

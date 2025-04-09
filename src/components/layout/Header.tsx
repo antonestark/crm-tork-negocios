@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/components/auth/AuthProvider"; // Import useAuth
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton for loading state
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export const Header = () => {
   const location = useLocation();
@@ -27,14 +28,14 @@ export const Header = () => {
   }
   
   return (
-    <header className="w-full px-6 py-4 bg-slate-900/50 backdrop-blur-md border-b border-blue-900/40 flex items-center justify-between animate-fade-in">
+    <header className="w-full px-6 py-4 bg-background/50 backdrop-blur-md border-b border-border/40 flex items-center justify-between animate-fade-in">
       <div className="flex items-center space-x-6">
         <h1 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">Tork Negócios</h1>
         <nav className="hidden md:flex items-center space-x-4">
           <Button 
             variant={isActive('/dashboard') ? "default" : "ghost"} 
             size="sm" 
-            className={`flex items-center ${isActive('/dashboard') ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-slate-300'}`} 
+            className={`flex items-center ${isActive('/dashboard') ? 'bg-gradient-to-r from-[var(--highlight)] to-[var(--secondary)] text-foreground shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-foreground'}`} 
             asChild
           >
             <Link to="/dashboard">
@@ -45,7 +46,7 @@ export const Header = () => {
           <Button 
             variant={isActive('/clients') ? "default" : "ghost"} 
             size="sm" 
-            className={`flex items-center ${isActive('/clients') ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-slate-300'}`}
+            className={`flex items-center ${isActive('/clients') ? 'bg-gradient-to-r from-[var(--highlight)] to-[var(--secondary)] text-foreground shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-foreground'}`}
             asChild
           >
             <Link to="/clients">
@@ -56,7 +57,7 @@ export const Header = () => {
           <Button 
             variant={isActive('/leads') ? "default" : "ghost"} 
             size="sm" 
-            className={`flex items-center ${isActive('/leads') ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-slate-300'}`}
+            className={`flex items-center ${isActive('/leads') ? 'bg-gradient-to-r from-[var(--highlight)] to-[var(--secondary)] text-foreground shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-foreground'}`}
             asChild
           >
             <Link to="/leads">
@@ -67,7 +68,7 @@ export const Header = () => {
           <Button 
             variant={isActive('/agendamento') ? "default" : "ghost"} 
             size="sm" 
-            className={`flex items-center ${isActive('/agendamento') ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-slate-300'}`}
+            className={`flex items-center ${isActive('/agendamento') ? 'bg-gradient-to-r from-[var(--highlight)] to-[var(--secondary)] text-foreground shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-foreground'}`}
             asChild
           >
             <Link to="/agendamento">
@@ -81,7 +82,7 @@ export const Header = () => {
               <Button 
                 variant={isActive('/services') ? "default" : "ghost"} 
                 size="sm" 
-                className={`flex items-center ${isActive('/services') ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-slate-300'}`}
+                className={`flex items-center ${isActive('/services') ? 'bg-gradient-to-r from-[var(--highlight)] to-[var(--secondary)] text-foreground shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'text-foreground'}`}
               >
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 Serviços
@@ -107,7 +108,9 @@ export const Header = () => {
         </nav>
       </div>
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="icon" className="relative text-slate-300 hover:text-blue-400 hover:bg-blue-900/20">
+        <ThemeToggle />
+        
+        <Button variant="ghost" size="icon" className="relative text-foreground hover:text-highlight hover:bg-highlight/20">
           <Bell className="h-5 w-5" />
           <span className="absolute -top-1 -right-1 bg-blue-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
             3
