@@ -77,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...newUser,
           first_name: firstName,
           last_name: lastName,
+          name: newUser.name // Preserve the name field
         };
 
         setUser(adaptedUser);
@@ -93,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...data,
         first_name: firstName,
         last_name: lastName,
+        name: data.name // Preserve the name field
       };
 
       setUser(adaptedUser);

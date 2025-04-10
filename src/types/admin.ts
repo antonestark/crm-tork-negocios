@@ -3,6 +3,7 @@ export interface User {
   id: string;
   first_name: string;
   last_name: string;
+  name?: string; // Add name property to User interface
   email: string;
   profile_image_url?: string | null;
   role?: string;

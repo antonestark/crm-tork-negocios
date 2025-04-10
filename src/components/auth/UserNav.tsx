@@ -29,11 +29,12 @@ export function UserNav() {
   }
 
   const getInitials = (currentUser: User) => {
-    const name = currentUser.name || currentUser.first_name + ' ' + currentUser.last_name || currentUser.email || '';
-    if (name.includes('@')) {
-      return name.substring(0, 2).toUpperCase();
+    // Use name if available or construct from first_name and last_name
+    const displayName = currentUser.name || `${currentUser.first_name} ${currentUser.last_name}` || currentUser.email || '';
+    if (displayName.includes('@')) {
+      return displayName.substring(0, 2).toUpperCase();
     }
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return displayName.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
   const handleLogout = async () => {
@@ -53,7 +54,9 @@ export function UserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name || user.first_name + ' ' + user.last_name || 'Usuário'}</p>
+            <p className="text-sm font-medium leading-none">
+              {user.name || `${user.first_name} ${user.last_name}` || 'Usuário'}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>

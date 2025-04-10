@@ -32,6 +32,7 @@ export const Header = () => {
   const getInitials = () => {
     if (!user) return 'U';
     
+    // Use name if available, or first_name + last_name
     if (user.name) {
       return user.name.split(' ').map(n => n[0]).join('').toUpperCase();
     } else if (user.first_name) {
