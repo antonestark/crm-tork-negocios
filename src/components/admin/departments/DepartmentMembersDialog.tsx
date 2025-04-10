@@ -10,7 +10,7 @@ import {
   fetchAvailableUsers, 
   addDepartmentMember, 
   removeDepartmentMember 
-} from './departmentMembersService';
+} from './services';  // Updated import
 
 export interface DepartmentMembersDialogProps {
   open: boolean;
