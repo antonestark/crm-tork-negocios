@@ -1,3 +1,4 @@
+
 import { Bell, User, Settings, LogOut, Menu, FileText, Calendar, LayoutDashboard, Users, LayoutGrid, Target, CreditCard, ChevronDown } from "lucide-react"; // Added ChevronDown
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
@@ -26,6 +27,21 @@ export const Header = () => {
     }
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   }
+  
+  // Generate initials for avatar
+  const getInitials = () => {
+    if (!user) return 'U';
+    
+    if (user.name) {
+      return user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    } else if (user.first_name) {
+      return (user.first_name[0] + (user.last_name ? user.last_name[0] : '')).toUpperCase();
+    } else if (user.email) {
+      return user.email[0].toUpperCase();
+    }
+    
+    return 'U';
+  };
   
   return (
     <header className="w-full px-6 py-4 bg-background/50 backdrop-blur-md border-b border-border/40 flex items-center justify-between animate-fade-in">
@@ -121,12 +137,10 @@ export const Header = () => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full border border-blue-500/30 hover:border-blue-400 hover:bg-blue-900/20 overflow-hidden">
               <Avatar className="h-8 w-8">
-                {/* Use real avatar URL or fallback */}
-                <AvatarImage src={user?.user_metadata?.avatar_url || ''} alt="Avatar" /> 
+                {/* Use profile_image_url or fallback */}
+                <AvatarImage src={user?.profile_image_url || ''} alt="Avatar" /> 
                 <AvatarFallback className="bg-blue-900/50 text-blue-200">
-                  {/* Generate initials from name or use default */}
-                  {user?.user_metadata?.full_name ? user.user_metadata.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 
-                   user?.email ? user.email[0].toUpperCase() : 'U'}
+                  {getInitials()}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -141,8 +155,7 @@ export const Header = () => {
               ) : user ? (
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none text-slate-100">
-                    {/* Use real name or fallback */}
-                    {user.user_metadata?.full_name || user.email || 'Usuário'} 
+                    {user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || 'Usuário'} 
                   </p>
                   <p className="text-xs leading-none text-slate-400">
                     {user.email}

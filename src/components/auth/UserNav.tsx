@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { User } from '@supabase/supabase-js';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import { User } from '@/types/admin';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,8 +28,8 @@ export function UserNav() {
     );
   }
 
-  const getInitials = (user: User) => {
-    const name = user.user_metadata?.name || user.email || '';
+  const getInitials = (currentUser: User) => {
+    const name = currentUser.name || currentUser.first_name + ' ' + currentUser.last_name || currentUser.email || '';
     if (name.includes('@')) {
       return name.substring(0, 2).toUpperCase();
     }
@@ -52,7 +53,7 @@ export function UserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.user_metadata?.name || 'Usuário'}</p>
+            <p className="text-sm font-medium leading-none">{user.name || user.first_name + ' ' + user.last_name || 'Usuário'}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
