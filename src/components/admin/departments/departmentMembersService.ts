@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatUserFromDatabase } from "@/utils/user-formatter";
 
-// Define User type for departmentMembersService with email always as string
+// Define User type for departmentMembersService
 interface User {
   id: string;
   name: string;
@@ -157,6 +157,7 @@ export const addDepartmentMember = async (userId: string, department: any, role:
     }
     
     // Explicitly create a new object with all required properties
+    // Here we don't need department_id to be required, we'll use the format from our User interface
     const newMember = {
       id: crypto.randomUUID(),
       user_id: userId,
