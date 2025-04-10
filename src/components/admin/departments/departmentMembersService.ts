@@ -1,10 +1,11 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatUserFromDatabase } from "@/utils/user-formatter";
 import { User } from "@/types/admin";
 
-// Define User type for departmentMembersService
-interface User {
+// Define local user interface specific for this service, without conflicting with imported User
+interface DepartmentUser {
   id: string;
   name: string;
   email: string;  // Making email required here
@@ -49,7 +50,7 @@ export const fetchDepartmentUsers = async (departmentId: number) => {
     }
     
     // Fetch user details if we have any user IDs
-    let usersFromRelation: User[] = [];
+    let usersFromRelation: DepartmentUser[] = [];
     if (departmentUserIds && departmentUserIds.length > 0) {
       const userIds = departmentUserIds.map(item => item.user_id);
       
@@ -133,8 +134,8 @@ export const fetchAvailableUsers = async (departmentId?: number) => {
   }
 };
 
-// Update the addDepartmentMember function to handle optional department_id
-export const addDepartmentMember = async (userId: string, department: any, role: string, availableUsers: User[]) => {
+// Add department member - Changed to use our DepartmentUser type instead of User
+export const addDepartmentMember = async (userId: string, department: any, role: string, availableUsers: DepartmentUser[]) => {
   try {
     // Convert department.id to number if it's a string
     const departmentId = typeof department.id === 'string' ? parseInt(department.id, 10) : department.id;
