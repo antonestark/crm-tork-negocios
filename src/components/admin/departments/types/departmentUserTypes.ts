@@ -1,4 +1,3 @@
-
 import { User } from "@/types/admin";
 
 /**
@@ -8,7 +7,7 @@ export interface DepartmentUser {
   id: string;
   name: string;
   email: string;
-  department_id?: number | null;
+  department_id: number | null;
 }
 
 /**

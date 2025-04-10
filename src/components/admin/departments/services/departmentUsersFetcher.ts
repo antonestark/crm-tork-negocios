@@ -3,11 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DepartmentUser, DepartmentWithUsers } from "../types/departmentUserTypes";
 
-/**
- * Fetches users who belong to a specific department
- * @param departmentId - The ID of the department
- * @returns Promise with department and its users
- */
 export const fetchDepartmentUsers = async (departmentId: number): Promise<DepartmentWithUsers> => {
   try {
     // First get the department
@@ -57,21 +52,20 @@ export const fetchDepartmentUsers = async (departmentId: number): Promise<Depart
         throw usersError;
       }
       
-      // Make sure to handle optional email in the resulting data
       usersFromRelation = (usersData || []).map(user => ({
         id: user.id,
         name: user.name,
-        email: user.email || '',  // Ensure email is always a string
+        email: user.email || '',
         department_id: user.department_id
       }));
     }
     
-    // Combine results - make sure all users have email as string
+    // Combine results
     const combinedUsers = (directUsers || []).map(user => ({
       id: user.id,
       name: user.name,
-      email: user.email || '',  // Ensure email is always a string
-      department_id: user.department_id || null  // Allow department_id to be null
+      email: user.email || '',
+      department_id: user.department_id
     }));
     
     // Add users from relation table, avoiding duplicates
