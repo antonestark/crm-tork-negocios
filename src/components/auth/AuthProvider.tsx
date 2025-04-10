@@ -3,10 +3,12 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import type { User as AppUser } from '@/types/admin'; // Importa seu tipo User completo
+import { getUserPermissionIds } from '@/services/permissions-service';
 
 interface AuthContextType {
   session: Session | null;
-  user: AppUser | null; // Agora o usuário completo da sua tabela
+  user: AppUser | null;
+  permissions: string[];
   isLoading: boolean;
   signOut: () => Promise<void>;
 }
@@ -16,6 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<AppUser | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [authInitialized, setAuthInitialized] = useState(false);
 
@@ -106,9 +109,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(adaptedUser);
       console.log('Usuário completo adaptado e definido no estado:', adaptedUser.id);
+
+      // Buscar permissões do usuário
+      try {
+        const perms = await getUserPermissionIds(supabaseUser.id);
+        setPermissions(perms);
+        console.log('Permissões carregadas:', perms);
+      } catch (permError) {
+        console.error('Erro ao buscar permissões do usuário:', permError);
+        setPermissions([]);
+      }
     } catch (error) {
       console.error('Erro inesperado ao buscar/criar usuário completo:', error);
       setUser(null);
+      setPermissions([]);
     }
   }
 
@@ -191,6 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     session,
     user,
+    permissions,
     isLoading,
     signOut,
   };
