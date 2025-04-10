@@ -1,7 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatUserFromDatabase } from "@/utils/user-formatter";
+import { User } from "@/types/admin";
 
 // Define User type for departmentMembersService
 interface User {
@@ -133,7 +133,7 @@ export const fetchAvailableUsers = async (departmentId?: number) => {
   }
 };
 
-// Add department member
+// Update the addDepartmentMember function to handle optional department_id
 export const addDepartmentMember = async (userId: string, department: any, role: string, availableUsers: User[]) => {
   try {
     // Convert department.id to number if it's a string
@@ -156,8 +156,7 @@ export const addDepartmentMember = async (userId: string, department: any, role:
       throw new Error("User not found in available users");
     }
     
-    // Explicitly create a new object with all required properties
-    // Here we don't need department_id to be required, we'll use the format from our User interface
+    // Create member object with required fields
     const newMember = {
       id: crypto.randomUUID(),
       user_id: userId,
@@ -169,9 +168,9 @@ export const addDepartmentMember = async (userId: string, department: any, role:
       updated_at: new Date().toISOString(),
       user: {
         id: user.id,
-        first_name: user.name.split(' ')[0] || '',
-        last_name: user.name.split(' ').slice(1).join(' ') || '',
-        email: user.email // Now guaranteed to be a string by our User interface
+        first_name: user.name?.split(' ')[0] || '',
+        last_name: user.name?.split(' ').slice(1).join(' ') || '',
+        email: user.email
       }
     };
     
