@@ -30,9 +30,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('users')
         .select('id, name, email, role, department_id, status, active') 
         .eq('id', supabaseUser.id)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
+      if (error) {
+        console.error('Erro ao buscar usuário completo:', error);
+        setUser(null);
+        return;
+      }
+
+      if (!data) {
         console.warn('Usuário não encontrado, criando novo usuário...');
 
         const { error: insertError } = await supabase
@@ -60,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .from('users')
           .select('id, name, email, role, department_id, status, active')
           .eq('id', supabaseUser.id)
-          .single();
+          .maybeSingle();
 
         if (!newUser) {
           console.error('Falha ao buscar usuário recém-criado');
@@ -106,75 +112,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | null = null;
-
-    const fetchInitialUser = async () => {
+    const setupAuth = async () => {
+      setIsLoading(true);
+      
       try {
-        setIsLoading(true);
-
         console.log('Iniciando verificação inicial de autenticação...');
-        timeoutId = setTimeout(() => {
-          console.warn('Timeout (5s) atingido na verificação inicial de autenticação.');
-          if (isLoading) { // Só altera se ainda estiver carregando
-             setIsLoading(false);
-             setSession(null);
-             setUser(null);
-             console.log('Estado de loading forçado para false devido ao timeout.');
+        
+        // Set up the auth state change listener first
+        const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+          console.log('Auth state changed:', event, 'Session:', newSession ? 'present' : 'null');
+          setSession(newSession);
+          
+          if (newSession?.user) {
+            await fetchFullUser(newSession.user);
+          } else {
+            setUser(null);
           }
-        }, 5000);
-
-        const { data, error } = await supabase.auth.getUser();
-        console.log('Resultado de supabase.auth.getUser():', { data, error });
-
-        if (timeoutId) clearTimeout(timeoutId); // Limpa o timeout se a resposta chegou a tempo
-
-        if (error || !data.user) {
-          console.error('Erro ao buscar usuário inicial ou usuário não autenticado:', error);
+          
+          // Only set loading to false after processing the auth state change
+          if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+            setIsLoading(false);
+          }
+        });
+        
+        // Then check for an existing session
+        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Erro ao verificar sessão existente:', error);
           setSession(null);
           setUser(null);
-        } else {
-          console.log('Usuário Supabase encontrado, buscando usuário completo...');
-          await fetchFullUser(data.user);
+        } else if (existingSession) {
+          console.log('Sessão existente encontrada, buscando usuário completo...');
+          setSession(existingSession);
+          await fetchFullUser(existingSession.user);
         }
-      } catch (error) {
-        console.error('Erro inesperado durante fetchInitialUser:', error);
+        
+        // Set loading to false after initial check is complete
+        setIsLoading(false);
+        
+        return () => {
+          authListener.subscription.unsubscribe();
+        };
+      } catch (err) {
+        console.error('Erro crítico durante inicialização de autenticação:', err);
+        setIsLoading(false);
         setSession(null);
         setUser(null);
-      } finally {
-        if (timeoutId) clearTimeout(timeoutId); // Garante limpeza do timeout
-        console.log('fetchInitialUser finalizado, definindo isLoading para false.');
-        setIsLoading(false); // Garante que isLoading seja false ao final
       }
     };
-
-    fetchInitialUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, 'Session:', session);
-      setSession(session);
-      if (session?.user) {
-        console.log('Listener: Usuário Supabase presente, buscando usuário completo...');
-        await fetchFullUser(session.user);
-      } else {
-        console.log('Listener: Sem usuário Supabase, definindo usuário como null.');
-        setUser(null);
-      }
-       // Não definir isLoading aqui, pois fetchInitialUser controla o loading inicial
-       // Se precisar de loading para mudanças de estado pós-inicialização, adicionar lógica separada
-    });
-
-    return () => {
-      console.log('Desinscrevendo listener de autenticação.');
-      authListener.subscription.unsubscribe();
-      if (timeoutId) clearTimeout(timeoutId); // Limpa timeout ao desmontar
-    };
+    
+    setupAuth();
   }, []);
 
   const signOut = async () => {
     try {
+      setIsLoading(true);
       await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
     } catch (error) {
       console.error('Error signing out:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

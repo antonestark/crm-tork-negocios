@@ -1,5 +1,5 @@
 
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
@@ -13,37 +13,36 @@ interface RequireAuthProps {
 export function RequireAuth({ children }: RequireAuthProps) {
   const { user, isLoading } = useAuth();
   const { sessionExpired, refreshSession } = useAuthState();
-  const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    // Simplificado: apenas verifica se o usuário está autenticado
-    if (!isLoading) {
-      setCheckingAuth(false);
-    }
-  }, [isLoading]);
+    const checkAuthentication = async () => {
+      // Wait for the auth state to be determined
+      if (isLoading) return;
 
-  useEffect(() => {
-    if (!isLoading) {
       if (!user) {
         // Redirect to login page with return path
+        console.log('Usuário não autenticado, redirecionando para login...');
         navigate('/login', { state: { from: location.pathname } });
       } else if (sessionExpired) {
         // Try to refresh the session
-        const tryRefresh = async () => {
-          const success = await refreshSession();
-          if (!success) {
-            toast.error("Sessão expirada. Por favor, faça login novamente.");
-            navigate('/login', { state: { from: location.pathname } });
-          }
-        };
-        tryRefresh();
+        console.log('Sessão expirada, tentando atualizar...');
+        const success = await refreshSession();
+        
+        if (!success) {
+          toast.error("Sessão expirada. Por favor, faça login novamente.");
+          navigate('/login', { state: { from: location.pathname } });
+        } else {
+          toast.success("Sessão atualizada com sucesso");
+        }
       }
-    }
+    };
+
+    checkAuthentication();
   }, [user, isLoading, sessionExpired, navigate, location, refreshSession]);
 
-  if (isLoading || checkingAuth) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -55,7 +54,8 @@ export function RequireAuth({ children }: RequireAuthProps) {
   }
 
   if (!user) {
-    return null; // Will be redirected by the useEffect
+    // Return null while redirecting
+    return null;
   }
 
   return <>{children}</>;

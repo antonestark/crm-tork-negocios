@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthState } from '@/hooks/use-auth-state';
@@ -12,6 +12,7 @@ export default function Login() {
   const [loginError, setLoginError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const from = location.state?.from || '/';
 
   // Verifica se há um erro de login na URL (redirecionamento de sessão expirada)
@@ -26,6 +27,14 @@ export default function Login() {
       setLoginError(errorDescription);
     }
   }, [urlError, errorDescription]);
+
+  // Effect to handle redirect after authentication
+  useEffect(() => {
+    if (isAuthenticated && !isLoading && !sessionExpired) {
+      console.log('Usuário autenticado, redirecionando para:', from);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, isLoading, sessionExpired, navigate, from]);
 
   const handleLogin = async (email: string, password: string) => {
     try {
@@ -73,15 +82,23 @@ export default function Login() {
       console.log('Login realizado com sucesso para:', email);
       toast.success('Login realizado com sucesso');
       
+      // Forçar redirecionamento explícito após login bem-sucedido
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 500);
+      
     } catch (err: any) {
       console.error('Erro de login:', err);
       setLoginError(err.message || 'Ocorreu um erro ao fazer login. Tente novamente.');
-      throw err;
+      toast.error('Falha no login', {
+        description: err.message || 'Verifice suas credenciais e tente novamente.'
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Renderiza o spinner de carregamento durante a verificação de autenticação
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -93,7 +110,9 @@ export default function Login() {
     );
   }
 
+  // Se o usuário já estiver autenticado, redireciona para a página de destino
   if (isAuthenticated && !sessionExpired) {
+    console.log('Redirecionando usuário autenticado para:', from);
     return <Navigate to={from} replace />;
   }
 
