@@ -17,6 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   async function fetchFullUser(supabaseUser: SupabaseUser | null) {
     if (!supabaseUser) {
@@ -121,6 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Set up the auth state change listener first
         const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
           console.log('Auth state changed:', event, 'Session:', newSession ? 'present' : 'null');
+          
+          // Importante atualizar o estado de sessão imediatamente
           setSession(newSession);
           
           if (newSession?.user) {
@@ -129,9 +132,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
           }
           
-          // Only set loading to false after processing the auth state change
+          // Só define loading como falso se a inicialização já tiver ocorrido
+          if (authInitialized) {
+            setIsLoading(false);
+          }
+          
           if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
             setIsLoading(false);
+            setAuthInitialized(true);
           }
         });
         
@@ -150,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Set loading to false after initial check is complete
         setIsLoading(false);
+        setAuthInitialized(true);
         
         return () => {
           authListener.subscription.unsubscribe();
@@ -157,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error('Erro crítico durante inicialização de autenticação:', err);
         setIsLoading(false);
+        setAuthInitialized(true);
         setSession(null);
         setUser(null);
       }

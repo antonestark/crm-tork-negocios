@@ -51,7 +51,7 @@ export const useAuthState = () => {
       console.error("Falha na atualização da sessão:", err);
       return false;
     } finally {
-      setIsRefreshing(true);
+      setIsRefreshing(false); // Corrigido para false
     }
   };
 

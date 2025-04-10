@@ -17,10 +17,13 @@ export function RequireAuth({ children }: RequireAuthProps) {
   const location = useLocation();
 
   useEffect(() => {
-    const checkAuthentication = async () => {
-      // Wait for the auth state to be determined
-      if (isLoading) return;
+    // Não faça nada se ainda estiver carregando
+    if (isLoading) {
+      console.log('Carregando estado de autenticação...');
+      return;
+    }
 
+    const checkAuthentication = async () => {
       if (!user) {
         // Redirect to login page with return path
         console.log('Usuário não autenticado, redirecionando para login...');

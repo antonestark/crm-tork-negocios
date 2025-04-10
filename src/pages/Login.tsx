@@ -8,9 +8,10 @@ import { SimpleLoginForm } from '@/components/auth/SimpleLoginForm';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Login() {
-  const { isAuthenticated, isLoading, sessionExpired } = useAuthState();
+  const { isAuthenticated, isLoading } = useAuthState();
   const [loginError, setLoginError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const from = location.state?.from || '/';
@@ -26,15 +27,22 @@ export default function Login() {
       console.error("Erro de login:", errorDescription);
       setLoginError(errorDescription);
     }
+    
+    // Marcar verificação inicial como concluída após um curto delay
+    const timer = setTimeout(() => {
+      setInitialCheckDone(true);
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, [urlError, errorDescription]);
 
   // Effect to handle redirect after authentication
   useEffect(() => {
-    if (isAuthenticated && !isLoading && !sessionExpired) {
+    if (isAuthenticated && !isLoading && initialCheckDone) {
       console.log('Usuário autenticado, redirecionando para:', from);
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, isLoading, sessionExpired, navigate, from]);
+  }, [isAuthenticated, isLoading, initialCheckDone, navigate, from]);
 
   const handleLogin = async (email: string, password: string) => {
     try {
@@ -83,9 +91,7 @@ export default function Login() {
       toast.success('Login realizado com sucesso');
       
       // Forçar redirecionamento explícito após login bem-sucedido
-      setTimeout(() => {
-        navigate(from, { replace: true });
-      }, 500);
+      navigate(from, { replace: true });
       
     } catch (err: any) {
       console.error('Erro de login:', err);
@@ -98,8 +104,8 @@ export default function Login() {
     }
   };
 
-  // Renderiza o spinner de carregamento durante a verificação de autenticação
-  if (isLoading) {
+  // Se ainda estiver fazendo a verificação inicial, mostrar o spinner
+  if (isLoading && !initialCheckDone) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -111,11 +117,12 @@ export default function Login() {
   }
 
   // Se o usuário já estiver autenticado, redireciona para a página de destino
-  if (isAuthenticated && !sessionExpired) {
+  if (isAuthenticated && !isLoading) {
     console.log('Redirecionando usuário autenticado para:', from);
     return <Navigate to={from} replace />;
   }
 
+  // Mostrar o formulário de login
   return (
     <div className="container mx-auto flex flex-col items-center justify-center min-h-screen py-2">
       <main className="flex flex-col items-center justify-center w-full flex-1 px-4 sm:px-20 text-center">
