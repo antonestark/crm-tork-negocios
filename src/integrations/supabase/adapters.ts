@@ -3,6 +3,8 @@
 import { User, Department, Permission, PermissionGroup, ActivityLog } from "@/types/admin";
 import { Client } from "@/types/clients";
 
+// Removed duplicated departmentAdapter definition from here
+
 export const userAdapter = (data: any[]): User[] => {
   console.log('Adaptando dados do usuário, total de registros:', data?.length);
   
@@ -41,7 +43,8 @@ export const userAdapter = (data: any[]): User[] => {
       metadata: item.metadata || {},
       created_at: item.created_at,
       updated_at: item.updated_at,
-      department: null, // Sem informações de departamento por enquanto
+      // Use the departmentAdapter to map the full department object
+      department: item.departments ? departmentAdapter([item.departments])[0] : null,
     };
   }).filter(Boolean); // Remove null items
 };

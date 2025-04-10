@@ -27,10 +27,17 @@ export function useAllDepartmentPermissions(departmentId: string | null | undefi
 
     try {
       setLoading(true);
+      // Convert departmentId string to number for the query
+      const departmentIdAsNumber = parseInt(departmentId, 10);
+      if (isNaN(departmentIdAsNumber)) {
+        throw new Error('Invalid department ID format');
+      }
+
       // Use the generic form when accessing views not defined in the TypeScript types
       const { data, error } = await supabase
         .from('department_permission_view')
         .select('*')
+        .eq('department_id', departmentIdAsNumber) // Filter by the specific department ID (as number)
         .order('resource');
 
       if (error) throw error;

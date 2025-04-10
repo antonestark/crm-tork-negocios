@@ -9,11 +9,15 @@ export async function fetchUsersFromAPI() {
   try {
     console.log('Fetching users from database...');
     
-    // Use a simpler approach without joins to avoid potential issues
+    // Fetch users and join with departments table to get department name
+    // Fetch users and join with departments table to get the full department object
     const { data, error } = await supabase
       .from('users')
-      .select('*');
-    
+      .select(`
+        *,
+        departments (*) 
+      `); // Fetch all columns from departments
+
     if (error) {
       console.error('Error fetching users:', error);
       throw error;

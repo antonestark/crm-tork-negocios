@@ -57,11 +57,19 @@ export function LoginForm({ usuario, erro }: { usuario?: { email: string, senha:
 
       console.log('Login attempt with:', data.email);
 
-      // Attempt to sign in with provided credentials
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Tempo limite excedido. Tente novamente.')), 10000)
+      );
+
+      const { data: authData, error: authError } = await Promise.race([
+        supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        }),
+        timeoutPromise,
+      ]);
+
+      setIsLoading(false); // Stop loading indicator immediately after Supabase responds or times out
 
       if (authError) {
         console.error('Authentication error:', authError);
@@ -69,7 +77,6 @@ export function LoginForm({ usuario, erro }: { usuario?: { email: string, senha:
         // Check for specific database error
         if (authError.message?.includes('database error')) {
           setError(getErrorMessage('database_error'));
-          // Log detailed error for debugging
           console.error('Database error during authentication:', authError);
           toast.error('Erro no banco de dados', {
             description: 'Houve um problema com o banco de dados. Por favor, contate o suporte técnico.'
@@ -77,7 +84,6 @@ export function LoginForm({ usuario, erro }: { usuario?: { email: string, senha:
           return;
         }
         
-        // Handle other specific errors
         if (authError.message?.includes('Invalid login')) {
           setError(getErrorMessage('invalid_credentials'));
           toast.error('Falha no login', {
@@ -86,11 +92,9 @@ export function LoginForm({ usuario, erro }: { usuario?: { email: string, senha:
           return;
         }
 
-        // Handle any other errors
         throw authError;
       }
 
-      // Success path
       console.log('Login successful for:', data.email);
       toast.success('Login realizado com sucesso');
       navigate(from, { replace: true });
@@ -98,12 +102,13 @@ export function LoginForm({ usuario, erro }: { usuario?: { email: string, senha:
     } catch (err: any) {
       console.error('Login error:', err);
       
-      // Try to determine error type
-      const errorType = err.message?.includes('network') 
+      const errorType = err.message?.includes('tempo limite') || err.message?.includes('timeout')
         ? 'server_error'
-        : err.message?.includes('credentials') 
-          ? 'invalid_credentials' 
-          : 'server_error';
+        : err.message?.includes('network')
+          ? 'server_error'
+          : err.message?.includes('credentials')
+            ? 'invalid_credentials'
+            : 'server_error';
       
       setError(getErrorMessage(errorType));
       
@@ -111,7 +116,7 @@ export function LoginForm({ usuario, erro }: { usuario?: { email: string, senha:
         description: err.message || 'Verifique suas credenciais e tente novamente'
       });
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false); // Removed from here, handled earlier
     }
   };
 

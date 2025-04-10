@@ -55,7 +55,50 @@ export async function removeGlobalPermissionFromUser(userId: string, permissionI
   }
 }
 
-export function useUserPermissions(userId: string, role?: string | null) {
+// Add function to fetch department permissions
+export async function fetchDepartmentPermissions(departmentId: number | null | undefined) {
+  if (!departmentId) {
+    return [];
+  }
+
+  // Use the view we analyzed earlier, filtering by department_id
+  const { data, error } = await supabase
+    .from('department_permission_view')
+    .select(`
+      permission_id,
+      code,
+      title,
+      description,
+      resource,
+      action
+    `)
+    .eq('department_id', departmentId)
+    .eq('assigned', true); // Only fetch permissions actually assigned to the department
+
+  if (error) {
+    console.error('Erro ao buscar permissões do departamento:', error);
+    return [];
+  }
+
+  // Map to a consistent permission object format if needed, 
+  // using 'code' seems consistent with fetchUserGlobalPermissions format
+  // Ensure the returned object matches the expected structure for permissions
+  return data.map((item: any) => ({
+    id: item.permission_id, // Use permission_id as the unique ID
+    code: item.code,
+    name: item.title, // Using title as name
+    description: item.description,
+    resource: item.resource, 
+    action: item.action,
+  }));
+}
+
+
+export function useUserPermissions(
+  userId: string,
+  role?: string | null,
+  departmentId?: number | null
+) {
   const [permissions, setPermissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,8 +112,19 @@ export function useUserPermissions(userId: string, role?: string | null) {
       return;
     }
 
-    const perms = await fetchUserGlobalPermissions(userId);
-    setPermissions(perms);
+    const [userPerms, deptPerms] = await Promise.all([
+      fetchUserGlobalPermissions(userId),
+      fetchDepartmentPermissions(departmentId),
+    ]);
+
+    // Combinar permissões removendo duplicatas pelo código
+    const combinedMap = new Map<string, any>();
+    userPerms.forEach((perm: any) => combinedMap.set(perm.code, perm));
+    deptPerms.forEach((perm: any) => combinedMap.set(perm.code, perm));
+
+    const combinedPermissions = Array.from(combinedMap.values());
+
+    setPermissions(combinedPermissions);
     setLoading(false);
   };
 
@@ -78,7 +132,7 @@ export function useUserPermissions(userId: string, role?: string | null) {
     if (userId) {
       fetchPermissions();
     }
-  }, [userId, role]);
+  }, [userId, role, departmentId]);
 
   return { permissions, loading, reload: fetchPermissions };
 }

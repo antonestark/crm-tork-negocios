@@ -16,9 +16,14 @@ const UserAccessContext = createContext<UserAccessContextType>({
 });
 
 export function UserAccessProvider({ children }: { children: React.ReactNode }) {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user: rawUser, isLoading: authLoading } = useAuth();
+  const user = rawUser as import('@/types/admin').User | null; // Cast para garantir que tenha department_id
   const { role, loading: roleLoading } = useUserRole(user?.id);
-  const { permissions, loading: permsLoading } = useUserPermissions(user?.id ?? '', role);
+  const { permissions, loading: permsLoading } = useUserPermissions(
+    user?.id ?? '',
+    role,
+    user?.department_id ?? null // Passa o department_id do usuário
+  );
 
   const loading = authLoading || roleLoading || permsLoading;
 
