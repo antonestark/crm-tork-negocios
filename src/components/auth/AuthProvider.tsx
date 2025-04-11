@@ -23,8 +23,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authInitialized, setAuthInitialized] = useState(false);
 
   async function fetchFullUser(supabaseUser: SupabaseUser | null) {
+    console.log('[AuthProvider] Iniciando fetchFullUser para:', supabaseUser?.id);
     if (!supabaseUser) {
+      console.log('[AuthProvider] Nenhum usuário Supabase, definindo user=null');
       setUser(null);
+      setPermissions([]);
       return;
     }
 
@@ -108,19 +111,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
 
       setUser(adaptedUser);
-      console.log('Usuário completo adaptado e definido no estado:', adaptedUser.id);
+      console.log('[AuthProvider] Usuário completo adaptado e definido no estado:', adaptedUser.id);
 
       // Buscar permissões do usuário
       try {
+        console.log('[AuthProvider] Buscando permissões para usuário:', supabaseUser.id);
         const perms = await getUserPermissionIds(supabaseUser.id);
         setPermissions(perms);
-        console.log('Permissões carregadas:', perms);
+        console.log('[AuthProvider] Permissões carregadas:', perms);
       } catch (permError) {
-        console.error('Erro ao buscar permissões do usuário:', permError);
+        console.error('[AuthProvider] Erro ao buscar permissões do usuário:', permError);
         setPermissions([]);
       }
     } catch (error) {
-      console.error('Erro inesperado ao buscar/criar usuário completo:', error);
+      console.error('[AuthProvider] Erro inesperado ao buscar/criar usuário completo:', error);
       setUser(null);
       setPermissions([]);
     }
@@ -128,64 +132,82 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const setupAuth = async () => {
+      console.log('[AuthProvider] Iniciando setupAuth');
       setIsLoading(true);
-      
+
       try {
-        console.log('Iniciando verificação inicial de autenticação...');
-        
-        // Set up the auth state change listener first
-        const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-          console.log('Auth state changed:', event, 'Session:', newSession ? 'present' : 'null');
-          
-          // Importante atualizar o estado de sessão imediatamente
-          setSession(newSession);
-          
-          if (newSession?.user) {
-            await fetchFullUser(newSession.user);
-          } else {
-            setUser(null);
-          }
-          
-          // Só define loading como falso se a inicialização já tiver ocorrido
-          if (authInitialized) {
-            setIsLoading(false);
-          }
-          
-          if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-            setIsLoading(false);
-            setAuthInitialized(true);
-          }
-        });
-        
-        // Then check for an existing session
-        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Erro ao verificar sessão existente:', error);
-          setSession(null);
-          setUser(null);
-        } else if (existingSession) {
-          console.log('Sessão existente encontrada, buscando usuário completo...');
-          setSession(existingSession);
-          await fetchFullUser(existingSession.user);
-        }
-        
-        // Set loading to false after initial check is complete
-        setIsLoading(false);
-        setAuthInitialized(true);
-        
-        return () => {
-          authListener.subscription.unsubscribe();
-        };
-      } catch (err) {
-        console.error('Erro crítico durante inicialização de autenticação:', err);
-        setIsLoading(false);
-        setAuthInitialized(true);
+        // Timeout para evitar travamento infinito (ex: 15 segundos)
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout na autenticação')), 15000)
+        );
+
+        await Promise.race([
+          (async () => {
+            console.log('[AuthProvider] Configurando listener de auth...');
+            const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+              console.log('[AuthProvider] Auth state changed:', event);
+              setSession(newSession);
+
+              if (newSession?.user) {
+                try {
+                  await fetchFullUser(newSession.user);
+                } catch (error) {
+                  console.error('[AuthProvider] Erro ao buscar usuário no listener:', error);
+                  setUser(null);
+                  setPermissions([]);
+                }
+              } else {
+                setUser(null);
+                setPermissions([]);
+              }
+
+              setIsLoading(false);
+              setAuthInitialized(true);
+            });
+
+            console.log('[AuthProvider] Verificando sessão existente...');
+            const { data: { session: existingSession }, error } = await supabase.auth.getSession();
+
+            if (error) {
+              console.error('[AuthProvider] Erro ao verificar sessão:', error);
+              setSession(null);
+              setUser(null);
+              setPermissions([]);
+            } else if (existingSession) {
+              console.log('[AuthProvider] Sessão existente encontrada');
+              setSession(existingSession);
+              try {
+                await fetchFullUser(existingSession.user);
+              } catch (error) {
+                console.error('[AuthProvider] Erro ao buscar usuário da sessão:', error);
+                setUser(null);
+                setPermissions([]);
+              }
+            } else {
+              console.log('[AuthProvider] Nenhuma sessão encontrada');
+              setSession(null);
+              setUser(null);
+              setPermissions([]);
+            }
+
+            return () => {
+              authListener.subscription.unsubscribe();
+            };
+          })(),
+          timeoutPromise
+        ]);
+      } catch (error) {
+        console.error('[AuthProvider] Erro crítico ou timeout:', error);
         setSession(null);
         setUser(null);
+        setPermissions([]);
+      } finally {
+        console.log('[AuthProvider] Finalizando setupAuth, setIsLoading(false)');
+        setIsLoading(false);
+        setAuthInitialized(true);
       }
     };
-    
+
     setupAuth();
   }, []);
 
