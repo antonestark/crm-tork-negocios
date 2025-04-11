@@ -15,12 +15,16 @@ interface AgendamentoFormFieldsProps {
   onSubmit: (values: AgendamentoFormValues) => Promise<void>;
   selectedDate?: Date;
   isSubmitting: boolean;
+  startTime?: string;
+  endTime?: string;
 }
 
 export const AgendamentoFormFields: React.FC<AgendamentoFormFieldsProps> = ({
   onSubmit,
   selectedDate,
-  isSubmitting
+  isSubmitting,
+  startTime,
+  endTime
 }) => {
   const form = useForm<AgendamentoFormValues>({
     resolver: zodResolver(agendamentoFormSchema),
@@ -29,18 +33,28 @@ export const AgendamentoFormFields: React.FC<AgendamentoFormFieldsProps> = ({
       phone: '',
       email: '',
       date: selectedDate || new Date(),
-      start_time: '09:00',
-      end_time: '10:00',
+      start_time: startTime || '09:00',
+      end_time: endTime || '10:00',
       observations: '',
     }
   });
 
-  // Update the date field whenever selectedDate changes
+  // Atualiza o campo de data sempre que selectedDate mudar
   React.useEffect(() => {
     if (selectedDate) {
       form.setValue('date', selectedDate);
     }
   }, [selectedDate, form]);
+
+  // Atualiza os campos de horário sempre que startTime ou endTime mudarem
+  React.useEffect(() => {
+    if (startTime) {
+      form.setValue('start_time', startTime);
+    }
+    if (endTime) {
+      form.setValue('end_time', endTime);
+    }
+  }, [startTime, endTime, form]);
 
   return (
     <Form {...form}>

@@ -12,13 +12,17 @@ interface AgendamentoFormDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: Omit<BookingEvent, 'id' | 'date'>) => Promise<any>;
   selectedDate?: Date;
+  startTime?: string;
+  endTime?: string;
 }
 
 export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
   open,
   onOpenChange,
   onSubmit,
-  selectedDate
+  selectedDate,
+  startTime,
+  endTime
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -85,6 +89,8 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
           onSubmit={handleSubmit}
           selectedDate={selectedDate}
           isSubmitting={isSubmitting}
+          startTime={startTime}
+          endTime={endTime}
         />
       </DialogContent>
     </Dialog>

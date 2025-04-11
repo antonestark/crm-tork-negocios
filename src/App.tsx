@@ -25,6 +25,7 @@ import ServiceReports from '@/pages/services/Reports';
 import Dashboard from '@/pages/Dashboard';
 import NotFound from '@/pages/NotFound';
 import Planos from '@/pages/Planos';
+import AgendamentoExternoPage from '@/pages/AgendamentoExterno';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { QueryClientProvider } from '@/providers/QueryClientProvider';
 import { Toaster } from "@/components/ui/sonner";
@@ -46,6 +47,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/planos" element={<Planos />} />
+            <Route path="/agendamento-externo" element={<AgendamentoExternoPage />} />
             
             {/* Protected routes */}
             <Route path="/dashboard" element={
