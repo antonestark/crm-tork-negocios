@@ -10,6 +10,7 @@ import GradeHorariosSemanal from "@/components/agendamento/GradeHorariosSemanal"
 import { AgendamentoFormDialog } from "@/components/agendamento/AgendamentoFormDialog"; // Importar Dialog
 import { useSchedulingData } from "@/hooks/use-scheduling-data"; // Importar hook
 import { addDays, startOfWeek, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns"; // Importar date-fns
+import AgendamentoConfiguracoes from "@/components/agendamento/AgendamentoConfiguracoes"; // Importar novo componente
 
 const Agendamento = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date()); // Usar Date, não Date | undefined
@@ -83,6 +84,13 @@ const Agendamento = () => {
               <span className="relative z-10">Registrar Agendamento</span>
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 dark:from-blue-500/10 dark:to-indigo-500/10 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
             </TabsTrigger>
+            <TabsTrigger
+              value="config"
+              className="relative data-[state=active]:bg-gradient-to-r dark:data-[state=active]:from-blue-950 dark:data-[state=active]:to-indigo-950 data-[state=active]:text-primary-foreground dark:data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-primary dark:data-[state=active]:border-blue-500 text-muted-foreground dark:text-slate-400 transition-all duration-300"
+            >
+              <span className="relative z-10">Configurações</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 dark:from-blue-500/10 dark:to-indigo-500/10 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="calendar">
@@ -115,6 +123,12 @@ const Agendamento = () => {
                 initialDate={selectedDate}
                 onSuccess={handleAppointmentSuccess}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="config">
+            <div className="bg-card dark:bg-[#0a1627] border border-border rounded-lg p-6 shadow-lg">
+              <AgendamentoConfiguracoes />
             </div>
           </TabsContent>
         </Tabs>

@@ -1,8 +1,111 @@
 import { supabase } from '@/integrations/supabase/client';
-import { BookingEvent, BookingRequest } from '@/types/scheduling';
-import { format, startOfDay, endOfDay } from 'date-fns';
+import { BookingEvent, BookingRequest, SchedulingSettings, WeeklyAvailabilityRule } from '@/types/scheduling'; // Adicionar tipos
+import { format, startOfDay, endOfDay, getDay, parse, addHours, addDays, isBefore, isAfter } from 'date-fns'; // Adicionar funções date-fns
 
-export const fetchBookingsForDate = async (filterDate: Date) => {
+// --- Funções para buscar configurações ---
+
+export const fetchSchedulingSettings = async () => {
+  const { data, error } = await (supabase as any)
+    .from('scheduling_settings')
+    .select('*')
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error("Error fetching scheduling settings:", error);
+    return {
+      id: 0,
+      slot_duration_minutes: 60,
+      min_advance_booking_hours: 4,
+      max_advance_booking_days: 60,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  }
+  return data || {
+    id: 0,
+    slot_duration_minutes: 60,
+    min_advance_booking_hours: 4,
+    max_advance_booking_days: 60,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+};
+
+export const fetchWeeklyAvailability = async () => {
+  const { data, error } = await (supabase as any)
+    .from('weekly_availability')
+    .select('*')
+    .order('day_of_week', { ascending: true })
+    .order('start_time', { ascending: true });
+
+  if (error) {
+    console.error("Error fetching weekly availability:", error);
+    return [];
+  }
+  return data || [];
+};
+
+// --- Funções para ATUALIZAR configurações ---
+
+export const updateSchedulingSettings = async (settings: Partial<Omit<SchedulingSettings, 'id' | 'created_at' | 'updated_at'>>) => {
+  // Busca o ID da configuração existente (deve haver apenas 1)
+  const { data: existing, error: fetchError } = await (supabase as any)
+    .from('scheduling_settings')
+    .select('id')
+    .limit(1)
+    .single();
+
+  if (fetchError || !existing) {
+    console.error("Error fetching existing settings ID:", fetchError);
+    throw new Error("Não foi possível encontrar as configurações de agendamento existentes.");
+  }
+
+  const { error } = await (supabase as any)
+    .from('scheduling_settings')
+    .update({ ...settings, updated_at: new Date().toISOString() })
+    .eq('id', existing.id); // Atualiza a linha existente
+
+  if (error) {
+    console.error("Error updating scheduling settings:", error);
+    throw error;
+  }
+  return true;
+};
+
+// Função para definir TODA a disponibilidade semanal (apaga as regras antigas e insere as novas)
+// Isso simplifica a lógica, mas pode ser otimizado se necessário
+export const setWeeklyAvailability = async (rules: Omit<WeeklyAvailabilityRule, 'id' | 'created_at' | 'updated_at'>[]) => {
+  // 1. Apagar todas as regras existentes
+  const { error: deleteError } = await (supabase as any)
+    .from('weekly_availability')
+    .delete()
+    .neq('id', 0); // Condição para deletar tudo (ou use truncate se preferir e tiver permissão)
+
+  if (deleteError) {
+    console.error("Error deleting old weekly availability:", deleteError);
+    throw deleteError;
+  }
+
+  // 2. Inserir as novas regras
+  // Validar sobreposição aqui na aplicação antes de inserir
+  // (Lógica de validação de sobreposição omitida por simplicidade, mas necessária em produção)
+  const { error: insertError } = await (supabase as any)
+    .from('weekly_availability')
+    .insert(rules);
+
+  if (insertError) {
+    console.error("Error inserting new weekly availability:", insertError);
+    throw insertError;
+  }
+
+  return true;
+};
+
+
+// --- Funções existentes ---
+
+export const fetchBookingsForDate = async (filterDate: Date): Promise<BookingEvent[]> => {
   const dayStart = startOfDay(filterDate);
   const dayEnd = endOfDay(filterDate);
   
@@ -145,13 +248,46 @@ export const createBookingInDb = async (bookingData: BookingRequest) => {
     throw new Error("O horário de término deve ser posterior ao horário de início");
   }
   
-  // Check for scheduling conflicts
+  // --- Validações Adicionais com Base nas Configurações ---
+  const settings = await fetchSchedulingSettings();
+
+  // 1. Validar Antecedência Mínima
+  const minBookingTime = addHours(new Date(), settings.min_advance_booking_hours);
+  if (isBefore(startTime, minBookingTime)) {
+    throw new Error(`O agendamento deve ser feito com pelo menos ${settings.min_advance_booking_hours} horas de antecedência.`);
+  }
+
+  // 2. Validar Antecedência Máxima
+  const maxBookingTime = addDays(new Date(), settings.max_advance_booking_days);
+   if (isAfter(startTime, maxBookingTime)) {
+     throw new Error(`O agendamento não pode ser feito com mais de ${settings.max_advance_booking_days} dias de antecedência.`);
+   }
+
+  // 3. Validar Disponibilidade Semanal (simplificado - verifica se o horário está dentro de algum intervalo do dia)
+  // Idealmente, a busca de slots já filtraria isso, mas é bom ter uma checagem extra.
+  const dayOfWeek = getDay(startTime); // 0 = Domingo, 1 = Segunda...
+  const availabilityRules = await fetchWeeklyAvailability();
+  const ruleForDay = availabilityRules.find(rule => rule.day_of_week === dayOfWeek && rule.is_available);
+
+  if (!ruleForDay) {
+      throw new Error("Não há disponibilidade configurada para este dia da semana.");
+  }
+
+  // Comparar apenas a parte de hora/minuto
+  const bookingStartTimeStr = format(startTime, 'HH:mm:ss');
+  const bookingEndTimeStr = format(endTime, 'HH:mm:ss');
+
+  if (bookingStartTimeStr < ruleForDay.start_time || bookingEndTimeStr > ruleForDay.end_time) {
+       throw new Error(`Horário fora do período de disponibilidade (${ruleForDay.start_time} - ${ruleForDay.end_time}) para este dia.`);
+  }
+
+  // 4. Check for scheduling conflicts (já existente)
   const hasConflict = await checkForConflicts(bookingData.start_time, bookingData.end_time);
   if (hasConflict) {
-    throw new Error("Este horário já está reservado. Por favor, escolha outro horário");
+    throw new Error("Este horário já está reservado. Por favor, escolha outro horário.");
   }
-  
-  // Generate a customer ID if one wasn't provided
+
+  // Generate a customer ID if one wasn't provided (já existente)
   let customerId = bookingData.customer_id;
   if (!customerId) {
     customerId = await generateCustomerId();

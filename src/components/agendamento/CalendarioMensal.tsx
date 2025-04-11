@@ -28,6 +28,7 @@ export const CalendarioMensal: React.FC<CalendarioMensalProps> = ({
       locale={ptBR}
       weekStartsOn={0}
       showOutsideDays
+      disabled={{ before: new Date() }} // Desabilitar dias anteriores a hoje
       className="!w-full"
       classNames={{
         months: "flex flex-col",

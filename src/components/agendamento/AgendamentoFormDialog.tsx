@@ -26,9 +26,11 @@ export const AgendamentoFormDialog: React.FC<AgendamentoFormDialogProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (values: AgendamentoFormValues) => {
-    try {
-      setIsSubmitting(true);
+const handleSubmit = async (values: AgendamentoFormValues) => {
+  alert("Submit chamado!");
+  console.log("Submit chamado com valores:", values);
+  try {
+    setIsSubmitting(true);
       
       // Validate the date and time formats
       const dateStr = format(values.date, 'yyyy-MM-dd');
