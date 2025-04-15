@@ -4,6 +4,7 @@ services:
   app:
     build:
       context: .
+      dockerfile: Dockerfile # Especifica explicitamente o Dockerfile
       args:
         # Argumentos de build para o estágio de build
         NODE_ENV: production
