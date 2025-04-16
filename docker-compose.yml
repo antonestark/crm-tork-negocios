@@ -1,13 +1,23 @@
-version: '3'
+version: '3.8' # Ou sua versão
+
 services:
-  tork-crm:
-    image: node:18
-    volumes:
-      - ./:/app
-    working_dir: /app
-    command: sh -c "npm install && npm run build && npm start"
-    ports:
-      - "3000:3000"
-    environment:
-      - REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL}
-      - REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY}
+  tork-crm: # <--- Mantenha este nome/chave
+    image: ghcr.io/antonestark/crm-tork-negocios/tork-crm:latest # <--- Atualize para a imagem do GHCR
+    container_name: tork_crm_app # Opcional
+    restart: unless-stopped
+    networks:
+      - Tork # <--- Conecte à rede do Traefik
+    labels:
+      # --- Labels do Traefik ---
+      - "traefik.enable=true"
+      - "traefik.http.routers.crm.rule=Host(`crm.tornegocios.com.br`)"
+      - "traefik.http.routers.crm.entrypoints=websecure"
+      - "traefik.http.routers.crm.tls.certresolver=letsencrypt"
+      # O nome do serviço para o Traefik pode ser diferente, mas 'crm-service' funciona
+      - "traefik.http.routers.crm.service=crm-service"
+      - "traefik.http.services.crm-service.loadbalancer.server.port=80" # Porta 80 (do Nginx)
+      - "traefik.docker.network=Tork"
+
+networks:
+  Tork:
+    external: true # Rede externa
