@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Lead } from '@/types/admin';
+import { Loader2 } from 'lucide-react'; // Import Loader2
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'O nome deve ter pelo menos 2 caracteres' }),
@@ -25,9 +26,10 @@ const formSchema = z.object({
 interface LeadFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Partial<Lead>) => void;
+  onSubmit: (data: Partial<Lead>) => Promise<boolean>; // Changed onSubmit to match parent
   lead?: Lead | null;
   users: { id: string; name: string }[];
+  isSaving?: boolean; // Add isSaving prop
 }
 
 export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
@@ -35,7 +37,8 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
   onOpenChange,
   onSubmit,
   lead,
-  users
+  users,
+  isSaving // Destructure isSaving
 }) => {
   const isEditing = !!lead;
   
@@ -234,8 +237,21 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
             />
             
             <DialogFooter>
-              {/* Style Submit Button */}
-              <Button type="submit" className="bg-green-600 text-white hover:bg-green-700">{isEditing ? 'Salvar Alterações' : 'Criar Lead'}</Button>
+              {/* Style Submit Button and disable when saving */}
+              <Button 
+                type="submit" 
+                className="bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                disabled={isSaving} // Disable button when isSaving is true
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  isEditing ? 'Salvar Alterações' : 'Criar Lead'
+                )}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // Keep useEffect for subscription cleanup
+import { useQuery, useQueryClient } from '@tanstack/react-query'; // Import useQuery
+import { useAuth } from '@/components/auth/AuthProvider'; // Import useAuth
 import {
   Card,
   CardHeader,
@@ -30,86 +32,109 @@ import { supabase } from '@/integrations/supabase/client';
 import { clientAdapter } from '@/integrations/supabase/adapters';
 import { Badge } from "@/components/ui/badge";
 import { Client } from '@/types/clients';
-import { ClientForm } from './ClientForm';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+// ClientForm is likely not needed here anymore as the dialog is in the parent
+// import { ClientForm } from './ClientForm'; 
+// Dialog components are likely not needed here anymore
+// import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import React from 'react'; // Import React
-import { ClientFormValues } from './ClientForm'; // Import the form values type
+// ClientFormValues might not be needed here if handleSubmit is removed/changed
+// import { ClientFormValues } from './ClientForm'; 
 
-export function ClientsTable() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+// Define props for ClientsTable
+interface ClientsTableProps {
+  onEditClient: (client: Client) => void; // Callback for edit action
+  onDeleteClient: (clientId: string) => void; // Callback for delete action
+  onViewDetails: (client: Client) => void; // Callback for view details action
+}
+
+export function ClientsTable({ onEditClient, onDeleteClient, onViewDetails }: ClientsTableProps) { // Destructure props
+  // Local state for filters
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [tagFilter, setTagFilter] = useState(''); // Novo estado para o filtro de tags
-  const [open, setOpen] = React.useState(false); // Dialog state
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [tagFilter, setTagFilter] = useState(''); 
+  
+  const queryClient = useQueryClient(); // Get query client instance for invalidation
+  const { session, isLoading: isAuthLoading } = useAuth(); // Get auth state
 
-  useEffect(() => {
-    fetchClients();
+  // Define the query key, including filters
+  const queryKey = ['clients', searchTerm, statusFilter, tagFilter];
 
-    // Set up a realtime subscription
-    const subscription = supabase
-      .channel('clients_changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'clients'
-      }, () => {
-        fetchClients();
-      })
-      .subscribe();
+  // Fetching function for useQuery
+  const fetchClientsQuery = async () => {
+    let query = supabase
+      .from('clients')
+      .select('id, company_name, razao_social, trading_name, responsible, room, meeting_room_credits, status, contract_start_date, contract_end_date, document, birth_date, address, email, phone, monthly_value, notes, tags, created_at, updated_at');
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [searchTerm, statusFilter, tagFilter]); // Adicionado tagFilter como dependência
-
-  const fetchClients = async () => {
-    setIsLoading(true);
-    try {
-      let query = supabase
-        .from('clients')
-        .select('id, company_name, razao_social, trading_name, responsible, room, meeting_room_credits, status, contract_start_date, contract_end_date, document, birth_date, address, email, phone, monthly_value, notes, tags, created_at, updated_at');
-
-      if (searchTerm) {
-        query = query.or(`company_name.ilike.%${searchTerm}%,razao_social.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`);
-      }
-
-      if (tagFilter) {
-        const tagList = tagFilter.split(',').map(tag => tag.trim());
-        query = query.contains('tags', tagList); // Filtrar por tags (usando contains)
-      }
-
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
-      }
-
-      query = query.order('created_at', { ascending: false });
-
-      const { data, error } = await query;
-
-      if (error) {
-        throw error;
-      }
-
-      // Usar o adaptador para converter os dados
-      const adaptedClients = clientAdapter(data || []);
-      setClients(adaptedClients);
-    } catch (error) {
-      console.error('Error fetching clients:', error);
-      toast.error('Falha ao carregar dados dos clientes');
-    } finally {
-      setIsLoading(false);
+    if (searchTerm) {
+      query = query.or(`company_name.ilike.%${searchTerm}%,razao_social.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`);
     }
+
+    if (tagFilter) {
+      const tagList = tagFilter.split(',').map(tag => tag.trim()).filter(Boolean); // Filter out empty tags
+      if (tagList.length > 0) {
+         query = query.contains('tags', tagList); 
+      }
+    }
+
+    if (statusFilter !== 'all') {
+      query = query.eq('status', statusFilter);
+    }
+
+    query = query.order('created_at', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching clients query:', error);
+      toast.error('Falha ao carregar dados dos clientes');
+      throw error; // Throw error for React Query to handle
+    }
+
+    // Usar o adaptador para converter os dados
+    return clientAdapter(data || []);
   };
 
+  // Use React Query to fetch data
+  const { data: clients = [], isLoading, isError } = useQuery<Client[], Error>({
+    queryKey: queryKey,
+    queryFn: fetchClientsQuery,
+    enabled: !!session && !isAuthLoading, // Enable only when authenticated
+    // Optional: Add staleTime or cacheTime if needed
+  });
+
+  // Set up realtime subscription to invalidate query on changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('clients_changes')
+      .on('postgres_changes', {
+        event: '*', // Listen for insert, update, delete
+        schema: 'public',
+        table: 'clients'
+      }, (payload) => {
+        console.log('Realtime change received for clients:', payload);
+        // Invalidate the query to trigger a refetch
+        queryClient.invalidateQueries({ queryKey: ['clients'] }); 
+      })
+      .subscribe((status, err) => {
+         if (status === 'SUBSCRIBED') {
+            console.log('Realtime channel for clients subscribed.');
+         }
+         if (status === 'CHANNEL_ERROR') {
+           console.error('Realtime channel error:', err);
+         }
+         if (status === 'TIMED_OUT') {
+            console.warn('Realtime channel subscription timed out.');
+         }
+      });
+
+    // Cleanup function to unsubscribe
+    return () => {
+      console.log('Unsubscribing from clients realtime channel.');
+      supabase.removeChannel(channel);
+    };
+  // Dependency array includes queryClient to ensure stable reference
+  // Filters are part of the queryKey, so no need to include them here for the subscription setup
+  }, [queryClient]); 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -137,25 +162,7 @@ export function ClientsTable() {
     toast.success('Informações copiadas para a área de transferência');
   };
 
-  // Update handleSubmit to use ClientFormValues
-  const handleSubmit = (values: ClientFormValues) => { 
-    // TODO: Implementar a lógica para criar/atualizar o cliente no Supabase
-    // A conversão de `tags` (string separada por vírgula) para array já é feita no ClientForm onChange
-    console.log("Form values:", values); 
-    setOpen(false);
-    setSelectedClient(null); // Reset selected client after submit
-    toast.success('Cliente criado/atualizado com sucesso!');
-  };
-
-  // Helper to prepare initial values for the form, converting tags array to string
-  const prepareInitialValues = (client: Client | null): ClientFormValues | undefined => {
-    if (!client) return undefined;
-    return {
-      ...client,
-      tags: client.tags || [], // Ensure tags is an array for the form state
-    };
-  };
-
+  // Removed local handleSubmit and prepareInitialValues as they relate to the local dialog state
 
   return (
     <Card className="bg-[#094067] dark:bg-slate-900/50 backdrop-blur-md border border-blue-900/40 shadow-lg">
@@ -166,7 +173,7 @@ export function ClientsTable() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 md:grid-cols-3 items-end"> {/* Alterado para 3 colunas */}
+        <div className="grid gap-4 md:grid-cols-3 items-end"> 
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -177,7 +184,6 @@ export function ClientsTable() {
               className="pl-8"
             />
           </div>
-           {/* Filtro por Tags (Temporário - Input Simples) */}
           <Input
             type="search"
             placeholder="Filtrar por tags (separadas por vírgula)"
@@ -185,10 +191,8 @@ export function ClientsTable() {
             onChange={(e) => setTagFilter(e.target.value)}
             className="pl-3"
           />
-          {/* Dialog removed, will be added to Clients.tsx */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              {/* Apply green background and white text */}
               <Button className="bg-green-600 text-white hover:bg-green-700">
                 Filtrar por Status
               </Button>
@@ -260,23 +264,20 @@ export function ClientsTable() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => {
-                              setSelectedClient(client);
-                              setOpen(true);
-                            }}>
+                          {/* Call onEditClient passed from parent */}
+                          <DropdownMenuItem onClick={() => onEditClient(client)}> 
                             <Edit className="mr-2 h-4 w-4" /> Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleCopyInfo(client)}>
                             <Copy className="mr-2 h-4 w-4" /> Copiar Informações
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          {/* Call onViewDetails passed from parent */}
+                          <DropdownMenuItem onClick={() => onViewDetails(client)}>
                             <FileText className="mr-2 h-4 w-4" /> Ver Detalhes
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600" onClick={() => {
-                              // TODO: Implement delete client logic
-                              toast.success('Cliente excluído com sucesso!');
-                            }}>
+                          {/* Call onDeleteClient passed from parent */}
+                          <DropdownMenuItem className="text-red-600" onClick={() => onDeleteClient(client.id)}>
                             <Trash2 className="mr-2 h-4 w-4" /> Excluir
                           </DropdownMenuItem>
                         </DropdownMenuContent>

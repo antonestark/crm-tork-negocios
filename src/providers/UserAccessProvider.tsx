@@ -3,15 +3,18 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { useUserRole } from '@/hooks/use-user-role';
 import { useUserPermissions } from '@/hooks/use-user-permissions';
 
+// Define the shape of the permissions map
+type DepartmentPermissionsMap = Record<string, { view: boolean; edit: boolean; delete: boolean }>;
+
 interface UserAccessContextType {
   role: string | null;
-  permissions: any[];
+  permissions: DepartmentPermissionsMap; // Use the specific type here
   loading: boolean;
 }
 
 const UserAccessContext = createContext<UserAccessContextType>({
   role: null,
-  permissions: [],
+  permissions: {}, // Default to an empty object
   loading: true,
 });
 

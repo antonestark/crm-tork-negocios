@@ -23,16 +23,23 @@ const mapFormToDb = (values: ClientFormValues): Pick<Client, 'company_name'> & P
 
 export const createClient = async (values: ClientFormValues): Promise<Client | null> => {
   const clientData = mapFormToDb(values);
-  
-  const { data, error } = await supabase
-    .from('clients')
-    .insert([clientData])
-    .select()
-    .single();
+
+  // Invoke the Edge Function instead of direct insert
+  const { data, error } = await supabase.functions.invoke('create-client', {
+    body: clientData, // Pass client data in the body
+  });
 
   if (error) {
-    console.error('Error creating client:', error);
-    throw error; // Re-throw the error to be caught by the caller
+    console.error('Error invoking create-client function:', error);
+    // Attempt to parse Supabase Function error if possible
+    let errorMessage = error.message;
+    try {
+      // Supabase Functions often return errors in data.error
+      if (data?.error) {
+         errorMessage = data.error;
+      }
+    } catch (e) { /* Ignore parsing errors */ }
+    throw new Error(errorMessage); // Re-throw a more specific error if possible
   }
   return data;
 };
@@ -73,4 +80,26 @@ export const fetchClients = async (): Promise<Client[]> => {
         throw error;
     }
     return data || [];
+};
+
+export const deleteClient = async (id: string): Promise<void> => {
+  // Invoke an Edge Function for deletion (to bypass RLS if needed)
+  const { error } = await supabase.functions.invoke('delete-client', {
+    body: { id }, // Pass the ID of the client to delete
+  });
+
+  if (error) {
+    console.error('Error invoking delete-client function:', error);
+    // Attempt to parse Supabase Function error if possible
+    let errorMessage = error.message;
+    try {
+      // Supabase Functions often return errors in data.error
+      const data = JSON.parse(error.context?.response?.text || '{}');
+      if (data?.error) {
+         errorMessage = data.error;
+      }
+    } catch (e) { /* Ignore parsing errors */ }
+    throw new Error(errorMessage); // Re-throw a more specific error if possible
+  }
+  // No data is typically returned on successful delete
 };

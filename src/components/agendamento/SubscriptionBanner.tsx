@@ -4,11 +4,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { AlertTriangle, Check, CreditCard } from "lucide-react";
-import { useSubscription } from "@/hooks/use-subscription";
+// import { useSubscription } from "@/hooks/use-subscription"; // Removido
 import { Progress } from "@/components/ui/progress";
 
 export const SubscriptionBanner = () => {
-  const { subscription, loading } = useSubscription();
+  // const { subscription, loading } = useSubscription(); // Removido
+  const loading = true; // Simula loading para não renderizar nada
+  const subscription = null; // Simula ausência de assinatura
 
   if (loading) return null;
 
@@ -28,10 +30,10 @@ export const SubscriptionBanner = () => {
             Você não possui uma assinatura ativa. Escolha um plano para ter acesso a mais agendamentos.
           </span>
           <Button size="sm" asChild>
-            <Link to="/planos">
+            {/* <Link to="/planos"> */}
               <CreditCard className="mr-2 h-4 w-4" />
-              Ver Planos
-            </Link>
+              {/* Ver Planos */} {/* Link removido */}
+            {/* </Link> */}
           </Button>
         </AlertDescription>
       </Alert>
@@ -54,9 +56,9 @@ export const SubscriptionBanner = () => {
             <span>
               Você utilizou {schedulingCount} de {maxScheduling} agendamentos disponíveis no seu plano.
             </span>
-            <Button size="sm" variant="outline" asChild>
+            {/* <Button size="sm" variant="outline" asChild>
               <Link to="/planos">Atualizar Plano</Link>
-            </Button>
+            </Button> */} {/* Botão removido */}
           </div>
           <Progress value={usagePercentage} className={usagePercentage >= 95 ? "h-2 bg-destructive/20" : "h-2 bg-warning/20"} />
         </AlertDescription>

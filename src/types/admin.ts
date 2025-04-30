@@ -20,19 +20,19 @@ export interface User {
 }
 
 export interface Department {
-  id: string;
+  id: number; // Changed to number
   name: string;
   description: string;
-  path: string;
-  level: number;
-  parent_id: string | null;
-  manager_id: string | null;
-  settings: Record<string, any>;
-  metadata: Record<string, any>;
-  created_at: string;
-  updated_at: string;
-  _memberCount: number;
-  manager?: {
+  // path: string; // Removed if not present in DB schema
+  // level: number; // Removed if not present in DB schema
+  parent_id: number | null; // Changed to number
+  manager_id?: string | null; // Keep as string if it refers to user UUID, or adjust if it's a number FK
+  settings?: Record<string, any>; // Make optional if not always present
+  metadata?: Record<string, any>; // Make optional if not always present
+  created_at?: string; // Make optional
+  updated_at?: string; // Make optional
+  _memberCount?: number; // Make optional or remove if calculated elsewhere
+  manager?: { // Keep if manager info is fetched separately or needed
     first_name: string;
     last_name: string;
   } | null;

@@ -21,9 +21,9 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({ role }) => (
   <Badge variant="default">
     {role === 'admin' 
       ? 'Administrador' 
-      : role === 'super_admin' 
-        ? 'Super Admin' 
-        : 'Usuário'
+      // : role === 'super_admin'  // Removido super_admin
+      //   ? 'Super Admin' 
+        : 'Usuário' // Simplificado: ou é admin ou é Usuário
     }
   </Badge>
 );

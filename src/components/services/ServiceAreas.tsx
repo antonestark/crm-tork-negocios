@@ -9,7 +9,7 @@ import { ServiceArea } from "@/hooks/use-service-areas-data";
 import { useState, useCallback, useEffect } from "react";
 import { EditAreaDialog } from "./areas/EditAreaDialog";
 import { AreaActionsMenu } from "./areas/AreaActionsMenu";
-import { useSubscription } from "@/hooks/use-subscription";
+// import { useSubscription } from "@/hooks/use-subscription"; // Removido
 import { toast } from "sonner";
 
 interface ServiceAreasProps {
@@ -22,7 +22,9 @@ interface ServiceAreasProps {
 export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAreasProps) => {
   const [editingArea, setEditingArea] = useState<ServiceArea | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { subscription, loading: subscriptionLoading, checkCanCreateServiceArea } = useSubscription();
+  // const { subscription, loading: subscriptionLoading, checkCanCreateServiceArea } = useSubscription(); // Removido
+  const subscriptionLoading = false; // Simulado
+  const checkCanCreateServiceArea = () => true; // Simulado - sempre permite criar
 
   const handleEdit = useCallback((area: ServiceArea) => {
     // First set the area data
@@ -63,13 +65,13 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
     const canCreate = checkCanCreateServiceArea();
     if (!canCreate) {
       toast.error(
-        "Limite de áreas de serviço atingido. Atualize seu plano para criar mais áreas.",
-        {
-          action: {
-            label: "Ver Planos",
-            onClick: () => window.location.href = "/planos"
-          }
-        }
+        "Limite de áreas de serviço atingido." // Mensagem simplificada sem ação
+        // { // Ação removida
+        //   action: {
+        //     label: "Ver Planos",
+        //     // onClick: () => window.location.href = "/planos" // Removido
+        //   }
+        // }
       );
     }
     return canCreate;
@@ -104,23 +106,24 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
           <Button 
             asChild 
             className="mt-4"
-            onClick={() => {
-              if (!checkSubscriptionLimit()) {
-                return false; // Prevent navigation if limit reached
-              }
-            }}
+            // onClick={() => { // Lógica de limite removida
+            //   if (!checkSubscriptionLimit()) {
+            //     return false; 
+            //   }
+            // }}
           >
-            <Link to="/services/areas">Adicionar Área</Link>
+            {/* <Link to="/services/areas">Adicionar Área</Link> */} {/* Link pode ser removido se o botão de adicionar estiver no header */}
+             Adicionar Área {/* Texto temporário se o Link for removido */}
           </Button>
         </CardContent>
       </Card>
     );
   }
 
-  const isLimitReached = subscription && 
-    subscription.status === 'active' && 
-    subscription.maxServiceAreas !== 999 && 
-    areas.length >= subscription.maxServiceAreas;
+  // const isLimitReached = subscription && // Lógica de limite removida
+  //   subscription.status === 'active' && 
+  //   subscription.maxServiceAreas !== 999 && 
+  //   areas.length >= subscription.maxServiceAreas;
 
   return (
     <>
@@ -158,20 +161,8 @@ export const ServiceAreas = ({ areas, loading, error, onAreaUpdated }: ServiceAr
           </Card>
         ))}
         
-        {isLimitReached && (
-          <Card className="bg-muted/50 border-dashed">
-            <CardContent className="flex flex-col items-center justify-center h-[200px] text-center">
-              <Lock className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="font-medium mb-2">Limite de áreas atingido</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Seu plano atual permite até {subscription.maxServiceAreas} áreas de serviço.
-              </p>
-              <Button asChild variant="outline">
-                <Link to="/planos">Atualizar Plano</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        {/* Card de limite removido */}
+        {/* {isLimitReached && ( ... )} */}
       </div>
 
       <EditAreaDialog 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { LeadColumn } from './LeadColumn';
 // LeadFormDialog is now rendered in Leads.tsx
@@ -8,31 +7,33 @@ import { Lead } from '@/types/admin';
 import { Search, RefreshCw, PlusCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { NewLead } from '@/services/leads-service'; // Import NewLead if needed by onAddLead
 
 interface LeadsKanbanProps {
   leads: Lead[];
   users: { id: string; name: string }[];
-  loading: boolean;
-  onAddLead: (lead: Partial<Lead>) => Promise<Lead | null>;
-  onUpdateLead: (lead: Partial<Lead>) => Promise<boolean>;
-  onUpdateLeadStatus: (id: string, status: string) => Promise<boolean>;
-  onDeleteLead: (id: string) => Promise<boolean>;
-  onRefresh: () => void;
+  // loading: boolean; // Loading state is now handled by parent (Leads.tsx)
+  // onAddLead: (lead: Partial<Lead>) => Promise<Lead | null>; // Handled by parent dialog
+  // onUpdateLead: (lead: Partial<Lead>) => Promise<boolean>; // Handled by parent dialog
+  onUpdateLeadStatus: (id: string, status: string) => void; // Changed return type
+  onDeleteLead: (id: string) => void; // Changed return type
+  onRefresh?: () => void; // Keep optional or remove if fully handled by React Query
+  onEditLead?: (lead: Lead) => void; // Prop to signal parent to open edit dialog
 }
 
 export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
   leads,
-  users, // Still needed for LeadCard potentially, or remove if not used below
-  loading,
-  onAddLead, // Still needed for handleAddLead (though form is external now)
-  onUpdateLead, // Still needed for handleUpdateLead (though form is external now)
+  users, // Still needed for LeadCard potentially
+  // loading, // Removed loading prop
+  // onAddLead, // Removed
+  // onUpdateLead, // Removed
   onUpdateLeadStatus,
   onDeleteLead,
-  onRefresh
+  onRefresh, // Keep if manual refresh button is desired
+  onEditLead // Receive edit handler
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  // Removed formOpen and selectedLead state, managed by Leads.tsx
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false); // Keep for refresh button state
 
   useEffect(() => {
     console.log("Leads in Kanban:", leads);
@@ -46,25 +47,16 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
     (lead.phone && lead.phone.includes(searchTerm))
   );
 
-  // Group leads by status - ensure we account for unexpected status values
+  // Group leads by status
   const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualificado');
   const neutralLeads = filteredLeads.filter(lead => lead.status === 'neutro');
   const unqualifiedLeads = filteredLeads.filter(lead => lead.status === 'não qualificado');
-  
-  // Find leads with unexpected status values to be displayed in the neutral column
   const otherLeads = filteredLeads.filter(lead => 
     lead.status !== 'qualificado' && 
     lead.status !== 'neutro' && 
     lead.status !== 'não qualificado'
   );
-  
-  // Add leads with unexpected status to neutral column
   const allNeutralLeads = [...neutralLeads, ...otherLeads];
-
-  console.log("Qualified leads:", qualifiedLeads.length);
-  console.log("Neutral leads:", neutralLeads.length);
-  console.log("Unqualified leads:", unqualifiedLeads.length);
-  console.log("Other leads with unexpected status:", otherLeads.length);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -75,58 +67,23 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
     const leadId = e.dataTransfer.getData('leadId');
     if (leadId) {
       try {
-        const result = await onUpdateLeadStatus(leadId, status);
-        if (!result) {
-          toast.error('Erro ao atualizar status do lead');
-        }
+        // Call the void function directly
+        onUpdateLeadStatus(leadId, status); 
       } catch (error) {
+        // This catch might not be necessary if the mutation handles errors
         console.error('Error during drag and drop:', error);
         toast.error('Erro ao mover o lead');
       }
     }
   };
 
-  const handleAddLead = async (data: Partial<Lead>) => {
-    try {
-      const result = await onAddLead(data);
-      if (result) {
-        // setFormOpen(false); // Managed by parent
-        toast.success('Lead adicionado com sucesso');
-      } else {
-        toast.error('Erro ao adicionar lead');
-      }
-    } catch (error) {
-      console.error('Error adding lead:', error);
-      toast.error('Erro ao adicionar lead');
-    }
-  };
+  // Removed handleAddLead and handleUpdateLead as they are handled by the parent dialog
 
-  // handleEditLead needs to signal back to Leads.tsx to open the dialog
-  // Option 1: Pass a function prop like `onEditLeadRequest(lead)`
-  // Option 2: Keep selectedLead state here and pass it up (more complex)
-  // Let's assume Leads.tsx will handle opening the dialog based on an action within LeadCard/LeadColumn later if needed.
-  // For now, remove direct dialog opening logic.
-
-  // handleUpdateLead is likely triggered by the external dialog now, remove?
-  // Keeping it for now, but onSubmit in Leads.tsx should handle this.
-  const handleUpdateLead = async (data: Partial<Lead>) => { 
-    try {
-      const result = await onUpdateLead(data);
-      // Closing dialog and resetting selected lead is handled by parent
-      // if (result) {
-      //   setFormOpen(false);
-      //   setSelectedLead(null);
-      // }
-    } catch (error) {
-      console.error('Error updating lead:', error);
-      toast.error('Erro ao atualizar lead');
-    }
-  };
-  
   const handleRefresh = async () => {
+    if (!onRefresh) return; // Guard if onRefresh is optional
     setIsRefreshing(true);
     try {
-      await onRefresh();
+      await onRefresh(); // Call the refresh function passed from parent (if any)
       toast.success('Dados atualizados');
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -136,7 +93,7 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
     }
   };
 
-  // Function to render skeletons during loading state
+  // Function to render skeletons - Adapt based on parent's loading state if needed
   const renderSkeletons = () => {
     return (
       <div className="grid grid-cols-3 gap-4 h-[calc(100%-48px)]">
@@ -167,46 +124,35 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             className="pl-8 bg-white"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            disabled={loading}
+            // disabled={loading} // Loading state comes from parent now
           />
         </div>
         
         <div className="flex gap-2">
-          {/* Apply dark theme styles to Refresh button */}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="border border-blue-400 text-blue-400 hover:bg-blue-400/10" // Added styles
-            onClick={handleRefresh}
-            disabled={loading || isRefreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Atualizar
-          </Button>
-          
-          {/* Removed redundant "Novo Lead" button */}
+          {/* Refresh button might be redundant with React Query auto-refetching */}
+          {onRefresh && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border border-blue-400 text-blue-400 hover:bg-blue-400/10"
+              onClick={handleRefresh}
+              disabled={isRefreshing} // Disable based on local refresh state
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
+          )}
         </div>
       </div>
       
-      {loading ? (
-        renderSkeletons()
-      ) : leads.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-[calc(100%-48px)] bg-gray-50 rounded-lg border border-gray-200 p-8">
+      {/* Loading state is handled in Leads.tsx */}
+      {leads.length === 0 ? (
+         <div className="flex flex-col items-center justify-center h-[calc(100%-48px)] bg-gray-50 rounded-lg border border-gray-200 p-8">
           <div className="text-center mb-4">
             <h3 className="text-lg font-medium">Nenhum lead encontrado</h3>
-            <p className="text-muted-foreground mt-1">Adicione novos leads para começar a gerenciar seus contatos</p>
+            <p className="text-muted-foreground mt-1">Adicione novos leads para começar.</p>
           </div>
-          {/* This button should likely trigger an action in the parent now */}
-          {/* For now, removing the direct state setting */}
-          <Button 
-            onClick={() => {
-              // TODO: Signal parent to open dialog for new lead
-              console.log("Requesting new lead dialog from placeholder");
-            }}
-          >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Adicionar Lead
-          </Button>
+          {/* Button to add lead is in the parent Leads.tsx */}
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-4 h-[calc(100%-48px)]">
@@ -215,9 +161,8 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             count={qualifiedLeads.length}
             status="qualificado"
             leads={qualifiedLeads}
-            // Pass function to request edit dialog opening in parent
-            onEditLead={onUpdateLead} // Placeholder - Needs proper handling in parent
-            onDeleteLead={onDeleteLead}
+            onEditLead={onEditLead} // Pass down edit handler
+            onDeleteLead={onDeleteLead} // Pass down delete handler
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'qualificado')}
           />
@@ -227,9 +172,8 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             count={allNeutralLeads.length}
             status="neutro"
             leads={allNeutralLeads}
-            // Pass function to request edit dialog opening in parent
-            onEditLead={onUpdateLead} // Placeholder - Needs proper handling in parent
-            onDeleteLead={onDeleteLead}
+            onEditLead={onEditLead} // Pass down edit handler
+            onDeleteLead={onDeleteLead} // Pass down delete handler
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'neutro')}
           />
@@ -239,16 +183,15 @@ export const LeadsKanban: React.FC<LeadsKanbanProps> = ({
             count={unqualifiedLeads.length}
             status="não qualificado"
             leads={unqualifiedLeads}
-            // Pass function to request edit dialog opening in parent
-            onEditLead={onUpdateLead} // Placeholder - Needs proper handling in parent
-            onDeleteLead={onDeleteLead}
+            onEditLead={onEditLead} // Pass down edit handler
+            onDeleteLead={onDeleteLead} // Pass down delete handler
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'não qualificado')}
           />
         </div>
       )}
       
-      {/* LeadFormDialog is now rendered in Leads.tsx */}
+      {/* LeadFormDialog is rendered in Leads.tsx */}
     </div>
   );
 };

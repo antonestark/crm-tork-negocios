@@ -85,22 +85,35 @@ export const fetchLeads = async (): Promise<Lead[]> => {
 export const addLead = async (lead: NewLead): Promise<Lead | null> => {
   try {
     // Normalize status and assigned_to before saving
+    // Explicitly check for "unassigned" string
+    const assignedToValue = (lead.assigned_to && lead.assigned_to !== 'unassigned') ? lead.assigned_to : null;
+    
     const normalizedLead = {
       ...lead,
-      assigned_to: lead.assigned_to ? lead.assigned_to : null,
+      assigned_to: assignedToValue, // Use the corrected value
       status: normalizeStatus(lead.status || 'neutro')
     };
     
+    // Use direct insert again, now that RLS allows it
     const { data, error } = await supabase
       .from('leads')
       .insert([normalizedLead])
-      .select();
+      .select()
+      .single(); // Expect single row back
     
-    if (error) throw error;
+    if (error) {
+       console.error('Error adding lead (direct insert):', error);
+       throw error; // Re-throw error
+    }
     
-    await logLeadActivity(data[0].id, 'created', { leadName: lead.name });
+    // Log activity using the ID returned from insert
+    if (data?.id) {
+      await logLeadActivity(data.id, 'created', { leadName: normalizedLead.name });
+    } else {
+       console.warn("Could not log lead activity: ID missing from insert response.");
+    }
     
-    return data[0];
+    return data as Lead | null;
   } catch (err) {
     console.error('Error adding lead:', err);
     return null;

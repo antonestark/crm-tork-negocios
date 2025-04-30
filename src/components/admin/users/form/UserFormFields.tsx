@@ -77,7 +77,7 @@ export const UserFormInputs: React.FC<UserFormInputsProps> = ({ isNewUser }) => 
           <SelectContent>
             <SelectItem value="user">Usuário</SelectItem>
             <SelectItem value="admin">Administrador</SelectItem>
-            <SelectItem value="super_admin">Super Admin</SelectItem>
+            {/* <SelectItem value="super_admin">Super Admin</SelectItem> */} {/* Removido super_admin */}
           </SelectContent>
         </Select>
       </div>

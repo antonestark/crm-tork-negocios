@@ -121,7 +121,7 @@ export const Header = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           {/* Removed Reports Button */}
-          {/* Removed Planos Button */}
+          {/* Link Planos removido */}
         </nav>
       </div>
       <div className="flex items-center space-x-4">
@@ -173,12 +173,12 @@ export const Header = () => {
                 <span>Painel Administrativo</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild className="text-slate-300 focus:bg-blue-900/40 focus:text-blue-100">
+            {/* <DropdownMenuItem asChild className="text-slate-300 focus:bg-blue-900/40 focus:text-blue-100">
               <Link to="/planos">
                 <CreditCard className="mr-2 h-4 w-4" />
                 <span>Gerenciar Assinatura</span>
               </Link>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */} {/* Removido Link Planos */}
             {/* Use signOut function from useAuth */}
             <DropdownMenuItem className="text-red-400 focus:bg-red-900/40 focus:text-red-300" onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" />

@@ -23,8 +23,9 @@ import MyChecklist from '@/pages/services/MyChecklist';
 import Maintenance from '@/pages/services/Maintenance';
 import ServiceReports from '@/pages/services/Reports';
 import Dashboard from '@/pages/Dashboard';
+// import VisitorsPage from '@/pages/Visitors'; // Removed VisitorsPage import
 import NotFound from '@/pages/NotFound';
-import Planos from '@/pages/Planos';
+// import Planos from '@/pages/Planos'; // Removido
 import AgendamentoExternoPage from '@/pages/AgendamentoExterno';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { QueryClientProvider } from '@/providers/QueryClientProvider';
@@ -46,7 +47,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/planos" element={<Planos />} />
+            {/* <Route path="/planos" element={<Planos />} /> */} {/* Removido */}
             <Route path="/agendamento-externo" element={<AgendamentoExternoPage />} />
             
             {/* Protected routes */}
