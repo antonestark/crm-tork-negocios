@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -36,7 +38,7 @@ export const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, initialValue
       name: initialValues?.name || "",
       document: initialValues?.document || "",
       client_id: initialValues?.client_id || "",
-      visit_time: initialValues?.visit_time || new Date().toISOString().slice(0, 16), // Default to current time
+      visit_time: initialValues?.visit_time || format(toZonedTime(new Date(), 'America/Sao_Paulo'), "yyyy-MM-dd'T'HH:mm"), // Default to current time
       notes: initialValues?.notes || "",
     },
     mode: "onChange",
@@ -135,7 +137,11 @@ export const VisitorForm: React.FC<VisitorFormProps> = ({ onSubmit, initialValue
             <FormItem>
               <FormLabel>Data e Hora da Visita</FormLabel>
               <FormControl>
-                <Input type="datetime-local" {...field} />
+                <Input
+                  type="datetime-local"
+                  {...field}
+                  value={field.value ? format(toZonedTime(field.value, 'America/Sao_Paulo'), "yyyy-MM-dd'T'HH:mm") : ''}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
