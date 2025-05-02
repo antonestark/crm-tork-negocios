@@ -15,6 +15,7 @@ import Audit from '@/pages/admin/Audit';
 import TableAudit from '@/pages/admin/TableAudit';
 import AdminReports from '@/pages/admin/Reports';
 import AdminSettings from '@/pages/admin/Settings';
+import TenantsPage from '@/pages/admin/tenants/TenantsPage'; // Import the new Tenants page
 import ServicesIndex from '@/pages/services/Index';
 import Areas from '@/pages/services/Areas';
 import Demands from '@/pages/services/Demands';
@@ -36,6 +37,7 @@ import { UserAccessProvider } from '@/providers/UserAccessProvider';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { DepartmentGuard } from './components/auth/DepartmentGuard';
+import { RoleGuard } from './components/auth/RoleGuard'; // Import RoleGuard
 
 function App() {
   return (
@@ -95,92 +97,122 @@ function App() {
               </RequireAuth>
             } />
             
-            {/* Admin routes */}
+            {/* Admin routes - Now protected by RoleGuard */}
             <Route path="/admin" element={
               <RequireAuth>
-                <DepartmentGuard 
-                  allowedDepartments={['Admin']}
-                  fallbackPath="/services/checklist"
-                >
-                  <AdminIndex />
-                </DepartmentGuard>
+                <RoleGuard allowedRoles={['admin']} fallbackPath="/dashboard">
+                  <DepartmentGuard 
+                    allowedDepartments={['Admin']}
+                    fallbackPath="/services/checklist"
+                  >
+                    <AdminIndex />
+                  </DepartmentGuard>
+                </RoleGuard>
               </RequireAuth>
             } />
             
             <Route path="/admin/users" element={
               <RequireAuth>
-                <DepartmentGuard 
-                  allowedDepartments={['Admin']}
-                  fallbackPath="/services/checklist"
-                >
-                  <UsersPage />
-                </DepartmentGuard>
+                <RoleGuard allowedRoles={['admin']} fallbackPath="/dashboard">
+                  <DepartmentGuard 
+                    allowedDepartments={['Admin']}
+                    fallbackPath="/services/checklist"
+                  >
+                    <UsersPage />
+                  </DepartmentGuard>
+                </RoleGuard>
               </RequireAuth>
             } />
             
             <Route path="/admin/departments" element={
               <RequireAuth>
-                <DepartmentGuard 
-                  allowedDepartments={['Admin']}
-                  fallbackPath="/services/checklist"
-                >
-                  <Departments />
-                </DepartmentGuard>
+                <RoleGuard allowedRoles={['admin']} fallbackPath="/dashboard">
+                  <DepartmentGuard 
+                    allowedDepartments={['Admin']}
+                    fallbackPath="/services/checklist"
+                  >
+                    <Departments />
+                  </DepartmentGuard>
+                </RoleGuard>
               </RequireAuth>
             } />
             
             <Route path="/admin/permissions" element={
               <RequireAuth>
-                <DepartmentGuard 
-                  allowedDepartments={['Admin']}
-                  fallbackPath="/services/checklist"
-                >
-                  <Permissions />
-                </DepartmentGuard>
+                <RoleGuard allowedRoles={['admin']} fallbackPath="/dashboard">
+                  <DepartmentGuard 
+                    allowedDepartments={['Admin']}
+                    fallbackPath="/services/checklist"
+                  >
+                    <Permissions />
+                  </DepartmentGuard>
+                </RoleGuard>
               </RequireAuth>
             } />
             
             <Route path="/admin/audit" element={
               <RequireAuth>
-                <DepartmentGuard 
-                  allowedDepartments={['Admin']}
-                  fallbackPath="/services/checklist"
-                >
-                  <Audit />
-                </DepartmentGuard>
+                <RoleGuard allowedRoles={['admin']} fallbackPath="/dashboard">
+                  <DepartmentGuard 
+                    allowedDepartments={['Admin']}
+                    fallbackPath="/services/checklist"
+                  >
+                    <Audit />
+                  </DepartmentGuard>
+                </RoleGuard>
               </RequireAuth>
             } />
             
             <Route path="/admin/table-audit" element={
               <RequireAuth>
-                <DepartmentGuard 
-                  allowedDepartments={['Admin']}
-                  fallbackPath="/services/checklist"
-                >
-                  <TableAudit />
-                </DepartmentGuard>
+                <RoleGuard allowedRoles={['admin']} fallbackPath="/dashboard">
+                  <DepartmentGuard 
+                    allowedDepartments={['Admin']}
+                    fallbackPath="/services/checklist"
+                  >
+                    <TableAudit />
+                  </DepartmentGuard>
+                </RoleGuard>
               </RequireAuth>
             } />
             
-            <Route path="/admin/reports" element={
+            {/* Admin Reports might be accessible by 'Gestão' too, adjust RoleGuard if needed */}
+            <Route path="/admin/reports" element={ 
               <RequireAuth>
-                <DepartmentGuard 
-                  allowedDepartments={['Admin', 'Gestão']}
-                  fallbackPath="/services/checklist"
-                >
-                  <AdminReports />
-                </DepartmentGuard>
+                <RoleGuard allowedRoles={['admin', 'gestao']} fallbackPath="/dashboard"> {/* Assuming 'gestao' role exists */}
+                  <DepartmentGuard 
+                    allowedDepartments={['Admin', 'Gestão']}
+                    fallbackPath="/services/checklist"
+                  >
+                    <AdminReports />
+                  </DepartmentGuard>
+                </RoleGuard>
               </RequireAuth>
             } />
             
             <Route path="/admin/settings" element={
               <RequireAuth>
-                <DepartmentGuard 
-                  allowedDepartments={['Admin']}
-                  fallbackPath="/services/checklist"
-                >
-                  <AdminSettings />
-                </DepartmentGuard>
+                <RoleGuard allowedRoles={['admin']} fallbackPath="/dashboard">
+                  <DepartmentGuard 
+                    allowedDepartments={['Admin']}
+                    fallbackPath="/services/checklist"
+                  >
+                    <AdminSettings />
+                  </DepartmentGuard>
+                </RoleGuard>
+              </RequireAuth>
+            } />
+
+            <Route path="/admin/tenants" element={
+              <RequireAuth>
+                <RoleGuard allowedRoles={['admin']} fallbackPath="/dashboard"> {/* Use RoleGuard */}
+                  <DepartmentGuard
+                    allowedDepartments={['Admin']}
+                    fallbackPath="/services/checklist" // This might become redundant if role 'admin' implies department 'Admin'
+                  >
+                    <TenantsPage />
+                  </DepartmentGuard>
+                </RoleGuard>
               </RequireAuth>
             } />
             

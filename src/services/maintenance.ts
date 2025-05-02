@@ -98,11 +98,24 @@ export const fetchAreas = async () => {
   }
 };
 
-export const createMaintenance = async (maintenanceData: any) => {
+// Now requires tenantId
+export const createMaintenance = async (maintenanceData: any, tenantId: string) => {
+   if (!tenantId) {
+    console.error("Tenant ID is required to create a maintenance record.");
+    toast.error("Erro: ID do inquilino não encontrado. Não é possível criar manutenção.");
+    return false; // Or throw error
+  }
+
   try {
+    // Add tenant_id to the data being inserted
+    const dataToInsert = {
+      ...maintenanceData,
+      tenant_id: tenantId
+    };
+
     const { error } = await supabase
       .from("maintenance_records")
-      .insert(maintenanceData);
+      .insert(dataToInsert);
       
     if (error) {
       console.error("Error creating maintenance:", error);

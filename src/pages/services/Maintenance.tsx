@@ -11,8 +11,11 @@ import { MaintenanceList } from "@/components/services/maintenance/MaintenanceLi
 import { MaintenanceForm } from "@/components/services/maintenance/MaintenanceForm";
 import { fetchMaintenances, fetchAreas, createMaintenance } from "@/services/maintenance";
 import { useServiceAreasData } from "@/hooks/use-service-areas-data";
+import { useAuth } from '@/components/auth/AuthProvider'; // Import useAuth
+import { toast } from 'sonner'; // Import toast
 
 const MaintenancePage = () => {
+  const { tenantId } = useAuth(); // Get tenantId
   const [maintenances, setMaintenances] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [areas, setAreas] = useState<any[]>([]);
@@ -88,7 +91,11 @@ const MaintenancePage = () => {
   };
 
   const handleFormSubmit = async (maintenanceData: any) => {
-    await createMaintenance(maintenanceData);
+    if (!tenantId) {
+      toast.error("Erro: ID do inquilino não encontrado.");
+      return; // Exit if tenantId is missing
+    }
+    await createMaintenance(maintenanceData, tenantId); // Pass tenantId
     setOpen(false);
     loadMaintenanceData();
   };

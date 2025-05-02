@@ -225,7 +225,14 @@ const checkForConflicts = async (startTime: string, endTime: string): Promise<bo
   return data && data.length > 0;
 };
 
-export const createBookingInDb = async (bookingData: BookingRequest) => {
+// Now requires tenantId
+export const createBookingInDb = async (bookingData: BookingRequest, tenantId: string) => {
+   if (!tenantId) {
+    console.error("Tenant ID is required to create a booking.");
+    // Consider using toast here if available
+    throw new Error("Erro: ID do inquilino não encontrado. Não é possível criar agendamento.");
+  }
+
   // Validate that all required fields are present
   if (!bookingData.title || !bookingData.start_time || !bookingData.end_time || !bookingData.status) {
     throw new Error("Todos os campos obrigatórios devem ser preenchidos");
@@ -305,7 +312,8 @@ export const createBookingInDb = async (bookingData: BookingRequest) => {
     location: bookingData.location,
     customer_id: customerId,
     email: bookingData.email,
-    phone: bookingData.phone
+    phone: bookingData.phone,
+    tenant_id: tenantId // Add tenant_id
   };
   
   const { data, error } = await supabase

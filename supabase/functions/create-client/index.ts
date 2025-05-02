@@ -22,7 +22,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { company_name, contact_name, razao_social, document, birth_date, email, phone, status, tags } = await req.json() as ClientData;
+    // Destructure tenantId along with other client data
+    const { tenantId, ...clientData } = await req.json() as ClientData & { tenantId: string };
+
+    if (!tenantId) {
+      throw new Error("Missing 'tenantId' in request body.");
+    }
+    if (!clientData || typeof clientData !== 'object' || !clientData.company_name) {
+       throw new Error("Invalid or missing client data in request body.");
+    }
 
     // Create a Supabase client with the service role key
     // This client bypasses RLS
@@ -31,20 +39,12 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Insert the client data into the 'clients' table
+    // Insert the client data into the 'clients' table, including tenant_id
     const { data, error } = await supabase
       .from('clients')
-      .insert([{ 
-        company_name, 
-        contact_name, 
-        razao_social, 
-        document, 
-        birth_date, 
-        email, 
-        phone, 
-        status, 
-        tags 
-        // Map other fields here
+      .insert([{
+        ...clientData, // Spread the rest of the client data
+        tenant_id: tenantId // Add the tenant ID
       }])
       .select() // Select the inserted row
       .single(); // Expect a single result

@@ -30,7 +30,14 @@ export const fetchDemandsFromDB = async (statusFilter?: string | null) => {
   })) || [];
 };
 
-export const addDemandToDB = async (demandData: DemandCreate): Promise<boolean> => {
+// Now requires tenantId
+export const addDemandToDB = async (demandData: DemandCreate, tenantId: string): Promise<boolean> => {
+  if (!tenantId) {
+    console.error("Tenant ID is required to add a demand.");
+    toast.error("Erro: ID do inquilino não encontrado. Não é possível criar demanda.");
+    return false; // Return false or throw error based on desired handling
+  }
+
   try {
     console.log("Adding demand to DB:", demandData);
     
@@ -39,6 +46,7 @@ export const addDemandToDB = async (demandData: DemandCreate): Promise<boolean> 
     
     const formattedData = {
       ...demandData,
+      tenant_id: tenantId, // Add tenant_id
       due_date: formattedDueDate
     };
     

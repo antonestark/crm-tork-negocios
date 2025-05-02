@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/components/admin/shared/ConfirmDialog';
 import { UserFormDialog } from './UserFormDialog';
 import TableHeader from './components/TableHeader';
 import UserRow from './components/UserRow';
+import { useAuth } from '@/components/auth/AuthProvider'; // Import useAuth
 
 interface UsersTableProps {
   filters: {
@@ -17,6 +18,7 @@ interface UsersTableProps {
 }
 
 const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
+  const { tenantId } = useAuth(); // Get tenantId
   const { users, loading, addUser, updateUser, deleteUser, fetchUsers } = useUsers();
   const [openUserFormDialog, setOpenUserFormDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -103,7 +105,11 @@ const UsersTable: React.FC<UsersTableProps> = ({ filters }) => {
         toast.success('Usuário atualizado com sucesso');
       }
     } else {
-      const success = await addUser(userData);
+      if (!tenantId) {
+        toast.error("Erro: ID do inquilino não encontrado.");
+        return; // Exit if tenantId is missing
+      }
+      const success = await addUser(userData, tenantId); // Pass tenantId
       if (success) {
         await fetchUsers();
         setOpenUserFormDialog(false);

@@ -21,12 +21,18 @@ const mapFormToDb = (values: ClientFormValues): Pick<Client, 'company_name'> & P
   };
 };
 
-export const createClient = async (values: ClientFormValues): Promise<Client | null> => {
+// Now requires tenantId
+export const createClient = async (values: ClientFormValues, tenantId: string): Promise<Client | null> => {
+  if (!tenantId) {
+    console.error("Tenant ID is required to create a client.");
+    // Consider using toast here as well if available globally
+    throw new Error("Erro: ID do inquilino não encontrado. Não é possível criar cliente.");
+  }
   const clientData = mapFormToDb(values);
 
-  // Invoke the Edge Function instead of direct insert
+  // Invoke the Edge Function, passing tenantId along with client data
   const { data, error } = await supabase.functions.invoke('create-client', {
-    body: clientData, // Pass client data in the body
+    body: { ...clientData, tenantId }, // Pass client data and tenantId in the body
   });
 
   if (error) {

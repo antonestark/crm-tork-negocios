@@ -9,11 +9,13 @@ import {
   updateBookingStatusInDb 
 } from '@/services/scheduling-service';
 import { useSchedulingRealtime } from './use-scheduling-realtime';
+import { useAuth } from '@/components/auth/AuthProvider'; // Import useAuth
 
 // Re-export the type using 'export type' syntax
 export type { BookingEvent } from '@/types/scheduling';
 
 export const useSchedulingData = (selectedDate?: Date) => {
+  const { tenantId } = useAuth(); // Get tenantId
   const [bookings, setBookings] = useState<BookingEvent[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [bookedDates, setBookedDates] = useState<string[]>([]);
@@ -60,8 +62,12 @@ export const useSchedulingData = (selectedDate?: Date) => {
   });
 
   const createBooking = async (bookingData: Omit<BookingEvent, 'id' | 'date'>) => {
+    if (!tenantId) {
+      toast.error("Erro: ID do inquilino não encontrado.");
+      throw new Error("Tenant ID is missing");
+    }
     try {
-      const result = await createBookingInDb(bookingData);
+      const result = await createBookingInDb(bookingData, tenantId); // Pass tenantId
       fetchBookings();
       fetchCalendarDataFn();
       return result;

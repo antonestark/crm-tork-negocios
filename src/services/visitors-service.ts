@@ -4,11 +4,19 @@ import { Database } from '@/types/supabase'; // Import the generated types
 
 // Define the type for the visitor row and insert based on the generated Supabase types
 type VisitorRow = Database['public']['Tables']['visitors']['Row'];
+// Update VisitorInsert to potentially include tenant_id if needed by the type, though it's added later
 type VisitorInsert = Database['public']['Tables']['visitors']['Insert'];
 
-export const createVisitor = async (visitorData: VisitorFormValues): Promise<VisitorRow | null> => {
+// Now requires tenantId
+export const createVisitor = async (visitorData: VisitorFormValues, tenantId: string): Promise<VisitorRow | null> => {
+   if (!tenantId) {
+    console.error("Tenant ID is required to create a visitor.");
+    // Consider using toast here if available globally
+    throw new Error("Erro: ID do inquilino não encontrado. Não é possível criar visitante.");
+  }
+
   // Ensure the data conforms to the Insert type, especially handling optional fields
-  const dataToInsert: VisitorInsert = {
+  const clientDataToInsert: Omit<VisitorInsert, 'tenant_id'> = { // Omit tenant_id initially
     name: visitorData.name,
     client_id: visitorData.client_id,
     visit_time: visitorData.visit_time,
@@ -16,9 +24,9 @@ export const createVisitor = async (visitorData: VisitorFormValues): Promise<Vis
     notes: visitorData.notes || null,       // Ensure null if empty/undefined
   };
 
-  // Invoke the Edge Function instead of direct insert
+  // Invoke the Edge Function, passing tenantId along with visitor data
   const { data, error } = await supabase.functions.invoke('create-visitor', {
-    body: dataToInsert, // Pass validated data in the body
+    body: { ...clientDataToInsert, tenantId }, // Pass visitor data and tenantId in the body
   });
 
   if (error) {

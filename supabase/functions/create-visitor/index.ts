@@ -36,7 +36,18 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Destructure tenantId along with other visitor data
+    // Remove the re-declaration of visitorData here
+    const { tenantId, ...restOfData } = await req.json() as VisitorData & { tenantId: string };
+    visitorData = restOfData; // Assign the rest of the data to the existing visitorData variable
+
     // Basic validation (add more as needed)
+    if (!tenantId) {
+       return new Response(JSON.stringify({ error: 'Missing required field: tenantId' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
     if (!visitorData.name || !visitorData.client_id || !visitorData.visit_time) {
        return new Response(JSON.stringify({ error: 'Missing required fields: name, client_id, visit_time' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -50,15 +61,12 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Insert visitor data
+    // Insert visitor data, including tenant_id
     const { data, error } = await supabase
       .from('visitors')
-      .insert([{ 
-        name: visitorData.name,
-        document: visitorData.document,
-        client_id: visitorData.client_id,
-        visit_time: visitorData.visit_time, // Ensure this is a valid timestamp format for PG
-        notes: visitorData.notes,
+      .insert([{
+        ...visitorData, // Spread the rest of the visitor data
+        tenant_id: tenantId // Add the tenant ID
       }])
       .select()
       .single();

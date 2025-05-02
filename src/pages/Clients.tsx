@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { createClient, updateClient, deleteClient } from '@/services/clients-service'; // Import deleteClient
 import { createVisitor } from '@/services/visitors-service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/components/auth/AuthProvider'; // Import useAuth
 import { ClientDetailsDialog } from '@/components/clients/ClientDetailsDialog'; // Import Details Dialog
 import { VisitorForm } from '@/components/visitors/VisitorForm';
 import { VisitorFormValues } from '@/components/visitors/visitorFormSchema';
@@ -32,6 +33,7 @@ import { VisitorsTable } from '@/components/visitors/VisitorsTable'; // Import V
 
 // --- Clients Component ---
 const Clients = () => {
+  const { tenantId } = useAuth(); // Get tenantId
   // State for Client Dialog
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null); // Used for Edit and Details
@@ -52,7 +54,11 @@ const Clients = () => {
       if (selectedClient) {
         return updateClient(selectedClient.id, values);
       } else {
-        return createClient(values);
+        if (!tenantId) {
+          toast.error("Erro: ID do inquilino não encontrado.");
+          throw new Error("Tenant ID is missing");
+        }
+        return createClient(values, tenantId); // Pass tenantId
       }
     },
     onSuccess: () => {
@@ -101,7 +107,15 @@ const Clients = () => {
 
   // --- Visitor Mutation (defined inside component) ---
   const visitorMutation = useMutation({
-    mutationFn: createVisitor,
+    // Adapt mutationFn to accept values and pass tenantId
+    mutationFn: (values: VisitorFormValues) => {
+       if (!tenantId) {
+          toast.error("Erro: ID do inquilino não encontrado.");
+          // Return a rejected promise or throw an error
+          return Promise.reject(new Error("Tenant ID is missing"));
+        }
+      return createVisitor(values, tenantId); // Pass tenantId
+    },
     onSuccess: () => {
       toast.success("Visitante registrado com sucesso!");
       setVisitorDialogOpen(false); // Close dialog on success

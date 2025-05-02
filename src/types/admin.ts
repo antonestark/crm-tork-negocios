@@ -7,6 +7,7 @@ export interface User {
   email: string;
   profile_image_url?: string | null;
   role?: string;
+  tenant_id?: string | null; // Added tenant_id
   department_id?: number | null;
   phone?: string | null;
   active?: boolean;

@@ -82,7 +82,14 @@ export const fetchLeads = async (): Promise<Lead[]> => {
 };
 
 // Add a new lead to the database
-export const addLead = async (lead: NewLead): Promise<Lead | null> => {
+// Now requires tenantId as an argument
+export const addLead = async (lead: NewLead, tenantId: string): Promise<Lead | null> => {
+  if (!tenantId) {
+    console.error("Tenant ID is required to add a lead.");
+    toast.error("Erro: ID do inquilino não encontrado. Não é possível adicionar lead.");
+    return null;
+  }
+
   try {
     // Normalize status and assigned_to before saving
     // Explicitly check for "unassigned" string
@@ -90,6 +97,7 @@ export const addLead = async (lead: NewLead): Promise<Lead | null> => {
     
     const normalizedLead = {
       ...lead,
+      tenant_id: tenantId, // Add tenant_id
       assigned_to: assignedToValue, // Use the corrected value
       status: normalizeStatus(lead.status || 'neutro')
     };

@@ -10,8 +10,10 @@ import {
   deleteLead as deleteLeadService,
   NewLead
 } from '@/services/leads-service';
+import { useAuth } from '@/components/auth/AuthProvider'; // Import useAuth
 
 export const useLeads = () => {
+  const { tenantId } = useAuth(); // Get tenantId from auth context
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -39,9 +41,13 @@ export const useLeads = () => {
   };
 
   const addLead = async (lead: NewLead) => {
+    if (!tenantId) {
+      toast.error("Erro: ID do inquilino não encontrado.");
+      return null;
+    }
     try {
-      const newLead = await addLeadService(lead);
-      
+      const newLead = await addLeadService(lead, tenantId); // Pass tenantId
+
       if (!newLead) {
         toast.error('Erro ao adicionar lead');
         return null;

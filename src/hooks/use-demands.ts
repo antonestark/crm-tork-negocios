@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { DemandCreate } from '@/types/demands';
+import { useAuth } from '@/components/auth/AuthProvider'; // Import useAuth
 
 export interface Demand {
   id: string;
@@ -40,6 +41,7 @@ const mapDemandData = (d: any): Demand => ({
 });
 
 export const useDemands = () => {
+  const { tenantId } = useAuth(); // Get tenantId
   const [demands, setDemands] = useState<Demand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -111,6 +113,10 @@ export const useDemands = () => {
   };
 
   const addDemand = async (data: DemandCreate): Promise<boolean> => {
+    if (!tenantId) {
+      toast.error("Erro: ID do inquilino não encontrado.");
+      return false;
+    }
     try {
       setLoading(true);
       
@@ -130,6 +136,7 @@ export const useDemands = () => {
           assigned_to: data.assigned_to,
           requested_by: data.requested_by,
           due_date: formattedDueDate,
+          tenant_id: tenantId, // Add tenant_id
         });
       
       if (error) throw error;
